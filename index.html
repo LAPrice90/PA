@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>V3 Recipe Review</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="app-header">
+        <div>
+          <p class="tiny-label">Diet Planner V3</p>
+          <h1>Recipe Review</h1>
+        </div>
+        <a class="github-link" href="https://github.com/LAPrice90/PA" target="_blank" rel="noreferrer">GitHub</a>
+      </header>
+
+      <main class="review-stage" aria-live="polite">
+        <section class="recipe-phone" aria-label="Mobile recipe confirmation card">
+          <div class="top-strip">
+            <button id="previous-recipe" class="round-button" type="button" aria-label="Previous recipe">Prev</button>
+            <div class="review-count" id="review-count">Loading</div>
+            <button id="next-recipe" class="round-button" type="button" aria-label="Next recipe">Next</button>
+          </div>
+
+          <article id="recipe-profile" class="recipe-profile">
+            <div class="loading-card">Loading recipe profile...</div>
+          </article>
+
+          <section class="decision-panel" aria-label="Recipe decision">
+            <p id="decision-copy">Review the recipe, then choose Pass or Fail. This only saves a local UI decision.</p>
+            <div class="decision-actions">
+              <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
+              <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
+            </div>
+          </section>
+        </section>
+
+        <aside class="recipe-drawer" aria-label="Recipe queue and status">
+          <section class="drawer-section">
+            <div class="drawer-heading">
+              <h2>Queue</h2>
+              <span id="data-status" class="state-pill pending">Loading</span>
+            </div>
+            <div id="queue-summary" class="queue-summary"></div>
+            <div class="filter-pills" role="group" aria-label="Recipe status filters">
+              <button class="filter-pill active" data-filter="all" type="button">All</button>
+              <button class="filter-pill" data-filter="needs_review" type="button">Review</button>
+              <button class="filter-pill" data-filter="approved" type="button">Passed</button>
+              <button class="filter-pill" data-filter="blocked" type="button">Blocked</button>
+            </div>
+            <div id="recipe-list" class="recipe-list"></div>
+          </section>
+
+          <section class="drawer-section soft">
+            <h2>What This Screen Does</h2>
+            <p>Shows the recipe like a food profile for Luke review. It does not approve recipes, write Google events, or hand anything to the planner.</p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
