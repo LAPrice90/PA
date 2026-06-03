@@ -1,0 +1,48 @@
+{
+  "schema_version": "v3.culinary_baseline_policy.1",
+  "status": "active",
+  "purpose": "Block technically valid but bland or too-literal recipe products before final human review.",
+  "plain_english": "The recipe must feel like something Luke would actually cook, not just the shortest possible interpretation of the ingredients.",
+  "applies_after": "output_bundle_pass",
+  "route_back_phase": "food_blueprint",
+  "core_rules": [
+    {
+      "rule_id": "CULINARY-001-NO-PLAIN-PROOF-ONLY-RECIPE",
+      "summary": "Do not send a plain proof-only recipe to Luke review unless the brief explicitly asks for plain food."
+    },
+    {
+      "rule_id": "CULINARY-002-BASIC-SEASONING-REQUIRED",
+      "summary": "Most savoury recipes need salt and/or pepper unless there is a saved reason not to use them."
+    },
+    {
+      "rule_id": "CULINARY-003-TOAST-BASE-NEEDS-FAT-OR-REASON",
+      "summary": "Toast-based breakfast recipes need butter or another deliberate finish unless the brief says dry toast."
+    },
+    {
+      "rule_id": "CULINARY-004-CHEF-EDGE-MUST-BE-DATASHEETED",
+      "summary": "Butter, seasoning, herbs, acid, sauce, or finish must be present in blueprint and datasheet before appearing in the card."
+    }
+  ],
+  "egg_on_toast_baseline": {
+    "expected_finish_options": [
+      "buttered toast",
+      "salt",
+      "black pepper"
+    ],
+    "optional_finish_options": [
+      "chives",
+      "vinegar in poaching water",
+      "crisped butter edge"
+    ],
+    "must_not_fake": [
+      "Do not add butter or seasoning to the visible card unless rows exist in blueprint and datasheet.",
+      "Do not approve the plain version just because the technical data passes."
+    ]
+  },
+  "blocks_review_if": [
+    "savoury recipe has no seasoning and no saved reason",
+    "toast breakfast has no butter/fat/finish and no saved reason",
+    "recipe description contains plain/simple because the build skipped flavour design",
+    "chef edge is added only in visible prose without datasheet rows"
+  ]
+}

@@ -85,6 +85,7 @@ function sectionLines(markdown, heading) {
 }
 
 function statusLabel(recipe) {
+  if (recipe.review_quality?.status === "BLOCK") return "Needs recipe edit";
   if (recipe.status === "approved") return "Confirmed";
   if (recipe.status === "needs_review") return "Needs review";
   return "Blocked";
@@ -301,12 +302,31 @@ function renderShopping(recipe) {
   `;
 }
 
+function renderChefCheck(recipe) {
+  const quality = recipe.review_quality || {};
+  if (!quality.status) return "";
+  const isBlocked = quality.status === "BLOCK";
+  const issue = Array.isArray(quality.issues) && quality.issues.length ? quality.issues[0] : {};
+  return `
+    <section class="story-section chef-story ${isBlocked ? "blocked" : "passed"}">
+      <div class="section-title-row">
+        <h3>Chef Check</h3>
+        <span>${escapeHtml(isBlocked ? "Needs edit" : "Passed")}</span>
+      </div>
+      <p>${escapeHtml(quality.plain_english_summary || "No chef check summary saved.")}</p>
+      ${issue.expected_repair ? `<p class="repair-note">${escapeHtml(issue.expected_repair)}</p>` : ""}
+    </section>
+  `;
+}
+
 function renderProofSummary(recipe) {
   const proof = recipe.technical_proof || {};
   const counts = proof.source_authorised_counts || {};
   const sourceReady = proof.verdict === "PASS";
   const visual = recipe.review_visual || {};
   const visualReady = visual.status === "approved_for_review_display" && visual.visual_truth_check?.status === "PASS";
+  const quality = recipe.review_quality || {};
+  const qualityBlocked = quality.status === "BLOCK";
   const decisionText = recipe.human_review?.confirmed ? "Luke confirmed" : "Needs Luke confirmation";
   return `
     <section class="story-section proof-story">
@@ -314,6 +334,7 @@ function renderProofSummary(recipe) {
       <div class="proof-bites">
         <span class="${sourceReady ? "ok" : "wait"}">${sourceReady ? "Data proof passed" : "Data proof blocked"}</span>
         <span class="${visualReady ? "ok" : "wait"}">${visualReady ? "Image truth passed" : "No checked image"}</span>
+        <span class="${qualityBlocked ? "wait" : "ok"}">${qualityBlocked ? "Chef check blocked" : "Chef check clear"}</span>
         <span class="${recipe.algorithmic_planning_allowed ? "ok" : "wait"}">${escapeHtml(decisionText)}</span>
         <span>${escapeHtml(counts.nutrition || 0)} nutrition rows</span>
         <span>${escapeHtml(counts.cost || 0)} cost rows</span>
@@ -333,6 +354,7 @@ function renderProfile(recipe) {
     renderNutrition(recipe),
     renderRecipePreview(recipe),
     renderShopping(recipe),
+    renderChefCheck(recipe),
     renderProofSummary(recipe),
   ].join("");
   renderDecisionPanel(recipe);

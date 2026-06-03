@@ -3,8 +3,8 @@
   "generated_from": "V3/recipe_factory/runs",
   "recipe_count": 3,
   "approved_count": 0,
-  "needs_review_count": 1,
-  "blocked_count": 2,
+  "needs_review_count": 0,
+  "blocked_count": 3,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
     "app_calculates_recipe_logic": false,
@@ -43,6 +43,7 @@
       "shopping_rows": [],
       "shopping_total_used_cost_gbp": 0,
       "review_visual": {},
+      "review_quality": {},
       "technical_proof": {
         "verdict": "BLOCK",
         "level": "unknown",
@@ -90,7 +91,7 @@
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "run_slug": "poached-eggs-on-toast-v1",
       "title": "Plain Poached Eggs On White Sourdough Toast",
-      "status": "needs_review",
+      "status": "blocked",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
@@ -729,6 +730,34 @@
         "planner_handover_effect": "none",
         "human_review_effect": "none"
       },
+      "review_quality": {
+        "schema_version": "v3.recipe_review_quality.1",
+        "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
+        "status": "BLOCK",
+        "route_back_phase": "food_blueprint",
+        "verdict": "Needs recipe rebuild before Luke confirmation.",
+        "plain_english_summary": "The current Poached Eggs recipe is technically proven but too literal. It has eggs and toast only, with no buttered toast, salt, pepper, or deliberate chef finish.",
+        "issues": [
+          {
+            "code": "CULINARY_BASELINE_MISSING",
+            "severity": "issue",
+            "message": "Eggs on toast reached review without butter, salt, pepper, or a saved reason for plain dry toast.",
+            "route_back_phase": "food_blueprint",
+            "expected_repair": "Rebuild the recipe with a deliberate household finish such as buttered sourdough, salt, and black pepper, then carry those ingredients through blueprint, cookflow, datasheet, source proof, recipe card, shopping, review visual, and app index."
+          }
+        ],
+        "blocked_from": [
+          "Luke pass confirmation",
+          "planner handover",
+          "algorithmic planning",
+          "recipe shelf approval"
+        ],
+        "notes": [
+          "Do not patch butter or seasoning into the visible card only.",
+          "Unsalted butter and black pepper appear to have stronger source status than salted butter, but any repair must prove price/nutrition/shopping rows through the normal V3 route.",
+          "Salt, pepper, and butter should be treated as normal household cooking details, not optional decoration."
+        ]
+      },
       "technical_proof": {
         "verdict": "PASS",
         "level": "unknown",
@@ -752,7 +781,13 @@
         "warning_count": 0,
         "route_back_phase": "",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
-        "first_issue": {}
+        "first_issue": {
+          "code": "CULINARY_BASELINE_MISSING",
+          "severity": "issue",
+          "message": "Eggs on toast reached review without butter, salt, pepper, or a saved reason for plain dry toast.",
+          "route_back_phase": "food_blueprint",
+          "expected_repair": "Rebuild the recipe with a deliberate household finish such as buttered sourdough, salt, and black pepper, then carry those ingredients through blueprint, cookflow, datasheet, source proof, recipe card, shopping, review visual, and app index."
+        }
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
@@ -795,6 +830,7 @@
       "shopping_rows": [],
       "shopping_total_used_cost_gbp": 0,
       "review_visual": {},
+      "review_quality": {},
       "technical_proof": {
         "verdict": "unknown",
         "level": "unknown",
@@ -839,33 +875,7 @@
       }
     }
   ],
-  "user_review_queue": [
-    {
-      "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
-      "title": "Plain Poached Eggs On White Sourdough Toast",
-      "run_slug": "poached-eggs-on-toast-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
-        "output_bundle": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle",
-        "finished_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/finished-recipe-card.md",
-        "recipe_data_invoice": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/recipe-data-invoice.csv",
-        "solver_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/solver-recipe-card.json",
-        "factory_runner_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
-      }
-    }
-  ],
+  "user_review_queue": [],
   "blocked_queue": [
     {
       "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
@@ -890,6 +900,30 @@
         "factory_runner_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/factory-runner-report.json",
         "validation_summary": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/validation-summary.json",
         "source_authority_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/source-authority-binding-report.json"
+      }
+    },
+    {
+      "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
+      "title": "Plain Poached Eggs On White Sourdough Toast",
+      "run_slug": "poached-eggs-on-toast-v1",
+      "route_back_phase": "",
+      "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
+      "first_issue": {
+        "code": "CULINARY_BASELINE_MISSING",
+        "severity": "issue",
+        "message": "Eggs on toast reached review without butter, salt, pepper, or a saved reason for plain dry toast.",
+        "route_back_phase": "food_blueprint",
+        "expected_repair": "Rebuild the recipe with a deliberate household finish such as buttered sourdough, salt, and black pepper, then carry those ingredients through blueprint, cookflow, datasheet, source proof, recipe card, shopping, review visual, and app index."
+      },
+      "paths": {
+        "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
+        "output_bundle": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle",
+        "finished_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/finished-recipe-card.md",
+        "recipe_data_invoice": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/recipe-data-invoice.csv",
+        "solver_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/solver-recipe-card.json",
+        "factory_runner_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/factory-runner-report.json",
+        "validation_summary": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/validation-summary.json",
+        "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
       }
     },
     {

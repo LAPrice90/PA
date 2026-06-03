@@ -437,6 +437,28 @@ button {
   color: var(--black);
 }
 
+.chef-story {
+  background: var(--surface);
+}
+
+.chef-story p {
+  margin: 0;
+  color: #333b47;
+}
+
+.chef-story .repair-note {
+  margin-top: 10px;
+  padding: 12px;
+  border-left: 4px solid var(--coral);
+  background: var(--coral-soft);
+  color: var(--black);
+  font-weight: 700;
+}
+
+.chef-story.blocked h3 {
+  color: var(--coral);
+}
+
 .friendly-empty {
   margin: 0;
   color: var(--muted);

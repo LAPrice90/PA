@@ -25,9 +25,9 @@ Current data state:
 
 - 3 recipes in the review index.
 - 0 approved.
-- 1 needs review.
-- 2 blocked.
-- Poached Eggs remains `needs_review`.
+- 0 needs review.
+- 3 blocked.
+- Poached Eggs is blocked by `CULINARY_BASELINE_MISSING` because the technical proof omitted butter, seasoning, and chef edge.
 
 Review image rule:
 
@@ -35,3 +35,9 @@ Review image rule:
 - The image must show only approved recipe foods.
 - Any image that adds extra ingredients must be rejected.
 - The policy copy is in `docs/final_review_visual_policy.json`.
+
+Culinary baseline rule:
+
+- Technically valid but bland recipes are blocked before Luke review.
+- Eggs on toast must be rebuilt through blueprint and datasheet if it needs butter, salt, pepper, or another finish.
+- The policy copy is in `docs/culinary_baseline_policy.json`.
