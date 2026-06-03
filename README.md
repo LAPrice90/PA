@@ -10,7 +10,9 @@ This repo currently contains a static review screen:
 - `data/recipe-index.json`
 - `assets/poached-eggs-hero.png`
 
-Plain English: this is the food-profile view for reviewing recipes on a phone. It shows the menu description, suitability, per-person nutrition, recipe preview, shopping costs, proof summary, and local-only Pass/Fail buttons.
+Plain English: this is the food-profile view for reviewing recipes on a phone. It shows the menu description, suitability, per-person nutrition, recipe preview, shopping costs, proof summary, a checked review image, and local-only Pass/Fail buttons.
+
+The design has moved from warm meal-kit colours to a sharper minimalist style: white cards, black header, electric green pass state, coral fail state, and blue proof/status accents.
 
 Important boundary:
 
@@ -26,3 +28,10 @@ Current data state:
 - 1 needs review.
 - 2 blocked.
 - Poached Eggs remains `needs_review`.
+
+Review image rule:
+
+- Generated food images are allowed for final review only after the technical recipe bundle passes.
+- The image must show only approved recipe foods.
+- Any image that adds extra ingredients must be rejected.
+- The policy copy is in `docs/final_review_visual_policy.json`.

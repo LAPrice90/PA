@@ -1,0 +1,58 @@
+{
+  "schema_version": "v3.final_review_visual_policy.1",
+  "status": "active",
+  "purpose": "Govern generated food images used in the final recipe review card.",
+  "plain_english": "The review image is the shop-window photo. It can make a recipe easier to judge, but it is not recipe logic and it must not add ingredients that are not in the approved recipe artifacts.",
+  "allowed_stage": {
+    "earliest_stage": "after_output_bundle_pass",
+    "requires": [
+      "brief.json approved",
+      "blueprint.json approved",
+      "cookflow.json approved",
+      "datasheet.json approved",
+      "technical_trace.json approved",
+      "card.json approved",
+      "audit.json approved",
+      "recipe-output-bundle-report.json status PASSED"
+    ]
+  },
+  "forbidden_uses": [
+    "recipe design",
+    "ingredient selection",
+    "nutrition calculation",
+    "shopping calculation",
+    "planner handover",
+    "human approval",
+    "calendar output"
+  ],
+  "prompt_rules": [
+    "Use only the recipe title, approved component names, approved visible ingredients, and approved plating logic.",
+    "Name any ingredients that must be visible.",
+    "Name any ingredients that must not appear.",
+    "Request no text, no labels, no logos, and no extra garnish unless the garnish exists in the approved recipe.",
+    "Use a retail review-card style, but keep the food truthful."
+  ],
+  "review_checks": [
+    "image_file_exists",
+    "allowed_foods_visible_or_reasonable",
+    "blocked_visual_additions_absent",
+    "no_text_or_logo",
+    "not_used_as_recipe_logic",
+    "review_visual_json_saved"
+  ],
+  "blocks_final_review_if": [
+    "image shows ingredients not in the recipe",
+    "image hides the main recipe identity",
+    "image contains text, logos, or brand claims",
+    "review metadata is missing",
+    "visual truth check is not PASS"
+  ],
+  "metadata_file": "output_bundle/review-visual.json",
+  "app_field": "review_visual",
+  "source_of_truth": [
+    "blueprint.json",
+    "datasheet.json",
+    "recipe_card.md",
+    "recipe-data-invoice.csv"
+  ]
+}

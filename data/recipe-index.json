@@ -42,6 +42,7 @@
       "ingredient_rows": [],
       "shopping_rows": [],
       "shopping_total_used_cost_gbp": 0,
+      "review_visual": {},
       "technical_proof": {
         "verdict": "BLOCK",
         "level": "unknown",
@@ -690,6 +691,44 @@
         }
       ],
       "shopping_total_used_cost_gbp": 1.86,
+      "review_visual": {
+        "schema_version": "v3.review_visual.1",
+        "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
+        "status": "approved_for_review_display",
+        "asset_path": "assets/poached-eggs-hero.png",
+        "generated_image_source": "C:/Users/Luke/.codex/generated_images/019e635b-a9c4-7172-b59b-3c0b5dabd155/ig_00a91e9d96786d02016a208a38d5c88191b6fee6aa22609148.png",
+        "prompt_summary": "Exactly two poached eggs on one thick slice of plain white sourdough toast. No salad, tomatoes, herbs, garnish, sauce, extra ingredients, text, or logo.",
+        "truth_sources": [
+          "recipe_card.md",
+          "datasheet.json",
+          "recipe-data-invoice.csv"
+        ],
+        "allowed_visible_foods": [
+          "poached eggs",
+          "white sourdough toast"
+        ],
+        "blocked_visual_additions": [
+          "salad",
+          "tomatoes",
+          "herbs",
+          "chives",
+          "sauce",
+          "butter pat",
+          "avocado",
+          "beans",
+          "extra garnish",
+          "text",
+          "logo"
+        ],
+        "visual_truth_check": {
+          "status": "PASS",
+          "checked_by": "Codex visual inspection",
+          "checked_at": "2026-06-03",
+          "notes": "The earlier generated image was rejected because it added salad and tomatoes. The current image shows only two poached eggs on one slice of sourdough toast."
+        },
+        "planner_handover_effect": "none",
+        "human_review_effect": "none"
+      },
       "technical_proof": {
         "verdict": "PASS",
         "level": "unknown",
@@ -755,6 +794,7 @@
       "ingredient_rows": [],
       "shopping_rows": [],
       "shopping_total_used_cost_gbp": 0,
+      "review_visual": {},
       "technical_proof": {
         "verdict": "unknown",
         "level": "unknown",

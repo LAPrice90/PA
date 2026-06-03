@@ -111,8 +111,11 @@ function currentRecipe() {
 }
 
 function heroImage(recipe) {
-  if ((recipe.title || "").toLowerCase().includes("poached")) {
-    return "./assets/poached-eggs-hero.png";
+  const visual = recipe.review_visual || {};
+  const assetPath = String(visual.asset_path || "").trim();
+  const truthStatus = String(visual.visual_truth_check?.status || "").trim();
+  if (visual.status === "approved_for_review_display" && truthStatus === "PASS" && assetPath) {
+    return `./${assetPath.replace(/^\.\//, "")}`;
   }
   return "";
 }
@@ -302,12 +305,15 @@ function renderProofSummary(recipe) {
   const proof = recipe.technical_proof || {};
   const counts = proof.source_authorised_counts || {};
   const sourceReady = proof.verdict === "PASS";
+  const visual = recipe.review_visual || {};
+  const visualReady = visual.status === "approved_for_review_display" && visual.visual_truth_check?.status === "PASS";
   const decisionText = recipe.human_review?.confirmed ? "Luke confirmed" : "Needs Luke confirmation";
   return `
     <section class="story-section proof-story">
       <h3>Proof, Without The Noise</h3>
       <div class="proof-bites">
         <span class="${sourceReady ? "ok" : "wait"}">${sourceReady ? "Data proof passed" : "Data proof blocked"}</span>
+        <span class="${visualReady ? "ok" : "wait"}">${visualReady ? "Image truth passed" : "No checked image"}</span>
         <span class="${recipe.algorithmic_planning_allowed ? "ok" : "wait"}">${escapeHtml(decisionText)}</span>
         <span>${escapeHtml(counts.nutrition || 0)} nutrition rows</span>
         <span>${escapeHtml(counts.cost || 0)} cost rows</span>
