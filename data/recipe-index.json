@@ -1,10 +1,19 @@
 {
   "schema_version": "v3.recipe_explorer_index.1",
   "generated_from": "V3/recipe_factory/runs",
-  "recipe_count": 3,
+  "exposure_policy": {
+    "policy_path": "V3/recipe_factory/rules/recipe_explorer_exposure_policy.json",
+    "mode": "explicit_allowlist_only",
+    "visible_run_slugs": [
+      "poached-eggs-on-toast-v1"
+    ],
+    "hidden_reference_count": 2,
+    "expected_public_recipe_count": 1
+  },
+  "recipe_count": 1,
   "approved_count": 0,
   "needs_review_count": 1,
-  "blocked_count": 2,
+  "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
     "app_calculates_recipe_logic": false,
@@ -13,88 +22,6 @@
     "app_creates_weekly_plan": false
   },
   "recipes": [
-    {
-      "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
-      "run_slug": "gochujang-sticky-beef-noodles-v1",
-      "title": "Gochujang Sticky Beef Noodles With Charred Greens",
-      "status": "blocked",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
-      "technical_planner_ready": false,
-      "technical_algorithmic_planning_allowed": false,
-      "user_confirmation_required": false,
-      "human_review": {},
-      "meal_type": "weekend fakeaway sample",
-      "people": [],
-      "tags": [],
-      "timing": {},
-      "person_totals": {},
-      "slot_fit": {},
-      "target_ranges": {},
-      "day_balance_requirements": [],
-      "shopping_treatments": [],
-      "binary_flags": {},
-      "count_units": {},
-      "unit_model": {},
-      "source_status": {},
-      "planner_handover": {},
-      "recipe_card_markdown": "# Gochujang Sticky Beef Noodles With Charred Greens\n\nGlossy fakeaway beef noodles with charred greens, adult garlic chilli oil, and a mild Louis bowl.\n\nServes: Luke, Sarah and Louis\n\nTime: 38 minutes active | 42 minutes total\n\nYield: 3 bowls\n\nBatch assumption: beef seared in 2 fast wok batches; Louis is split before adult sauce.\n\nMeal role: weekend fakeaway sample\n\n## Ingredients\n\n### Protein\n\n- Beef rump steak - 410g\n\n### Carbs\n\n- Egg noodles - 255g\n\n### Vegetables\n\n- Pak choi - 200g\n- Tenderstem broccoli - 180g\n- Red pepper - 145g\n- Spring onions - 55g\n- Garlic - 8g for garlic oil\n\n### Sauce And Pantry\n\n- Gochujang - 30g\n- Soy sauce - 40ml\n- Clear honey - 27g\n- Rice vinegar - 15ml\n- Sesame oil - 4ml\n- Vegetable oil - 10ml\n- Water - 80ml\n\n### Finish\n\n- Unsalted butter - 12g\n- Sesame seeds - 8g\n- Chilli flakes - 1 tsp (2g)\n\n## Equipment\n\n- Large carbon steel wok\n- 20 cm Le Creuset tri-ply saucepan with lid\n- Small 10 cm coated saucepan\n- Mixing bowl\n- Tongs\n- Chopping board and knife\n\n## Mise En Place\n\n- Beef plate: slice the beef thinly against the grain.\n- Charred veg bowl: halve the pak choi, halve thick broccoli stems, and cut the pepper into strips.\n- Adult sauce bowl: mix the gochujang, 32ml soy sauce, 21g honey, 12ml rice vinegar, 3ml sesame oil, and 65ml water. Keep the butter beside the bowl.\n- Louis mild glaze: mix 8ml soy sauce, 6g honey, 3ml rice vinegar, 1ml sesame oil, and 15ml water.\n- Garlic oil setup: slice the garlic and keep the chilli flakes beside the small saucepan.\n- Finish pot: slice the spring onions and keep them with the sesame seeds.\n\n## Method\n\n### 1. Cook the noodles\n\nCook the egg noodles together in the 20 cm saucepan. Drain and loosen with a little sesame oil.\n\nUses:\n\n- Egg noodles - 255g\n- Sesame oil - 1ml from the listed sauce oil\n\n### 2. Mix the sauces\n\nKeep the adult sauce and Louis glaze separate. Louis must stay away from gochujang and chilli oil.\n\nUses:\n\n- Adult sauce bowl - all\n- Louis mild glaze - all\n\n### 3. Make the garlic chilli oil\n\nWarm the small saucepan over low heat. Add vegetable oil and sliced garlic. Cook until lightly golden, add chilli flakes, then take the pan off the heat.\n\nUses:\n\n- Vegetable oil - 10ml\n- Garlic - 8g\n- Chilli flakes - 1 tsp (2g)\n\n### 4. Sear the beef\n\nHeat the wok until very hot. Sear the beef in 2 fast batches so it browns instead of stewing. Move it to a plate.\n\nUses:\n\n- Beef rump steak - 410g\n\n### 5. Char the vegetables\n\nKeep the wok hot. Add the whole charred veg bowl and let the edges catch colour before tossing.\n\nUses:\n\n- Pak choi - 200g\n- Tenderstem broccoli - 180g\n- Red pepper - 145g\n\n### 6. Split Louis's bowl\n\nRemove Louis's share of noodles, beef, and charred veg. Toss it with his mild glaze.\n\nUses:\n\n- Louis mild glaze - all\n- Cooked egg noodles - Louis share\n- Seared beef - Louis share\n- Charred veg mix - Louis share\n\n### 7. Glaze the adults\n\nReturn the adult beef and veg to the wok. Add the adult sauce and bubble until glossy. Stir in the butter, add the adult noodles, and toss hard.\n\nUses:\n\n- Adult sauce - all\n- Unsalted butter - 12g\n- Cooked egg noodles - adult shares\n- Seared beef - adult shares\n- Charred veg mix - adult shares\n\n### 8. Finish\n\nPlate the bowls and finish the adult bowls with garlic chilli oil.\n\nUses:\n\n- Spring onions - 55g\n- Sesame seeds - 8g\n- Garlic chilli oil - adult shares only\n\n## Plate\n\n### Luke\n\n- Carbs: 150g dry-equivalent egg noodles, served as his share of the cooked noodle batch.\n- Protein: about 44% of the seared beef batch.\n- Vegetables: about 45% of the charred veg mix.\n- Sauce: about 60% of the adult gochujang glaze.\n- Finish: larger share of spring onions, sesame seeds, and garlic chilli oil.\n\n### Sarah\n\n- Carbs: 60g dry-equivalent egg noodles, served as her share of the cooked noodle batch.\n- Protein: about 37% of the seared beef batch.\n- Vegetables: about 37% of the charred veg mix.\n- Sauce: about 40% of the adult gochujang glaze.\n- Finish: smaller share of spring onions, sesame seeds, and garlic chilli oil.\n\n### Louis\n\n- Carbs: 45g dry-equivalent egg noodles, served as his share of the cooked noodle batch.\n- Protein: about 19% of the seared beef batch.\n- Vegetables: about 18% of the charred veg mix.\n- Sauce: all of the mild honey-soy glaze.\n- Finish: child share of spring onions and sesame seeds. No gochujang and no chilli oil.\n\n## Nutrition And Cost\n\nSample estimate per serving:\n\n- Luke: 1192 kcal, 72g protein, 149g carbs, 35g fat, GBP 4.80\n- Sarah: 741 kcal, 51.5g protein, 74g carbs, 26.7g fat, GBP 3.73\n- Louis: 417 kcal, 28.3g protein, 49.9g carbs, 10.7g fat, GBP 1.92\n\n## Cook's Notes\n\n- Sarah uses normal egg noodles because her saved issue is pasta-specific, not gluten-wide.\n- Plate the cooked beef and veg by share of the cooked mix; do not separate the vegetables after stir-frying.\n- Keep the wok hot so the beef browns quickly instead of stewing.\n",
-      "per_person_markdown": "",
-      "shopping_markdown": "",
-      "invoice_rows": [],
-      "ingredient_rows": [],
-      "shopping_rows": [],
-      "shopping_total_used_cost_gbp": 0,
-      "review_visual": {},
-      "review_quality": {},
-      "technical_proof": {
-        "verdict": "BLOCK",
-        "level": "unknown",
-        "ingredient_proof_row_count": 5,
-        "source_authorised_counts": {
-          "sku": 0,
-          "nutrition": 0,
-          "cost": 0,
-          "filling": 0,
-          "shopping": 0,
-          "unit": 0
-        },
-        "profile_rule_status": "BLOCK",
-        "profile_rule_checked_count": 0,
-        "profile_rule_pass_count": 0,
-        "blocked_profile_rules": [],
-        "active_profile_rule_matches": []
-      },
-      "factory_status": {
-        "factory_runner": "BLOCKED",
-        "source_binding": "BLOCKED",
-        "validation": "BLOCK",
-        "output_bundle": "BLOCKED",
-        "audit_status": "approved",
-        "issue_count": 1,
-        "warning_count": 0,
-        "route_back_phase": "datasheet",
-        "plain_english_summary": "Stopped before datasheet proof: V3_SOURCE_RECIPE_MAPPING_MISSING. No V2 recipe_code mapping exists for this V3 recipe run. Add an authorised mapping or pass --v2-recipe-code.",
-        "first_issue": {
-          "code": "V3_SOURCE_RECIPE_MAPPING_MISSING",
-          "severity": "issue",
-          "message": "No V2 recipe_code mapping exists for this V3 recipe run. Add an authorised mapping or pass --v2-recipe-code.",
-          "source": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\source_authority_recipe_map.csv",
-          "key": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
-          "route_back_phase": "datasheet"
-        }
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/source-authority-binding-report.json"
-      }
-    },
     {
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "run_slug": "poached-eggs-on-toast-v1",
@@ -1773,78 +1700,32 @@
         "validation_summary": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/validation-summary.json",
         "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
       }
+    }
+  ],
+  "hidden_reference_runs": [
+    {
+      "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
+      "run_slug": "gochujang-sticky-beef-noodles-v1",
+      "title": "Gochujang Sticky Beef Noodles With Charred Greens",
+      "status": "blocked",
+      "reason": "technical structure sample, not source-authorised or requested for review",
+      "paths": {
+        "run_dir": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1",
+        "output_bundle": "",
+        "finished_recipe_card": "",
+        "recipe_data_invoice": "",
+        "solver_recipe_card": "",
+        "factory_runner_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/factory-runner-report.json",
+        "validation_summary": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/validation-summary.json",
+        "source_authority_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/source-authority-binding-report.json"
+      }
     },
     {
       "recipe_id": "V3-FACTORY-STICKY-SOY-GINGER-CHICKEN-RICE-001",
       "run_slug": "sticky-soy-ginger-chicken-rice-v1",
       "title": "Sticky Soy Ginger Chicken Rice Bowls",
       "status": "blocked",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
-      "technical_planner_ready": false,
-      "technical_algorithmic_planning_allowed": false,
-      "user_confirmation_required": false,
-      "human_review": {},
-      "meal_type": "dinner",
-      "people": [],
-      "tags": [],
-      "timing": {},
-      "person_totals": {},
-      "slot_fit": {},
-      "target_ranges": {},
-      "day_balance_requirements": [],
-      "shopping_treatments": [],
-      "binary_flags": {},
-      "count_units": {},
-      "unit_model": {},
-      "source_status": {},
-      "planner_handover": {},
-      "recipe_card_markdown": "# Sticky Soy Ginger Chicken Rice Bowls\n\nGenerated from an existing V2 household recipe product.\n\nServes: Luke, Sarah, Louis\n\n## Ingredients\n\n### Aromatics\n\n- Fresh ginger - 25.0g\n- Garlic granules - 5.0g\n- Soy sauce - 30.0ml\n\n### Sauce And Pantry\n\n- Clear honey - 25.0g\n- Vegetable oil - 10.0ml\n\n### Protein\n\n- Chicken drum fillets - 450.0g\n\n### Carbs\n\n- Basmati rice - 225.0g\n\n### Vegetables\n\n- Frozen broccoli florets - 300.0g\n\n## Equipment\n\n- See the checked cook flow for pan and timing assumptions.\n\n## Mise En Place\n\n- Aromatics: set up the measured ingredients before cooking.\n- Sauce And Pantry: set up the measured ingredients before cooking.\n- Protein: set up the measured ingredients before cooking.\n- Carbs: set up the measured ingredients before cooking.\n- Vegetables: set up the measured ingredients before cooking.\n\n## Method\n\n### 1. Day 1 - Method\n\nBring the rice pan to a boil, cover, then simmer on low for 12 minutes.\n\n### 2. Day 1 - Method\n\nTake the rice off the heat and rest, covered, for 8 minutes before fluffing.\n\n### 3. Day 1 - Method\n\nPreheat a frying pan over medium-high heat for 3 minutes, then add 10ml vegetable oil.\n\n### 4. Day 1 - Method\n\nCook the chicken for 8 minutes, turning until browned and 75C or no pink in the thickest piece.\n\n### 5. Day 1 - Method\n\nPour the sauce into the pan and bubble for 2 minutes until glossy and coating the chicken.\n\n### 6. Day 1 - Method\n\nBoil the broccoli from frozen in a saucepan for 4 minutes, then drain well.\n\n### 7. Day 1 - Mise en Place\n\nRinse 225g dry basmati rice in a sieve until the water runs mostly clear.\n\n### 8. Day 1 - Mise en Place\n\nPut the rice in a saucepan with 405ml water and a pinch of salt.\n\n### 9. Day 1 - Mise en Place\n\nMix 30ml soy sauce, 25g honey, 25g grated ginger and 5g garlic granules in a bowl.\n\n### 10. Day 1 - Mise en Place\n\nKeep 300g frozen broccoli weighed and ready to boil near the end.\n\n### 11. Day 1 - Mise en Place\n\nSlice 450g raw chicken drum fillets into 2cm strips, then wash hands and keep the board separate.\n\n### 12. Dish Up\n\nWeigh cooked chicken: Luke 133g, Sarah 101g, Louis 117g.\n\n### 13. Dish Up\n\nWeigh cooked rice: Luke 280g, Sarah 210g, Louis 140g.\n\n### 14. Dish Up\n\nWeigh cooked broccoli: Luke 108g, Sarah 90g, Louis 72g.\n\n### 15. Dish Up\n\nSpoon any remaining pan sauce over the three bowls.\n\n## Plate\n\n### Luke\n\n- Aromatics: Fresh ginger 10g; Soy sauce 12ml; Garlic granules 2g.\n- Sauce And Pantry: Clear honey 11g; Vegetable oil 4ml.\n- Protein: Chicken drum fillets 170g.\n- Carbs: Basmati rice 100g.\n- Vegetables: Frozen broccoli florets 120g.\n\n### Sarah\n\n- Aromatics: Fresh ginger 8g; Soy sauce 10ml; Garlic granules 2g.\n- Sauce And Pantry: Clear honey 8g; Vegetable oil 3ml.\n- Protein: Chicken drum fillets 130g.\n- Carbs: Basmati rice 75g.\n- Vegetables: Frozen broccoli florets 100g.\n\n### Louis\n\n- Aromatics: Fresh ginger 7g; Soy sauce 8ml; Garlic granules 1g.\n- Sauce And Pantry: Clear honey 6g; Vegetable oil 3ml.\n- Protein: Chicken drum fillets 150g.\n- Carbs: Basmati rice 50g.\n- Vegetables: Frozen broccoli florets 80g.\n\n## Nutrition And Cost\n\n- Luke: 663.5 kcal, 49.7g protein, 99.8g carbs, 10.1g fat, GBP 1.33\n- Sarah: 505.3 kcal, 38.4g protein, 75.4g carbs, 7.7g fat, GBP 1.04\n- Louis: 422.3 kcal, 39.4g protein, 51.4g carbs, 8.0g fat, GBP 1.03\n\n## Cook's Notes\n\n- This V3 proof card is rendered from V2 source recipe rows. The app-facing invoice remains the source of truth for exact person-level data.\n",
-      "per_person_markdown": "",
-      "shopping_markdown": "",
-      "invoice_rows": [],
-      "ingredient_rows": [],
-      "shopping_rows": [],
-      "shopping_total_used_cost_gbp": 0,
-      "review_visual": {},
-      "review_quality": {},
-      "technical_proof": {
-        "verdict": "unknown",
-        "level": "unknown",
-        "ingredient_proof_row_count": 0,
-        "source_authorised_counts": {
-          "sku": 0,
-          "nutrition": 0,
-          "cost": 0,
-          "filling": 0,
-          "shopping": 0,
-          "unit": 0
-        },
-        "profile_rule_status": "BLOCK",
-        "profile_rule_checked_count": 0,
-        "profile_rule_pass_count": 0,
-        "blocked_profile_rules": [],
-        "active_profile_rule_matches": []
-      },
-      "factory_status": {
-        "factory_runner": "BLOCKED",
-        "source_binding": "BLOCKED",
-        "validation": "UNKNOWN",
-        "output_bundle": "UNKNOWN",
-        "audit_status": "approved",
-        "issue_count": 24,
-        "warning_count": 0,
-        "route_back_phase": "datasheet",
-        "plain_english_summary": "Stopped before datasheet proof: V3_SOURCE_SKU_NOT_PRODUCTION_ELIGIBLE. SKU source status is not production-eligible: production_eligible=false active=true.",
-        "first_issue": {
-          "code": "V3_SOURCE_SKU_NOT_PRODUCTION_ELIGIBLE",
-          "severity": "issue",
-          "message": "SKU source status is not production-eligible: production_eligible=false active=true.",
-          "source": "sku_source_status.csv",
-          "key": "SKU-GINGER-100G",
-          "route_back_phase": "datasheet"
-        }
-      },
+      "reason": "old V2 scaffold/debug proof, not a requested V3 recipe",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1",
         "output_bundle": "",
@@ -1884,56 +1765,5 @@
       }
     }
   ],
-  "blocked_queue": [
-    {
-      "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
-      "title": "Gochujang Sticky Beef Noodles With Charred Greens",
-      "run_slug": "gochujang-sticky-beef-noodles-v1",
-      "route_back_phase": "datasheet",
-      "plain_english_summary": "Stopped before datasheet proof: V3_SOURCE_RECIPE_MAPPING_MISSING. No V2 recipe_code mapping exists for this V3 recipe run. Add an authorised mapping or pass --v2-recipe-code.",
-      "first_issue": {
-        "code": "V3_SOURCE_RECIPE_MAPPING_MISSING",
-        "severity": "issue",
-        "message": "No V2 recipe_code mapping exists for this V3 recipe run. Add an authorised mapping or pass --v2-recipe-code.",
-        "source": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\source_authority_recipe_map.csv",
-        "key": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
-        "route_back_phase": "datasheet"
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/source-authority-binding-report.json"
-      }
-    },
-    {
-      "recipe_id": "V3-FACTORY-STICKY-SOY-GINGER-CHICKEN-RICE-001",
-      "title": "Sticky Soy Ginger Chicken Rice Bowls",
-      "run_slug": "sticky-soy-ginger-chicken-rice-v1",
-      "route_back_phase": "datasheet",
-      "plain_english_summary": "Stopped before datasheet proof: V3_SOURCE_SKU_NOT_PRODUCTION_ELIGIBLE. SKU source status is not production-eligible: production_eligible=false active=true.",
-      "first_issue": {
-        "code": "V3_SOURCE_SKU_NOT_PRODUCTION_ELIGIBLE",
-        "severity": "issue",
-        "message": "SKU source status is not production-eligible: production_eligible=false active=true.",
-        "source": "sku_source_status.csv",
-        "key": "SKU-GINGER-100G",
-        "route_back_phase": "datasheet"
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/factory-runner-report.json",
-        "validation_summary": "",
-        "source_authority_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/source-authority-binding-report.json"
-      }
-    }
-  ]
+  "blocked_queue": []
 }
