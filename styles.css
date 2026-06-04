@@ -928,6 +928,31 @@ button {
   color: var(--black);
 }
 
+.cost-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(36, 87, 255, 0.18);
+  border-radius: var(--radius);
+  background: var(--blue-soft);
+}
+
+.cost-headline span {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.cost-headline strong {
+  color: var(--black);
+  font-size: 20px;
+  line-height: 1;
+}
+
 .story-section {
   padding: 18px;
   border-bottom: 1px solid var(--line);
@@ -1499,6 +1524,11 @@ button {
 
   .hero-copy h2 {
     font-size: 27px;
+  }
+
+  .cost-headline {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .shopping-line,

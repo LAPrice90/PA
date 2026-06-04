@@ -336,12 +336,13 @@ function nutritionHeadline(recipe) {
   return `${preferred}: ${number(row.calories)} kcal / ${number(row.protein_g)}g protein`;
 }
 
+function hasSavedRecipeCost(recipe) {
+  const value = Number(recipe?.shopping_total_used_cost_gbp);
+  return Number.isFinite(value);
+}
+
 function recipeCostHeadline(recipe) {
-  const shoppingTotal = recipe.shopping_total_used_cost_gbp;
-  if (shoppingTotal !== undefined && shoppingTotal !== null) return money(shoppingTotal);
-  const values = Object.values(recipe.person_totals || {});
-  const total = values.reduce((sum, row) => sum + Number(row.cost_gbp || 0), 0);
-  return total ? money(total) : "Cost saved";
+  return hasSavedRecipeCost(recipe) ? `Total recipe cost ${money(recipe.shopping_total_used_cost_gbp)}` : "Total cost not saved";
 }
 
 function approvedCard(recipe, active, idAttribute) {
@@ -433,6 +434,10 @@ function renderHero(recipe) {
         <p>${escapeHtml(firstParagraph(recipe.recipe_card_markdown, "A recipe profile ready for review."))}</p>
         <div class="tag-row">
           ${recipeTags(recipe).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+        </div>
+        <div class="cost-headline">
+          <span>Total recipe cost</span>
+          <strong>${escapeHtml(hasSavedRecipeCost(recipe) ? money(recipe.shopping_total_used_cost_gbp) : "Not saved")}</strong>
         </div>
       </div>
     </section>
@@ -602,7 +607,7 @@ function renderShopping(recipe) {
     <section class="story-section shopping-story">
       <div class="section-title-row">
         <h3>Shopping</h3>
-        <span>${money(recipe.shopping_total_used_cost_gbp)}</span>
+        <span>${escapeHtml(recipeCostHeadline(recipe))}</span>
       </div>
       ${
         rows.length
@@ -977,7 +982,7 @@ function renderShoppingMenu() {
       <section class="shopping-summary-card">
         <div class="section-title-row">
           <h3>${escapeHtml(recipe.title)}</h3>
-          <span>${money(recipe.shopping_total_used_cost_gbp)}</span>
+          <span>${escapeHtml(recipeCostHeadline(recipe))}</span>
         </div>
         <p>Recipe-level shopping only. Pack labels, quantities, category, pantry, and cost come from saved recipe data.</p>
       </section>
