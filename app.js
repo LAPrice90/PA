@@ -289,6 +289,56 @@ function currentRecipe() {
   return state.index.recipes.find((recipe) => recipe.recipe_id === state.selectedId) || filteredRecipes()[0] || state.index.recipes[0] || null;
 }
 
+function reviewQueueStatus() {
+  const index = state.index || {};
+  const total = Number(index.recipe_count || 0);
+  const needsReview = Number(index.needs_review_count || 0);
+  const needsRepair = Number(index.needs_repair_count || 0);
+  const blocked = Number(index.blocked_count || 0);
+  const approved = Number(index.approved_count || 0);
+  if (!total) {
+    return {
+      mode: "empty",
+      title: "No recipes in review",
+      copy: "There are no recipes in the review queue yet.",
+      total,
+      needsReview,
+      needsRepair,
+      blocked,
+      approved,
+    };
+  }
+  if (needsReview === 0 && needsRepair === 0 && blocked === 0) {
+    return {
+      mode: "complete",
+      title: "All recipes complete",
+      copy: "Every visible recipe has been decided and nothing is waiting for repair or technical checks.",
+      total,
+      needsReview,
+      needsRepair,
+      blocked,
+      approved,
+    };
+  }
+  if (needsReview === 0) {
+    return {
+      mode: "work_remaining",
+      title: "Review decisions complete",
+      copy: "No recipes are waiting for review, but some recipes still need repair or technical checks before they can be used.",
+      total,
+      needsReview,
+      needsRepair,
+      blocked,
+      approved,
+    };
+  }
+  return null;
+}
+
+function shouldShowReviewStatusPage(status) {
+  return Boolean(status) && (state.filter === "all" || state.filter === "needs_review");
+}
+
 function approvedRecipes() {
   if (!state.index) return [];
   return state.index.recipes.filter((recipe) => recipe.status === "approved");
@@ -697,8 +747,65 @@ function renderProfile(recipe) {
   renderDecisionPanel(recipe);
 }
 
+function renderReviewStatusPage(status) {
+  const approvedAction =
+    status.approved > 0
+      ? `
+        <a class="round-link dark" href="#/database">Open Recipe Database</a>
+        <a class="round-link" href="#/shopping">Open Shopping List</a>
+      `
+      : `<a class="round-link dark" href="#/">Home</a>`;
+  const repairAction =
+    status.mode === "work_remaining"
+      ? `
+        ${status.needsRepair ? `<button class="mini-button" type="button" data-complete-filter="needs_repair">Show Needs Repair</button>` : ""}
+        ${status.blocked ? `<button class="mini-button" type="button" data-complete-filter="blocked">Show Technical Blocks</button>` : ""}
+      `
+      : "";
+  els.profile.innerHTML = `
+    <section class="review-complete-card ${escapeHtml(status.mode)}">
+      <div class="review-complete-mark">
+        <span></span>
+      </div>
+      <h2>${escapeHtml(status.title)}</h2>
+      <p>${escapeHtml(status.copy)}</p>
+      <div class="review-complete-stats">
+        <div><span>Total</span><strong>${escapeHtml(status.total)}</strong></div>
+        <div><span>Approved</span><strong>${escapeHtml(status.approved)}</strong></div>
+        <div><span>To Review</span><strong>${escapeHtml(status.needsReview)}</strong></div>
+        <div><span>Repair</span><strong>${escapeHtml(status.needsRepair)}</strong></div>
+        <div><span>Technical</span><strong>${escapeHtml(status.blocked)}</strong></div>
+      </div>
+      <div class="review-complete-actions">
+        ${approvedAction}
+        ${repairAction}
+      </div>
+    </section>
+  `;
+}
+
+function renderReviewStatusDecisionPanel(status) {
+  const panel = document.querySelector(".decision-panel");
+  panel?.classList.remove("decision-made", "decision-pass", "decision-fail");
+  panel?.classList.add("completion-mode");
+  document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
+  els.decisionCopy.textContent =
+    status.mode === "complete"
+      ? "Review queue complete. Approved recipes are now available from Recipe Database."
+      : status.mode === "work_remaining"
+        ? "Review queue has no waiting recipes, but repair or technical checks remain."
+        : "No recipes are currently in the review queue.";
+  els.passButton.classList.remove("selected");
+  els.failButton.classList.remove("selected");
+  els.passButton.textContent = "Pass";
+  els.failButton.textContent = "Fail";
+  els.copyReviewDecision.disabled = true;
+  els.copyReviewDecision.textContent = "Nothing to copy";
+}
+
 function renderDecisionPanel(recipe) {
   const decision = recipe ? recipeDecision(recipe) : {};
+  document.querySelector(".decision-panel")?.classList.remove("completion-mode");
   document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
   if (!recipe) {
     els.decisionCopy.textContent = "No recipe selected.";
@@ -781,7 +888,14 @@ function renderAll() {
   if (recipe) state.selectedId = recipe.recipe_id;
   els.dataStatus.textContent = "Loaded";
   els.dataStatus.className = "state-pill good";
+  const status = reviewQueueStatus();
   renderQueue();
+  if (shouldShowReviewStatusPage(status)) {
+    els.reviewCount.textContent = "0 waiting";
+    renderReviewStatusPage(status);
+    renderReviewStatusDecisionPanel(status);
+    return;
+  }
   renderCount();
   renderProfile(recipe);
 }
@@ -1490,6 +1604,16 @@ function attachEvents() {
     const button = event.target.closest("[data-recipe-id]");
     if (!button) return;
     state.selectedId = button.dataset.recipeId;
+    renderAll();
+  });
+
+  els.profile.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-complete-filter]");
+    if (!button) return;
+    state.filter = button.dataset.completeFilter;
+    els.filters.forEach((item) => item.classList.toggle("active", item.dataset.filter === state.filter));
+    const first = filteredRecipes()[0];
+    state.selectedId = first?.recipe_id || "";
     renderAll();
   });
 

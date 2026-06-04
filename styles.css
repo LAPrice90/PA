@@ -807,6 +807,94 @@ button {
   text-align: center;
 }
 
+.review-complete-card {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px 20px;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(95, 205, 129, 0.22), transparent 28%),
+    linear-gradient(160deg, var(--surface), var(--cream));
+  text-align: center;
+}
+
+.review-complete-mark {
+  display: flex;
+  justify-content: center;
+}
+
+.review-complete-mark span {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: inset 0 0 0 18px var(--white), 0 12px 26px rgba(49, 36, 20, 0.16);
+}
+
+.review-complete-card.work_remaining .review-complete-mark span {
+  background: var(--lemon);
+}
+
+.review-complete-card.empty .review-complete-mark span {
+  background: var(--blue-soft);
+}
+
+.review-complete-card h2 {
+  margin: 0;
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 0.98;
+}
+
+.review-complete-card p {
+  max-width: 32rem;
+  margin: 0 auto;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.review-complete-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: min(100%, 420px);
+  margin: 4px auto 0;
+}
+
+.review-complete-stats div {
+  flex: 1 1 72px;
+  max-width: 86px;
+  padding: 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  text-align: center;
+}
+
+.review-complete-stats span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.review-complete-stats strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.review-complete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .hero-card {
   position: relative;
   overflow: hidden;
@@ -1238,6 +1326,12 @@ button {
 .decision-panel.decision-pass label[for="fail-reason"],
 .decision-panel.decision-pass #fail-reason {
   display: none !important;
+}
+
+.decision-panel.completion-mode .review-fields,
+.decision-panel.completion-mode .decision-actions,
+.decision-panel.completion-mode .copy-decision-button {
+  display: none;
 }
 
 .review-fields {
