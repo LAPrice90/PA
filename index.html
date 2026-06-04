@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>V3 Recipe Review</title>
+    <title>Diet Planner V3</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -11,53 +11,101 @@
       <header class="app-header">
         <div>
           <p class="tiny-label">Diet Planner V3</p>
-          <h1>Recipe Review</h1>
+          <h1 id="app-title">Diet Planner</h1>
         </div>
         <a class="github-link" href="https://github.com/LAPrice90/PA" target="_blank" rel="noreferrer">GitHub</a>
       </header>
 
-      <main class="review-stage" aria-live="polite">
-        <section class="recipe-phone" aria-label="Mobile recipe confirmation card">
-          <div class="top-strip">
-            <button id="previous-recipe" class="round-button" type="button" aria-label="Previous recipe">Prev</button>
-            <div class="review-count" id="review-count">Loading</div>
-            <button id="next-recipe" class="round-button" type="button" aria-label="Next recipe">Next</button>
+      <main id="app-main" aria-live="polite">
+        <section id="home-view" class="home-view" aria-label="Diet Planner home">
+          <div class="home-panel">
+            <p class="home-kicker">Diet Planner V3</p>
+            <h2>Choose where to go</h2>
+            <p class="home-copy">A simple front door for recipes, profiles, and the future weekly planner.</p>
+            <nav class="home-actions" aria-label="App sections">
+              <a class="home-action" href="#/profiles">
+                <span>Profiles</span>
+                <strong>Coming soon</strong>
+              </a>
+              <a class="home-action primary" href="#/recipes">
+                <span>Recipe Review</span>
+                <strong>Open review cards</strong>
+              </a>
+              <a class="home-action" href="#/planner">
+                <span>Weekly Planner</span>
+                <strong>Coming soon</strong>
+              </a>
+            </nav>
           </div>
-
-          <article id="recipe-profile" class="recipe-profile">
-            <div class="loading-card">Loading recipe profile...</div>
-          </article>
-
-          <section class="decision-panel" aria-label="Recipe decision">
-            <p id="decision-copy">Review the recipe, then choose Pass or Fail. This only saves a local UI decision.</p>
-            <div class="decision-actions">
-              <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
-              <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
-            </div>
-          </section>
         </section>
 
-        <aside class="recipe-drawer" aria-label="Recipe queue and status">
-          <section class="drawer-section">
-            <div class="drawer-heading">
-              <h2>Queue</h2>
-              <span id="data-status" class="state-pill pending">Loading</span>
+        <section id="recipes-view" class="review-stage is-hidden" aria-label="Recipe review">
+          <section class="recipe-phone" aria-label="Mobile recipe confirmation card">
+            <div class="top-strip">
+              <button id="previous-recipe" class="round-button" type="button" aria-label="Previous recipe">Prev</button>
+              <div class="review-count" id="review-count">Loading</div>
+              <button id="next-recipe" class="round-button" type="button" aria-label="Next recipe">Next</button>
             </div>
-            <div id="queue-summary" class="queue-summary"></div>
-            <div class="filter-pills" role="group" aria-label="Recipe status filters">
-              <button class="filter-pill active" data-filter="all" type="button">All</button>
-              <button class="filter-pill" data-filter="needs_review" type="button">Review</button>
-              <button class="filter-pill" data-filter="approved" type="button">Passed</button>
-              <button class="filter-pill" data-filter="blocked" type="button">Blocked</button>
-            </div>
-            <div id="recipe-list" class="recipe-list"></div>
+
+            <article id="recipe-profile" class="recipe-profile">
+              <div class="loading-card">Loading recipe profile...</div>
+            </article>
+
+            <section class="decision-panel" aria-label="Recipe decision">
+              <p id="decision-copy">Review the recipe, then choose Pass or Fail. This only saves a local UI decision.</p>
+              <div class="decision-actions">
+                <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
+                <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
+              </div>
+            </section>
           </section>
 
-          <section class="drawer-section soft">
-            <h2>What This Screen Does</h2>
-            <p>Shows the recipe like a food profile for Luke review. It does not approve recipes, write Google events, or hand anything to the planner.</p>
-          </section>
-        </aside>
+          <aside class="recipe-drawer" aria-label="Recipe queue and status">
+            <section class="drawer-section">
+              <div class="drawer-heading">
+                <h2>Queue</h2>
+                <span id="data-status" class="state-pill pending">Loading</span>
+              </div>
+              <div id="queue-summary" class="queue-summary"></div>
+              <div class="filter-pills" role="group" aria-label="Recipe status filters">
+                <button class="filter-pill active" data-filter="all" type="button">All</button>
+                <button class="filter-pill" data-filter="needs_review" type="button">Review</button>
+                <button class="filter-pill" data-filter="approved" type="button">Passed</button>
+                <button class="filter-pill" data-filter="blocked" type="button">Blocked</button>
+              </div>
+              <div id="recipe-list" class="recipe-list"></div>
+            </section>
+
+            <section class="drawer-section soft">
+              <h2>What This Screen Does</h2>
+              <p>Shows the recipe like a food profile for Luke review. It does not approve recipes, write Google events, or hand anything to the planner.</p>
+            </section>
+          </aside>
+        </section>
+
+        <section id="profiles-view" class="placeholder-view is-hidden" aria-label="Profiles coming soon">
+          <div class="placeholder-panel">
+            <p class="home-kicker">Profiles</p>
+            <h2>Profiles are coming soon</h2>
+            <p>This page will eventually hold household profile settings. It is empty for now and does not show personal data.</p>
+            <div class="placeholder-actions">
+              <a class="round-link" href="#/">Home</a>
+              <a class="round-link dark" href="#/recipes">Recipe Review</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="planner-view" class="placeholder-view is-hidden" aria-label="Weekly planner coming soon">
+          <div class="placeholder-panel">
+            <p class="home-kicker">Weekly Planner</p>
+            <h2>Weekly Planner is coming soon</h2>
+            <p>This page is only a placeholder. It is locked to coming soon and has no planning, shopping, or Google controls.</p>
+            <div class="placeholder-actions">
+              <a class="round-link" href="#/">Home</a>
+              <a class="round-link dark" href="#/recipes">Recipe Review</a>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 

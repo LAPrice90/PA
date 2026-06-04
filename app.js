@@ -5,10 +5,16 @@ const state = {
   index: null,
   selectedId: "",
   filter: "all",
+  route: "home",
   decisions: loadDecisions(),
 };
 
 const els = {
+  appTitle: document.querySelector("#app-title"),
+  homeView: document.querySelector("#home-view"),
+  recipesView: document.querySelector("#recipes-view"),
+  profilesView: document.querySelector("#profiles-view"),
+  plannerView: document.querySelector("#planner-view"),
   dataStatus: document.querySelector("#data-status"),
   profile: document.querySelector("#recipe-profile"),
   recipeList: document.querySelector("#recipe-list"),
@@ -21,6 +27,37 @@ const els = {
   previousButton: document.querySelector("#previous-recipe"),
   filters: [...document.querySelectorAll(".filter-pill")],
 };
+
+const routeTitles = {
+  home: "Diet Planner",
+  recipes: "Recipe Review",
+  profiles: "Profiles",
+  planner: "Weekly Planner",
+};
+
+function routeFromHash() {
+  const hash = window.location.hash.replace(/^#\/?/, "").trim().toLowerCase();
+  if (hash === "recipes") return "recipes";
+  if (hash === "profiles") return "profiles";
+  if (hash === "planner") return "planner";
+  return "home";
+}
+
+function showRoute(route) {
+  state.route = route;
+  document.body.dataset.route = route;
+  els.appTitle.textContent = routeTitles[route] || routeTitles.home;
+  document.title = route === "home" ? "Diet Planner V3" : `${routeTitles[route]} - Diet Planner V3`;
+  [
+    ["home", els.homeView],
+    ["recipes", els.recipesView],
+    ["profiles", els.profilesView],
+    ["planner", els.plannerView],
+  ].forEach(([name, element]) => {
+    element.classList.toggle("is-hidden", name !== route);
+  });
+  if (route === "recipes" && state.index) renderAll();
+}
 
 function loadDecisions() {
   try {
@@ -591,18 +628,20 @@ function attachEvents() {
     });
   });
 
+  window.addEventListener("hashchange", () => showRoute(routeFromHash()));
   document.querySelector(".github-link").setAttribute("href", REPO_URL);
 }
 
 async function init() {
   attachEvents();
+  showRoute(routeFromHash());
   try {
     const response = await fetch("./data/recipe-index.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.index = await response.json();
     const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
     state.selectedId = firstReview?.recipe_id || state.index.recipes[0]?.recipe_id || "";
-    renderAll();
+    if (state.route === "recipes") renderAll();
   } catch (error) {
     els.dataStatus.textContent = "Missing";
     els.dataStatus.className = "state-pill blocked";

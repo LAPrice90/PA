@@ -109,6 +109,121 @@ button {
   gap: 22px;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
+.home-view,
+.placeholder-view {
+  min-height: calc(100vh - 116px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 0;
+}
+
+.home-panel,
+.placeholder-panel {
+  width: min(100%, 560px);
+}
+
+.home-kicker {
+  margin: 0 0 10px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.home-panel h2,
+.placeholder-panel h2 {
+  margin: 0;
+  color: var(--black);
+  font-size: clamp(38px, 8vw, 72px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.placeholder-panel h2 {
+  font-size: clamp(34px, 7vw, 56px);
+}
+
+.home-copy,
+.placeholder-panel p {
+  max-width: 460px;
+  margin: 16px 0 0;
+  color: #333b47;
+  font-size: 17px;
+}
+
+.home-actions,
+.placeholder-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.home-action,
+.round-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 76px;
+  padding: 18px;
+  border: 1px solid rgba(17, 19, 24, 0.09);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--black);
+  text-decoration: none;
+  box-shadow: var(--small-shadow);
+}
+
+.home-action:hover,
+.home-action:focus-visible,
+.round-link:hover,
+.round-link:focus-visible {
+  border-color: var(--blue);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.home-action.primary {
+  background: var(--black);
+  color: var(--white);
+}
+
+.home-action span {
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.home-action strong {
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 950;
+  text-align: right;
+}
+
+.home-action.primary strong {
+  color: var(--green);
+}
+
+.placeholder-actions {
+  max-width: 360px;
+}
+
+.round-link {
+  min-height: 52px;
+  font-weight: 950;
+}
+
+.round-link.dark {
+  background: var(--black);
+  color: var(--white);
+}
+
 .recipe-phone {
   width: min(100%, 430px);
   background: var(--surface);
@@ -696,6 +811,17 @@ button {
   .app-header {
     padding: 14px;
     margin: 0;
+  }
+
+  .home-view,
+  .placeholder-view {
+    min-height: calc(100vh - 86px);
+    align-items: flex-start;
+    padding: 34px 14px 18px;
+  }
+
+  .home-action {
+    min-height: 72px;
   }
 
   .github-link {
