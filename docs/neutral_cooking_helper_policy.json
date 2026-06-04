@@ -1,0 +1,66 @@
+{
+  "schema_version": "v3.neutral_cooking_helper_policy.1",
+  "status": "active",
+  "purpose": "Keep neutral cooking helpers out of visible recipe and shopping lists while preserving hidden calculation anchors where useful.",
+  "plain_english_rule": "Water, salt, and black pepper are cooking helpers. Mention them in the method, but do not list them as normal ingredients or shopping items unless Luke explicitly asks for a measured specialist use.",
+  "neutral_helpers": [
+    {
+      "helper_id": "NEUTRAL-WATER-001",
+      "label": "water",
+      "ingredient_terms": ["water", "tap water", "poaching water"],
+      "sku_ids": [],
+      "ingredient_ids": [],
+      "visible_recipe_card": "method_text_only",
+      "visible_shopping": "hide",
+      "hidden_data": "optional_tap_or_calculation_anchor"
+    },
+    {
+      "helper_id": "NEUTRAL-SALT-001",
+      "label": "salt",
+      "ingredient_terms": ["salt", "himalayan salt", "sea salt", "table salt"],
+      "sku_ids": ["aldi-specially-selected-pink-himalayan-rock-salt-110g"],
+      "ingredient_ids": ["ING-V1-HIMALAYAN-SALT"],
+      "visible_recipe_card": "method_text_only",
+      "visible_shopping": "hide",
+      "hidden_data": "keep_tiny_gram_anchor_when_datasheeted"
+    },
+    {
+      "helper_id": "NEUTRAL-BLACK-PEPPER-001",
+      "label": "black pepper",
+      "ingredient_terms": ["black pepper", "black peppercorns"],
+      "sku_ids": ["aldi-stonemill-black-peppercorns-100g"],
+      "ingredient_ids": ["ING-V1-BLACK-PEPPERCORNS"],
+      "visible_recipe_card": "method_text_only",
+      "visible_shopping": "hide",
+      "hidden_data": "keep_tiny_gram_anchor_when_datasheeted"
+    }
+  ],
+  "protected_non_neutral_ingredients": [
+    "butter",
+    "olive oil",
+    "vegetable oil",
+    "sesame oil",
+    "paprika",
+    "cumin",
+    "harissa",
+    "honey",
+    "vinegar",
+    "sauce",
+    "gochujang",
+    "mayonnaise",
+    "yoghurt",
+    "cream",
+    "cheese"
+  ],
+  "renderer_rules": [
+    "Hide neutral helpers from visible Ingredients sections.",
+    "Hide neutral helpers from visible Plate ingredient/category lines.",
+    "Hide neutral helpers from recipe-level shopping lists and phone shopping rows.",
+    "Allow neutral helpers inside method or cook-note sentences.",
+    "Do not apply this exception to calorie, macro, cost, or flavour-building ingredients such as butter, oils, spices, sauces, honey, yoghurt, or cheese."
+  ],
+  "source_refs": [
+    "Luke 2026-06-04: water, salt and pepper are neutrals that do not need listing, only mentioning in instructions.",
+    "V3/recipe_factory/rules/ingredient_unit_equivalents.json"
+  ]
+}

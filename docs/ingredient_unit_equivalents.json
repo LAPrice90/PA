@@ -1,6 +1,21 @@
 {
   "schema_version": "v3.ingredient_unit_equivalents.1",
   "purpose": "Map household calculation units to kitchen-friendly display units, UI weighing hints, and shopping pack wording.",
+  "sku_authority": {
+    "authority_file": "V3/shared/sku_kitchen_unit_authority.csv",
+    "summary": "Every active V2 SKU must have a V3 kitchen-unit class, display rule, app prompt, calculation rule, or an exact measurement blocker before recipe creation can use it."
+  },
+  "neutral_cooking_helper_policy": {
+    "authority_file": "V3/recipe_factory/rules/neutral_cooking_helper_policy.json",
+    "summary": "Water, salt, and black pepper are neutral helpers: they may have hidden calculation anchors, but the visible recipe and shopping views mention them only inside method text."
+  },
+  "banned_vague_units": [
+    "knob",
+    "handful",
+    "splash",
+    "drizzle",
+    "to taste"
+  ],
   "rules": [
     {
       "rule_id": "UNIT-001-SEPARATE_BUY_MEASURE_CALCULATE",
@@ -216,6 +231,9 @@
       "parenthetical_mode": "about_raw_quantity",
       "weighing_hint": "use a light pinch; grams are the calculation anchor",
       "purchase_display": "110g grinder",
+      "public_visibility": "neutral_helper_method_only",
+      "public_ingredient_list": false,
+      "public_shopping_list": false,
       "confidence": "official_cofid_salt_plus_household_seasoning_rule"
     },
     {
@@ -233,6 +251,9 @@
       "parenthetical_mode": "about_raw_quantity",
       "weighing_hint": "use a light grind; grams are the calculation anchor",
       "purchase_display": "100g grinder",
+      "public_visibility": "neutral_helper_method_only",
+      "public_ingredient_list": false,
+      "public_shopping_list": false,
       "confidence": "job133_spice_evidence_plus_household_seasoning_rule"
     }
   ]
