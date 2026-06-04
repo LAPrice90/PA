@@ -12,8 +12,8 @@
     "expected_public_recipe_count": 2
   },
   "recipe_count": 2,
-  "approved_count": 1,
-  "needs_review_count": 1,
+  "approved_count": 2,
+  "needs_review_count": 0,
   "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
@@ -1750,26 +1750,26 @@
       "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
       "run_slug": "scrambled-eggs-on-toast-v1",
       "title": "Buttery Scrambled Eggs On White Sourdough Toast",
-      "status": "needs_review",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
+      "status": "approved",
+      "planner_ready": true,
+      "algorithmic_planning_allowed": true,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
+        "status": "confirmed",
+        "confirmed": true,
         "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
+        "confirmed_by": "Luke",
+        "confirmed_at": "2026-06-04T19:09:54+00:00",
         "failed_by": "",
         "failed_at": "",
-        "decision": "",
+        "decision": "pass",
         "reason_code": "",
         "reason_label": "",
         "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
+        "review_file": "human_review.json",
+        "notes": "Luke confirmed in Codex chat: Looks good, accept it and add an image.",
         "required_for_planning": true
       },
       "meal_type": "breakfast",
@@ -3371,7 +3371,48 @@
         }
       ],
       "shopping_total_used_cost_gbp": 2.42,
-      "review_visual": {},
+      "review_visual": {
+        "schema_version": "v3.review_visual.1",
+        "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
+        "status": "approved_for_review_display",
+        "asset_path": "assets/scrambled-eggs-hero.png",
+        "generated_image_source": "V3/recipe_explorer_app/assets/scrambled-eggs-hero.png",
+        "creation_mode": "local_programmatic_png_after_builtin_image_generator_unavailable",
+        "prompt_summary": "Creamy scrambled eggs on one slice of buttered white sourdough toast with light black pepper. No tomatoes, herbs, salad, avocado, beans, sauce, drinks, text, logos, or extra food.",
+        "truth_sources": [
+          "recipe_card.md",
+          "datasheet.json",
+          "recipe-data-invoice.csv"
+        ],
+        "allowed_visible_foods": [
+          "scrambled eggs",
+          "buttered white sourdough toast",
+          "black pepper"
+        ],
+        "blocked_visual_additions": [
+          "tomatoes",
+          "herbs",
+          "chives",
+          "parsley",
+          "salad",
+          "avocado",
+          "beans",
+          "sauce",
+          "drinks",
+          "extra garnish",
+          "extra food",
+          "text",
+          "logo"
+        ],
+        "visual_truth_check": {
+          "status": "PASS",
+          "checked_by": "Codex visual inspection",
+          "checked_at": "2026-06-04",
+          "notes": "Image is a render-only illustration. It shows scrambled eggs on buttered white sourdough toast with black pepper only and does not add forbidden foods."
+        },
+        "planner_handover_effect": "none",
+        "human_review_effect": "none"
+      },
       "review_quality": {},
       "technical_proof": {
         "verdict": "PASS",
@@ -3451,40 +3492,7 @@
       }
     }
   ],
-  "user_review_queue": [
-    {
-      "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
-      "title": "Buttery Scrambled Eggs On White Sourdough Toast",
-      "run_slug": "scrambled-eggs-on-toast-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1",
-        "output_bundle": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle",
-        "finished_recipe_card": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/finished-recipe-card.md",
-        "recipe_data_invoice": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/recipe-data-invoice.csv",
-        "solver_recipe_card": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/solver-recipe-card.json",
-        "factory_runner_report": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/source-authority-binding-report.json"
-      }
-    }
-  ],
+  "user_review_queue": [],
   "repair_queue": [],
   "blocked_queue": []
 }
