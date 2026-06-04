@@ -12,8 +12,8 @@
   },
   "recipe_count": 1,
   "approved_count": 0,
-  "needs_review_count": 0,
-  "blocked_count": 1,
+  "needs_review_count": 1,
+  "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
     "app_calculates_recipe_logic": false,
@@ -27,12 +27,12 @@
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "run_slug": "poached-eggs-on-toast-v1",
       "title": "Buttered Poached Eggs On White Sourdough Toast",
-      "status": "blocked",
+      "status": "needs_review",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
-      "technical_planner_ready": false,
-      "technical_algorithmic_planning_allowed": false,
-      "user_confirmation_required": false,
+      "technical_planner_ready": true,
+      "technical_algorithmic_planning_allowed": true,
+      "user_confirmation_required": true,
       "human_review": {
         "status": "needs_user_confirmation",
         "confirmed": false,
@@ -54,9 +54,9 @@
         "breakfast_toast"
       ],
       "timing": {
-        "active_minutes": 20,
+        "active_minutes": 25,
         "passive_minutes": 0,
-        "total_minutes": 20,
+        "total_minutes": 25,
         "batch_round_count": 5
       },
       "person_totals": {
@@ -69,12 +69,12 @@
           "portion_fullness_points": 95.1
         },
         "Sarah": {
-          "calories": 310.1,
-          "protein_g": 17.9,
+          "calories": 377.2,
+          "protein_g": 24.4,
           "carbs_g": 28.3,
-          "fat_g": 14.7,
-          "cost_gbp": 0.67,
-          "portion_fullness_points": 74.6
+          "fat_g": 19.3,
+          "cost_gbp": 0.86,
+          "portion_fullness_points": 95.1
         },
         "Louis": {
           "calories": 310.1,
@@ -88,26 +88,11 @@
       "slot_fit": {
         "target_authority_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\shared\\meal_slot_target_authority.csv",
         "overall_status": "LIGHT_ALLOWED",
-        "planner_handover_allowed": false,
+        "planner_handover_allowed": true,
         "day_balance_required": true,
         "light_allowed_repair_policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
-        "light_allowed_repair_required": true,
-        "light_allowed_repair_blocks": [
-          {
-            "person": "Sarah",
-            "meal_slot": "breakfast",
-            "target_id": "MSTA-SARAH-BREAKFAST-001",
-            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-            "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-            "route_back_phase": "food_blueprint",
-            "fullness_target_room_points": 15.4,
-            "cost_room_gbp": 1.58,
-            "deficits_checked": {
-              "calories": 49.9,
-              "protein_g": 7.1
-            }
-          }
-        ],
+        "light_allowed_repair_required": false,
+        "light_allowed_repair_blocks": [],
         "rows": [
           {
             "person": "Luke",
@@ -126,7 +111,7 @@
               "protein_g": 24.4,
               "filling_points": 95.1,
               "cost_gbp": 0.86,
-              "active_time_minutes": 20.0
+              "active_time_minutes": 25.0
             },
             "target_ranges": {
               "kcal": {
@@ -183,18 +168,18 @@
             "target_id": "MSTA-SARAH-BREAKFAST-001",
             "status": "LIGHT_ALLOWED",
             "dimension_statuses": {
-              "calories": "LIGHT_ALLOWED",
+              "calories": "PASS",
               "protein_g": "LIGHT_ALLOWED",
-              "fullness": "PASS",
+              "fullness": "OVER_TARGET_ALLOWED",
               "cost": "PASS",
               "active_time": "PASS"
             },
             "actuals": {
-              "calories": 310.1,
-              "protein_g": 17.9,
-              "filling_points": 74.6,
-              "cost_gbp": 0.67,
-              "active_time_minutes": 20.0
+              "calories": 377.2,
+              "protein_g": 24.4,
+              "filling_points": 95.1,
+              "cost_gbp": 0.86,
+              "active_time_minutes": 25.0
             },
             "target_ranges": {
               "kcal": {
@@ -219,14 +204,14 @@
               "active_time_max_minutes": 30.0
             },
             "deficits": {
-              "calories": 49.9,
-              "protein_g": 7.1,
+              "calories": 0.0,
+              "protein_g": 0.6,
               "fullness": 0.0
             },
             "excesses": {
               "calories": 0.0,
               "protein_g": 0.0,
-              "fullness": 0.0,
+              "fullness": 5.1,
               "cost_gbp": 0.0,
               "active_time_minutes": 0.0
             },
@@ -234,26 +219,15 @@
             "source_refs": "V2/data/user_profile.csv:USR-SARAH;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json;explicit Poached Eggs expected LIGHT_ALLOWED result",
             "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
             "light_allowed_repair_gate": {
-              "status": "BLOCK",
+              "status": "PASS",
               "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
-              "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-              "route_back_phase": "food_blueprint",
-              "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-              "fullness_target_room_points": 15.4,
-              "cost_room_gbp": 1.58,
-              "minimum_fullness_target_room_points": 5.0,
-              "minimum_cost_room_gbp": 0.2,
-              "active_time_pass": true,
-              "deficits_checked": {
-                "calories": 49.9,
-                "protein_g": 7.1
-              },
-              "protein_needs_repair": true,
-              "calorie_needs_repair": false,
+              "reason": "fullness_met_or_no_meaningful_protein_gap",
               "fullness_met": true,
-              "minimum_protein_deficit_g": 2.0,
-              "minimum_calorie_deficit_kcal_when_fullness_not_met": 50.0,
-              "requires_saved_exception": true
+              "deficits_checked": {
+                "calories": 0.0,
+                "protein_g": 0.6
+              },
+              "minimum_protein_deficit_g": 2.0
             }
           },
           {
@@ -273,7 +247,7 @@
               "protein_g": 17.9,
               "filling_points": 74.6,
               "cost_gbp": 0.67,
-              "active_time_minutes": 20.0
+              "active_time_minutes": 25.0
             },
             "target_ranges": {
               "kcal": {
@@ -416,32 +390,21 @@
           "meal_slot": "breakfast",
           "status": "LIGHT_ALLOWED",
           "deficits": {
-            "calories": 49.9,
-            "protein_g": 7.1,
+            "calories": 0.0,
+            "protein_g": 0.6,
             "fullness": 0.0
           },
           "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
           "repair_gate": {
-            "status": "BLOCK",
+            "status": "PASS",
             "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
-            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-            "route_back_phase": "food_blueprint",
-            "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-            "fullness_target_room_points": 15.4,
-            "cost_room_gbp": 1.58,
-            "minimum_fullness_target_room_points": 5.0,
-            "minimum_cost_room_gbp": 0.2,
-            "active_time_pass": true,
-            "deficits_checked": {
-              "calories": 49.9,
-              "protein_g": 7.1
-            },
-            "protein_needs_repair": true,
-            "calorie_needs_repair": false,
+            "reason": "fullness_met_or_no_meaningful_protein_gap",
             "fullness_met": true,
-            "minimum_protein_deficit_g": 2.0,
-            "minimum_calorie_deficit_kcal_when_fullness_not_met": 50.0,
-            "requires_saved_exception": true
+            "deficits_checked": {
+              "calories": 0.0,
+              "protein_g": 0.6
+            },
+            "minimum_protein_deficit_g": 2.0
           }
         }
       ],
@@ -474,8 +437,8 @@
         "fruit_component_count": 0,
         "veg_component_count": 0,
         "prep_session_count": 1,
-        "active_minutes": 20.0,
-        "total_minutes": 20.0,
+        "active_minutes": 25.0,
+        "total_minutes": 25.0,
         "people_served_count": 3
       },
       "unit_model": {
@@ -507,26 +470,26 @@
         "profile_rule_status": "PASS",
         "profile_rule_checked_count": 7,
         "all_invoice_rows_source_authorised": true,
-        "current_factory_passed": false,
-        "meal_slot_repair_required": true
+        "current_factory_passed": true,
+        "meal_slot_repair_required": false
       },
       "planner_handover": {
-        "status": "blocked",
+        "status": "ready",
         "required_gates": {
-          "goal_fit_pass": false,
-          "recipe_card_pass": false,
-          "datasheet_pass": false,
-          "nutrition_pass": false,
-          "shopping_pass": false,
+          "goal_fit_pass": true,
+          "recipe_card_pass": true,
+          "datasheet_pass": true,
+          "nutrition_pass": true,
+          "shopping_pass": true,
           "person_rules_pass": true,
-          "timing_pass": false,
-          "technical_trace_pass": false,
-          "audit_pass": false
+          "timing_pass": true,
+          "technical_trace_pass": true,
+          "audit_pass": true
         }
       },
-      "recipe_card_markdown": "# Buttered Poached Eggs On White Sourdough Toast\n\nSoft poached eggs on hot buttered white sourdough, seasoned simply at the plate.\n\nServes: Luke, Sarah and Louis\n\nTime: 20 minutes\n\nYield: 3 plates\n\nMeal role: breakfast\n\n## Ingredients\n\n### Dairy\n\n- Merevale British Free Range Mixed Weight Eggs - 7 eggs\n- Cowbelle British Unsalted Butter - 15g total\n\n### Pantry\n\n- Specially Selected White Sourdough Sliced Loaf - 3 slices, about 180g total\n\n## Equipment\n\n- 20 cm saucepan with lid\n- Slotted spoon\n- Oven grill or normal toaster route\n- Plates\n\n## Mise En Place\n\n- Toast board: set out 3 slices of white sourdough and 15g unsalted butter.\n- Egg cups: set out 7 eggs; crack into cups if you want cleaner poaching.\n- Finish station: keep the salt and pepper next to the plates.\n\n## Method\n\n### 1. Heat the poaching water\n\nBring the saucepan of water to a gentle simmer. Lower the heat so the water is moving but not bubbling hard.\n\n### 2. Toast and butter the sourdough\n\nToast the sourdough until golden and firm. Butter each slice while it is hot so the butter melts into the toast.\n\nUses:\n\n- White sourdough bread - 3 slices\n- Unsalted butter - 15g\n\n### 3. Poach the eggs\n\nSlide the eggs into the water in controlled rounds if the pan is crowded. Cook gently until the whites are set and the yolks are still soft.\n\nUses:\n\n- Eggs - 7\n\n### 4. Plate and season\n\nLift the eggs out with a slotted spoon and drain briefly. Luke gets 3 eggs on his toast. Sarah and Louis get 2 eggs each. Season each plate with salt and black pepper.\n\nUses:\n\n- Buttered sourdough toast - all\n- Poached eggs - all\n\n## Plate\n\n### Luke\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 3 poached eggs.\n\n### Sarah\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 2 poached eggs.\n\n### Louis\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 2 poached eggs.\n\n## Nutrition And Cost\n\n- Luke: 377.2 kcal, 24.4g protein, 28.3g carbs, 19.3g fat, GBP 0.86, 95.1 fullness\n- Sarah: 310.1 kcal, 17.9g protein, 28.3g carbs, 14.7g fat, GBP 0.67, 74.6 fullness\n- Louis: 310.1 kcal, 17.9g protein, 28.3g carbs, 14.7g fat, GBP 0.67, 74.6 fullness\n\n## Cook's Notes\n\n- Butter the toast as soon as it comes out, then put the eggs on top.\n- If the pan feels crowded, poach the eggs in two rounds.\n- Plate Sarah and Louis first if useful, then finish Luke's 3-egg plate.\n- Season after the eggs land so the toast stays crisp and the yolk carries the salt and pepper.\n",
-      "per_person_markdown": "# Buttered Poached Eggs On White Sourdough Toast - Per Person Data\n\nVisible cooking rows only. Neutral helpers such as water, salt, and black pepper are method-only and stay out of this display.\n\n| Person | Calories | Protein | Carbs | Fat | Cost | Portion fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 377.2 kcal | 24.4g | 28.3g | 19.3g | GBP 0.86 | 95.1 |\n| Sarah | 310.1 kcal | 17.9g | 28.3g | 14.7g | GBP 0.67 | 74.6 |\n| Louis | 310.1 kcal | 17.9g | 28.3g | 14.7g | GBP 0.67 | 74.6 |\n\n## Ingredient Rows\n\n### Luke\n\n- Merevale British Free Range Mixed Weight Eggs - 3 eggs; 201.4 kcal; 19.4g protein; GBP 0.58; fullness 61.5\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n\n### Sarah\n\n- Merevale British Free Range Mixed Weight Eggs - 2 eggs; 134.3 kcal; 12.9g protein; GBP 0.39; fullness 41\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n\n### Louis\n\n- Merevale British Free Range Mixed Weight Eggs - 2 eggs; 134.3 kcal; 12.9g protein; GBP 0.39; fullness 41\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n",
-      "shopping_markdown": "# Buttered Poached Eggs On White Sourdough Toast - Recipe Shopping List\n\nVisible shopping rows only. Neutral helpers such as water, salt, and black pepper are method-only and not listed for shopping.\n\n## Main Buy\n\n### Dairy\n\n- Cowbelle British Unsalted Butter - need 15g; pack 250g block; used cost GBP 0.12\n- Merevale British Free Range Mixed Weight Eggs - need 7 eggs; pack 15 egg pack; used cost GBP 1.36\n\n## Pantry Check\n\n### Pantry\n\n- Specially Selected White Sourdough Sliced Loaf - need 3 slices; pack 500g loaf; used cost GBP 0.69\n",
+      "recipe_card_markdown": "# Buttered Poached Eggs On White Sourdough Toast\n\nSoft poached eggs on hot buttered white sourdough, seasoned simply at the plate.\n\nServes: Luke, Sarah and Louis\n\nTime: 25 minutes\n\nYield: 3 plates\n\nMeal role: breakfast\n\n## Ingredients\n\n### Dairy\n\n- Merevale British Free Range Mixed Weight Eggs - 8 eggs\n- Cowbelle British Unsalted Butter - 15g total\n\n### Pantry\n\n- Specially Selected White Sourdough Sliced Loaf - 3 slices, about 180g total\n\n## Equipment\n\n- 20 cm saucepan with lid\n- Slotted spoon\n- Oven grill or normal toaster route\n- Plates\n\n## Mise En Place\n\n- Toast board: set out 3 slices of white sourdough and 15g unsalted butter.\n- Egg cups: set out 8 eggs; crack into cups if you want cleaner poaching.\n- Finish station: keep the salt and pepper next to the plates.\n\n## Method\n\n### 1. Heat the poaching water\n\nBring the saucepan of water to a gentle simmer. Lower the heat so the water is moving but not bubbling hard.\n\n### 2. Toast and butter the sourdough\n\nToast the sourdough until golden and firm. Butter each slice while it is hot so the butter melts into the toast.\n\nUses:\n\n- White sourdough bread - 3 slices\n- Unsalted butter - 15g\n\n### 3. Poach the eggs\n\nSlide the eggs into the water in controlled rounds if the pan is crowded. Cook gently until the whites are set and the yolks are still soft.\n\nUses:\n\n- Eggs - 8\n\n### 4. Plate and season\n\nLift the eggs out with a slotted spoon and drain briefly. Luke and Sarah get 3 eggs each. Louis gets 2 eggs. Season each plate with salt and black pepper.\n\nUses:\n\n- Buttered sourdough toast - all\n- Poached eggs - all\n\n## Plate\n\n### Luke\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 3 poached eggs.\n\n### Sarah\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 3 poached eggs.\n\n### Louis\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 2 poached eggs.\n\n## Nutrition And Cost\n\n- Luke: 377.2 kcal, 24.4g protein, 28.3g carbs, 19.3g fat, GBP 0.86, 95.1 fullness\n- Sarah: 377.2 kcal, 24.4g protein, 28.3g carbs, 19.3g fat, GBP 0.86, 95.1 fullness\n- Louis: 310.1 kcal, 17.9g protein, 28.3g carbs, 14.7g fat, GBP 0.67, 74.6 fullness\n\n## Cook's Notes\n\n- Butter the toast as soon as it comes out, then put the eggs on top.\n- If the pan feels crowded, poach the eggs in two or three controlled rounds.\n- Plate Sarah and Louis first if useful, then finish Luke's 3-egg plate.\n- Season after the eggs land so the toast stays crisp and the yolk carries the salt and pepper.\n",
+      "per_person_markdown": "# Buttered Poached Eggs On White Sourdough Toast - Per Person Data\n\nVisible cooking rows only. Neutral helpers such as water, salt, and black pepper are method-only and stay out of this display.\n\n| Person | Calories | Protein | Carbs | Fat | Cost | Portion fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 377.2 kcal | 24.4g | 28.3g | 19.3g | GBP 0.86 | 95.1 |\n| Sarah | 377.2 kcal | 24.4g | 28.3g | 19.3g | GBP 0.86 | 95.1 |\n| Louis | 310.1 kcal | 17.9g | 28.3g | 14.7g | GBP 0.67 | 74.6 |\n\n## Ingredient Rows\n\n### Luke\n\n- Merevale British Free Range Mixed Weight Eggs - 3 eggs; 201.4 kcal; 19.4g protein; GBP 0.58; fullness 61.5\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n\n### Sarah\n\n- Merevale British Free Range Mixed Weight Eggs - 3 eggs; 201.4 kcal; 19.4g protein; GBP 0.58; fullness 61.5\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n\n### Louis\n\n- Merevale British Free Range Mixed Weight Eggs - 2 eggs; 134.3 kcal; 12.9g protein; GBP 0.39; fullness 41\n- Specially Selected White Sourdough Sliced Loaf - 1 slice (60g); 138 kcal; 5g protein; GBP 0.23; fullness 33.6\n- Cowbelle British Unsalted Butter - 5g; 37.3 kcal; 0g protein; GBP 0.04; fullness 0\n",
+      "shopping_markdown": "# Buttered Poached Eggs On White Sourdough Toast - Recipe Shopping List\n\nVisible shopping rows only. Neutral helpers such as water, salt, and black pepper are method-only and not listed for shopping.\n\n## Main Buy\n\n### Dairy\n\n- Cowbelle British Unsalted Butter - need 15g; pack 250g block; used cost GBP 0.12\n- Merevale British Free Range Mixed Weight Eggs - need 8 eggs; pack 15 egg pack; used cost GBP 1.55\n\n## Pantry Check\n\n### Pantry\n\n- Specially Selected White Sourdough Sliced Loaf - need 3 slices; pack 500g loaf; used cost GBP 0.69\n",
       "invoice_rows": [
         {
           "recipe_version": "VAR-REC-GF036-PLAIN-POACHED-EGGS-TOAST-BREAKFAST-001-M100",
@@ -767,15 +730,15 @@
           "ingredient_name": "Merevale British Free Range Mixed Weight Eggs",
           "ingredient_id": "ING-V1-FREE-RANGE-MIXED-WEIGHT-EGGS",
           "sku_id": "aldi-merevale-free-range-mixed-weight-eggs-15pk",
-          "raw_quantity_value": 200.0,
+          "raw_quantity_value": 300.0,
           "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 102.5,
+          "edible_quantity_value": 153.75,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 2.0,
+          "kitchen_quantity_value": 3.0,
           "kitchen_quantity_unit": "egg",
-          "kitchen_display": "2 eggs",
-          "weighing_display": "measured household average: 8 cracked mixed-pack eggs = 410g, so 1 egg = 51.25g edible; enter egg count or override with weighed grams; calculation anchor 102.5g",
-          "nutrition_quantity_value": 102.5,
+          "kitchen_display": "3 eggs",
+          "weighing_display": "measured household average: 8 cracked mixed-pack eggs = 410g, so 1 egg = 51.25g edible; enter egg count or override with weighed grams; calculation anchor 153.75g",
+          "nutrition_quantity_value": 153.75,
           "nutrition_quantity_unit": "g",
           "purchase_display": "15 egg pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-EGG-MIXED-WEIGHT-001",
@@ -783,12 +746,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 134.3,
-          "protein_g": 12.9,
+          "calories": 201.4,
+          "protein_g": 19.4,
           "carbs_g": 0.0,
-          "fat_g": 9.2,
-          "cost_gbp": 0.39,
-          "filling_points": 41.0,
+          "fat_g": 13.8,
+          "cost_gbp": 0.58,
+          "filling_points": 61.5,
           "pantry_or_shopping": "main_buy",
           "pack_label": "15 each",
           "prep_stage": "Heat the poaching water",
@@ -1367,15 +1330,15 @@
           "ingredient_name": "Merevale British Free Range Mixed Weight Eggs",
           "ingredient_id": "ING-V1-FREE-RANGE-MIXED-WEIGHT-EGGS",
           "sku_id": "aldi-merevale-free-range-mixed-weight-eggs-15pk",
-          "raw_quantity_value": 200.0,
+          "raw_quantity_value": 300.0,
           "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 102.5,
+          "edible_quantity_value": 153.75,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 2.0,
+          "kitchen_quantity_value": 3.0,
           "kitchen_quantity_unit": "egg",
-          "kitchen_display": "2 eggs",
-          "weighing_display": "measured household average: 8 cracked mixed-pack eggs = 410g, so 1 egg = 51.25g edible; enter egg count or override with weighed grams; calculation anchor 102.5g",
-          "nutrition_quantity_value": 102.5,
+          "kitchen_display": "3 eggs",
+          "weighing_display": "measured household average: 8 cracked mixed-pack eggs = 410g, so 1 egg = 51.25g edible; enter egg count or override with weighed grams; calculation anchor 153.75g",
+          "nutrition_quantity_value": 153.75,
           "nutrition_quantity_unit": "g",
           "purchase_display": "15 egg pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-EGG-MIXED-WEIGHT-001",
@@ -1383,12 +1346,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 134.3,
-          "protein_g": 12.9,
+          "calories": 201.4,
+          "protein_g": 19.4,
           "carbs_g": 0.0,
-          "fat_g": 9.2,
-          "cost_gbp": 0.39,
-          "filling_points": 41.0,
+          "fat_g": 13.8,
+          "cost_gbp": 0.58,
+          "filling_points": 61.5,
           "pantry_or_shopping": "main_buy",
           "pack_label": "15 each",
           "prep_stage": "Heat the poaching water",
@@ -1655,14 +1618,14 @@
           "ingredient_category": "Dairy",
           "ingredient_name": "Merevale British Free Range Mixed Weight Eggs",
           "sku_id": "aldi-merevale-free-range-mixed-weight-eggs-15pk",
-          "needed_quantity": "700.0",
+          "needed_quantity": "800.0",
           "needed_unit": "count_x100",
-          "needed_kitchen_quantity": "7.0",
+          "needed_kitchen_quantity": "8.0",
           "needed_kitchen_unit": "egg",
-          "needed_kitchen_display": "7 eggs",
+          "needed_kitchen_display": "8 eggs",
           "pack_label": "15 each",
           "purchase_display": "15 egg pack",
-          "estimated_used_cost_gbp": "1.36"
+          "estimated_used_cost_gbp": "1.55"
         },
         {
           "shopping_treatment": "pantry_check",
@@ -1679,7 +1642,7 @@
           "estimated_used_cost_gbp": "0.69"
         }
       ],
-      "shopping_total_used_cost_gbp": 2.17,
+      "shopping_total_used_cost_gbp": 2.36,
       "review_visual": {
         "schema_version": "v3.review_visual.1",
         "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
@@ -1724,17 +1687,17 @@
         "status": "PASS",
         "route_back_phase": null,
         "verdict": "Ready for Luke review, not approved.",
-        "plain_english_summary": "Luke now gets 3 eggs, while Sarah and Louis stay at 2 eggs. The change is source-backed before the card renders.",
+        "plain_english_summary": "Sarah now gets 3 eggs to clear the saved breakfast protein repair gate. Luke remains at 3 eggs and Louis remains at 2 eggs.",
         "issues": [],
         "blocked_from": [],
         "notes": [
           "This does not create human approval.",
           "No planner handover is allowed until Luke presses Pass in the review flow.",
-          "The extra egg changes Luke's nutrition, cost, fullness and recipe-level egg shopping demand."
+          "The repair changes Sarah's nutrition, cost, fullness and recipe-level egg shopping demand."
         ]
       },
       "technical_proof": {
-        "verdict": "BLOCK",
+        "verdict": "PASS",
         "level": "unknown",
         "ingredient_proof_row_count": 90,
         "source_authorised_counts": {
@@ -1752,21 +1715,16 @@
         "active_profile_rule_matches": []
       },
       "factory_status": {
-        "factory_runner": "BLOCKED",
+        "factory_runner": "PASSED",
         "source_binding": "PASSED",
-        "validation": "BLOCK",
+        "validation": "PASS",
         "output_bundle": "PASSED",
         "audit_status": "approved",
-        "issue_count": 11,
+        "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "food_blueprint",
-        "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-        "first_issue": {
-          "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-          "severity": "issue",
-          "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-          "route_back_phase": "food_blueprint"
-        }
+        "route_back_phase": "",
+        "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
+        "first_issue": {}
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
@@ -1816,19 +1774,20 @@
       }
     }
   ],
-  "user_review_queue": [],
-  "blocked_queue": [
+  "user_review_queue": [
     {
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "title": "Buttered Poached Eggs On White Sourdough Toast",
       "run_slug": "poached-eggs-on-toast-v1",
-      "route_back_phase": "food_blueprint",
-      "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-      "first_issue": {
-        "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-        "severity": "issue",
-        "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
-        "route_back_phase": "food_blueprint"
+      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
+      "human_review": {
+        "status": "needs_user_confirmation",
+        "confirmed": false,
+        "confirmed_by": "",
+        "confirmed_at": "",
+        "review_file": "",
+        "notes": "",
+        "required_for_planning": true
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
@@ -1841,5 +1800,6 @@
         "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
       }
     }
-  ]
+  ],
+  "blocked_queue": []
 }
