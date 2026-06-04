@@ -509,6 +509,7 @@ function renderProofSummary(recipe) {
   const proof = recipe.technical_proof || {};
   const counts = proof.source_authorised_counts || {};
   const sourceReady = proof.verdict === "PASS";
+  const profileReady = proof.profile_rule_status === "PASS";
   const visual = recipe.review_visual || {};
   const visualReady = visual.status === "approved_for_review_display" && visual.visual_truth_check?.status === "PASS";
   const quality = recipe.review_quality || {};
@@ -519,11 +520,13 @@ function renderProofSummary(recipe) {
       <h3>Proof, Without The Noise</h3>
       <div class="proof-bites">
         <span class="${sourceReady ? "ok" : "wait"}">${sourceReady ? "Data proof passed" : "Data proof blocked"}</span>
+        <span class="${profileReady ? "ok" : "wait"}">${profileReady ? "Profile rules passed" : "Profile rule blocked"}</span>
         <span class="${visualReady ? "ok" : "wait"}">${visualReady ? "Image truth passed" : "No checked image"}</span>
         <span class="${qualityBlocked ? "wait" : "ok"}">${qualityBlocked ? "Chef check blocked" : "Chef check clear"}</span>
         <span class="${recipe.algorithmic_planning_allowed ? "ok" : "wait"}">${escapeHtml(decisionText)}</span>
         <span>${escapeHtml(counts.nutrition || 0)} nutrition rows</span>
         <span>${escapeHtml(counts.cost || 0)} cost rows</span>
+        <span>${escapeHtml(proof.profile_rule_checked_count || 0)} profile checks</span>
       </div>
     </section>
   `;

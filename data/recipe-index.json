@@ -58,7 +58,12 @@
           "filling": 0,
           "shopping": 0,
           "unit": 0
-        }
+        },
+        "profile_rule_status": "BLOCK",
+        "profile_rule_checked_count": 0,
+        "profile_rule_pass_count": 0,
+        "blocked_profile_rules": [],
+        "active_profile_rule_matches": []
       },
       "factory_status": {
         "factory_runner": "BLOCKED",
@@ -482,6 +487,8 @@
         "technical_verdict": "PASS",
         "meal_slot_target_authority_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\shared\\meal_slot_target_authority.csv",
         "meal_slot_target_status": "LIGHT_ALLOWED",
+        "profile_rule_status": "PASS",
+        "profile_rule_checked_count": 7,
         "all_invoice_rows_source_authorised": true
       },
       "planner_handover": {
@@ -1736,7 +1743,12 @@
           "filling": 15,
           "shopping": 15,
           "unit": 15
-        }
+        },
+        "profile_rule_status": "PASS",
+        "profile_rule_checked_count": 7,
+        "profile_rule_pass_count": 7,
+        "blocked_profile_rules": [],
+        "active_profile_rule_matches": []
       },
       "factory_status": {
         "factory_runner": "PASSED",
@@ -1806,7 +1818,12 @@
           "filling": 0,
           "shopping": 0,
           "unit": 0
-        }
+        },
+        "profile_rule_status": "BLOCK",
+        "profile_rule_checked_count": 0,
+        "profile_rule_pass_count": 0,
+        "blocked_profile_rules": [],
+        "active_profile_rule_matches": []
       },
       "factory_status": {
         "factory_runner": "BLOCKED",
