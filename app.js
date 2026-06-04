@@ -287,7 +287,7 @@ function renderNutrition(recipe) {
 }
 
 function renderRecipePreview(recipe) {
-  const ingredients = ingredientGroups(recipe.recipe_card_markdown);
+  const ingredients = ingredientGroupsFromShoppingRows(recipe) || ingredientGroups(recipe.recipe_card_markdown);
   const method = methodSteps(recipe.recipe_card_markdown);
   return `
     <section class="story-section recipe-story">
@@ -328,7 +328,7 @@ function renderRecipePreview(recipe) {
                             ${
                               step.ingredients.length
                                 ? `<div class="step-ingredients">
-                                    <em>Step ingredients</em>
+                                    <em>Uses</em>
                                     <ul>
                                       ${step.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
                                     </ul>
@@ -347,6 +347,19 @@ function renderRecipePreview(recipe) {
       </div>
     </section>
   `;
+}
+
+function ingredientGroupsFromShoppingRows(recipe) {
+  const rows = Array.isArray(recipe.shopping_rows) ? recipe.shopping_rows : [];
+  if (!rows.length) return null;
+  const groups = new Map();
+  rows.forEach((row) => {
+    const title = row.ingredient_category || "Pantry";
+    if (!groups.has(title)) groups.set(title, []);
+    const quantity = row.needed_kitchen_display || `${number(row.needed_quantity)} ${row.needed_unit || ""}`.trim();
+    groups.get(title).push(`${row.ingredient_name} - ${quantity}`);
+  });
+  return Array.from(groups.entries()).map(([title, items]) => ({ title, items }));
 }
 
 function shoppingTreatmentLabel(value) {
