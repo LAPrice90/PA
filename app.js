@@ -281,12 +281,17 @@ function recipeDecision(recipe) {
 
 function filteredRecipes() {
   if (!state.index) return [];
-  return state.index.recipes.filter((recipe) => state.filter === "all" || recipe.status === state.filter);
+  const reviewStatuses = new Set(["needs_review", "needs_repair", "blocked"]);
+  return state.index.recipes.filter((recipe) => {
+    if (!reviewStatuses.has(recipe.status)) return false;
+    return state.filter === "all" || recipe.status === state.filter;
+  });
 }
 
 function currentRecipe() {
   if (!state.index) return null;
-  return state.index.recipes.find((recipe) => recipe.recipe_id === state.selectedId) || filteredRecipes()[0] || state.index.recipes[0] || null;
+  const recipes = filteredRecipes();
+  return recipes.find((recipe) => recipe.recipe_id === state.selectedId) || recipes[0] || null;
 }
 
 function reviewQueueStatus() {
@@ -848,9 +853,8 @@ function renderQueue() {
   const index = state.index;
   if (!index) return;
   els.queueSummary.innerHTML = `
-    <span><strong>${index.recipe_count}</strong> total</span>
+    <span><strong>${(index.needs_review_count || 0) + (index.needs_repair_count || 0) + (index.blocked_count || 0)}</strong> review queue</span>
     <span><strong>${index.needs_review_count || 0}</strong> to review</span>
-    <span><strong>${index.approved_count || 0}</strong> approved</span>
     <span><strong>${index.needs_repair_count || 0}</strong> repair</span>
     <span><strong>${index.blocked_count || 0}</strong> technical</span>
   `;
@@ -1746,9 +1750,10 @@ async function init() {
     if (!profileResponse.ok) throw new Error(`profile-index HTTP ${profileResponse.status}`);
     state.index = await recipeResponse.json();
     state.profileIndex = await profileResponse.json();
-    const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
-    const firstApproved = approvedRecipes()[0];
-    state.selectedId = firstReview?.recipe_id || state.index.recipes[0]?.recipe_id || "";
+      const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
+      const firstReviewWork = state.index.recipes.find((recipe) => ["needs_review", "needs_repair", "blocked"].includes(recipe.status));
+      const firstApproved = approvedRecipes()[0];
+      state.selectedId = firstReview?.recipe_id || firstReviewWork?.recipe_id || "";
     state.selectedDatabaseId = firstApproved?.recipe_id || "";
     state.selectedShoppingId = firstApproved?.recipe_id || "";
     if (state.route === "recipes") renderAll();
