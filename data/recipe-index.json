@@ -12,8 +12,8 @@
   },
   "recipe_count": 1,
   "approved_count": 0,
-  "needs_review_count": 1,
-  "blocked_count": 0,
+  "needs_review_count": 0,
+  "blocked_count": 1,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
     "app_calculates_recipe_logic": false,
@@ -26,12 +26,12 @@
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "run_slug": "poached-eggs-on-toast-v1",
       "title": "Buttered Poached Eggs On White Sourdough Toast",
-      "status": "needs_review",
+      "status": "blocked",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
-      "technical_planner_ready": true,
-      "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "technical_planner_ready": false,
+      "technical_algorithmic_planning_allowed": false,
+      "user_confirmation_required": false,
       "human_review": {
         "status": "needs_user_confirmation",
         "confirmed": false,
@@ -87,8 +87,40 @@
       "slot_fit": {
         "target_authority_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\shared\\meal_slot_target_authority.csv",
         "overall_status": "LIGHT_ALLOWED",
-        "planner_handover_allowed": true,
+        "planner_handover_allowed": false,
         "day_balance_required": true,
+        "light_allowed_repair_policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+        "light_allowed_repair_required": true,
+        "light_allowed_repair_blocks": [
+          {
+            "person": "Luke",
+            "meal_slot": "breakfast",
+            "target_id": "MSTA-LUKE-BREAKFAST-001",
+            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "route_back_phase": "food_blueprint",
+            "fullness_target_room_points": 8.9,
+            "cost_room_gbp": 1.89,
+            "deficits_checked": {
+              "calories": 22.8,
+              "protein_g": 0.6
+            }
+          },
+          {
+            "person": "Sarah",
+            "meal_slot": "breakfast",
+            "target_id": "MSTA-SARAH-BREAKFAST-001",
+            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "route_back_phase": "food_blueprint",
+            "fullness_target_room_points": 15.4,
+            "cost_room_gbp": 1.58,
+            "deficits_checked": {
+              "calories": 49.9,
+              "protein_g": 7.1
+            }
+          }
+        ],
         "rows": [
           {
             "person": "Luke",
@@ -145,7 +177,24 @@
             },
             "deficit_policy": "must_balance_by_day",
             "source_refs": "V2/data/user_profile.csv:USR-LUKE;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json",
-            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
+            "light_allowed_repair_gate": {
+              "status": "BLOCK",
+              "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+              "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+              "route_back_phase": "food_blueprint",
+              "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+              "fullness_target_room_points": 8.9,
+              "cost_room_gbp": 1.89,
+              "minimum_fullness_target_room_points": 5.0,
+              "minimum_cost_room_gbp": 0.2,
+              "active_time_pass": true,
+              "deficits_checked": {
+                "calories": 22.8,
+                "protein_g": 0.6
+              },
+              "requires_saved_exception": true
+            }
           },
           {
             "person": "Sarah",
@@ -202,7 +251,24 @@
             },
             "deficit_policy": "must_balance_by_day",
             "source_refs": "V2/data/user_profile.csv:USR-SARAH;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json;explicit Poached Eggs expected LIGHT_ALLOWED result",
-            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
+            "light_allowed_repair_gate": {
+              "status": "BLOCK",
+              "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+              "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+              "route_back_phase": "food_blueprint",
+              "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+              "fullness_target_room_points": 15.4,
+              "cost_room_gbp": 1.58,
+              "minimum_fullness_target_room_points": 5.0,
+              "minimum_cost_room_gbp": 0.2,
+              "active_time_pass": true,
+              "deficits_checked": {
+                "calories": 49.9,
+                "protein_g": 7.1
+              },
+              "requires_saved_exception": true
+            }
           },
           {
             "person": "Louis",
@@ -259,7 +325,12 @@
             },
             "deficit_policy": "must_balance_by_day",
             "source_refs": "V2/data/user_profile.csv:USR-LOUIS;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json",
-            "day_balance_requirement": ""
+            "day_balance_requirement": "",
+            "light_allowed_repair_gate": {
+              "status": "PASS",
+              "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+              "reason": "not_light_allowed"
+            }
           }
         ]
       },
@@ -341,7 +412,24 @@
             "protein_g": 0.6,
             "fullness": 0.0
           },
-          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
+          "repair_gate": {
+            "status": "BLOCK",
+            "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+            "route_back_phase": "food_blueprint",
+            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "fullness_target_room_points": 8.9,
+            "cost_room_gbp": 1.89,
+            "minimum_fullness_target_room_points": 5.0,
+            "minimum_cost_room_gbp": 0.2,
+            "active_time_pass": true,
+            "deficits_checked": {
+              "calories": 22.8,
+              "protein_g": 0.6
+            },
+            "requires_saved_exception": true
+          }
         },
         {
           "person": "Sarah",
@@ -352,7 +440,24 @@
             "protein_g": 7.1,
             "fullness": 0.0
           },
-          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
+          "repair_gate": {
+            "status": "BLOCK",
+            "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
+            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+            "route_back_phase": "food_blueprint",
+            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "fullness_target_room_points": 15.4,
+            "cost_room_gbp": 1.58,
+            "minimum_fullness_target_room_points": 5.0,
+            "minimum_cost_room_gbp": 0.2,
+            "active_time_pass": true,
+            "deficits_checked": {
+              "calories": 49.9,
+              "protein_g": 7.1
+            },
+            "requires_saved_exception": true
+          }
         }
       ],
       "shopping_treatments": [
@@ -416,20 +521,22 @@
         "meal_slot_target_status": "LIGHT_ALLOWED",
         "profile_rule_status": "PASS",
         "profile_rule_checked_count": 7,
-        "all_invoice_rows_source_authorised": true
+        "all_invoice_rows_source_authorised": true,
+        "current_factory_passed": false,
+        "meal_slot_repair_required": true
       },
       "planner_handover": {
-        "status": "ready",
+        "status": "blocked",
         "required_gates": {
-          "goal_fit_pass": true,
-          "recipe_card_pass": true,
-          "datasheet_pass": true,
-          "nutrition_pass": true,
-          "shopping_pass": true,
+          "goal_fit_pass": false,
+          "recipe_card_pass": false,
+          "datasheet_pass": false,
+          "nutrition_pass": false,
+          "shopping_pass": false,
           "person_rules_pass": true,
-          "timing_pass": true,
-          "technical_trace_pass": true,
-          "audit_pass": true
+          "timing_pass": false,
+          "technical_trace_pass": false,
+          "audit_pass": false
         }
       },
       "recipe_card_markdown": "# Buttered Poached Eggs On White Sourdough Toast\n\nSoft poached eggs on hot buttered white sourdough, finished simply with Himalayan salt and black pepper.\n\nServes: Luke, Sarah and Louis\n\nTime: 20 minutes\n\nYield: 3 plates\n\nMeal role: breakfast\n\n## Ingredients\n\n### Dairy\n\n- Merevale British Free Range Mixed Weight Eggs - 7 eggs\n- Cowbelle British Unsalted Butter - 15g total\n\n### Pantry\n\n- Specially Selected White Sourdough Sliced Loaf - 3 slices, about 180g total\n- Himalayan salt - 3 pinches, about 0.9g total\n- Black peppercorns - 3 light grinds, about 0.6g total\n\n## Equipment\n\n- 20 cm saucepan with lid\n- Slotted spoon\n- Oven grill or normal toaster route\n- Plates\n\n## Mise En Place\n\n- Toast board: set out 3 slices of white sourdough and 15g unsalted butter.\n- Egg cups: set out 7 eggs; crack into cups if you want cleaner poaching.\n- Finish station: keep the salt and pepper next to the plates.\n\n## Method\n\n### 1. Heat the water\n\nBring the saucepan of water to a gentle simmer. Lower the heat so the water is moving but not bubbling hard.\n\nUses:\n\n- Water - enough for poaching\n\n### 2. Toast and butter the sourdough\n\nToast the sourdough until golden and firm. Butter each slice while it is hot so the butter melts into the toast.\n\nUses:\n\n- White sourdough bread - 3 slices\n- Unsalted butter - 15g\n\n### 3. Poach the eggs\n\nSlide the eggs into the water in controlled rounds if the pan is crowded. Cook gently until the whites are set and the yolks are still soft.\n\nUses:\n\n- Eggs - 7\n\n### 4. Plate and season\n\nLift the eggs out with a slotted spoon and drain briefly. Luke gets 3 eggs on his toast. Sarah and Louis get 2 eggs each. Season each plate.\n\nUses:\n\n- Buttered sourdough toast - all\n- Poached eggs - all\n- Himalayan salt - 3 light pinches\n- Black pepper - 3 light grinds\n\n## Plate\n\n### Luke\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 3 poached eggs.\n- Pantry: a light pinch of salt and a light grind of black pepper.\n\n### Sarah\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 2 poached eggs.\n- Pantry: a light pinch of salt and a light grind of black pepper.\n\n### Louis\n\n- Pantry: 1 slice white sourdough toast, about 60g.\n- Dairy: 5g unsalted butter.\n- Dairy: 2 poached eggs.\n- Pantry: a light pinch of salt and a light grind of black pepper.\n\n## Nutrition And Cost\n\n- Luke: 377.2 kcal, 24.4g protein, 28.3g carbs, 19.3g fat, GBP 0.86, 95.1 fullness\n- Sarah: 310.1 kcal, 17.9g protein, 28.3g carbs, 14.7g fat, GBP 0.67, 74.6 fullness\n- Louis: 310.1 kcal, 17.9g protein, 28.3g carbs, 14.7g fat, GBP 0.67, 74.6 fullness\n\n## Cook's Notes\n\n- Butter the toast as soon as it comes out, then put the eggs on top.\n- If the pan feels crowded, poach the eggs in two rounds.\n- Plate Sarah and Louis first if useful, then finish Luke's 3-egg plate.\n- Season after the eggs land so the toast stays crisp and the yolk carries the salt and pepper.\n",
@@ -1661,7 +1768,7 @@
         ]
       },
       "technical_proof": {
-        "verdict": "PASS",
+        "verdict": "BLOCK",
         "level": "unknown",
         "ingredient_proof_row_count": 90,
         "source_authorised_counts": {
@@ -1679,16 +1786,21 @@
         "active_profile_rule_matches": []
       },
       "factory_status": {
-        "factory_runner": "PASSED",
+        "factory_runner": "BLOCKED",
         "source_binding": "PASSED",
-        "validation": "PASS",
+        "validation": "BLOCK",
         "output_bundle": "PASSED",
         "audit_status": "approved",
-        "issue_count": 0,
+        "issue_count": 13,
         "warning_count": 0,
-        "route_back_phase": "",
-        "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
-        "first_issue": {}
+        "route_back_phase": "food_blueprint",
+        "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+        "first_issue": {
+          "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+          "severity": "issue",
+          "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+          "route_back_phase": "food_blueprint"
+        }
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
@@ -1738,20 +1850,19 @@
       }
     }
   ],
-  "user_review_queue": [
+  "user_review_queue": [],
+  "blocked_queue": [
     {
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "title": "Buttered Poached Eggs On White Sourdough Toast",
       "run_slug": "poached-eggs-on-toast-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+      "route_back_phase": "food_blueprint",
+      "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+      "first_issue": {
+        "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+        "severity": "issue",
+        "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+        "route_back_phase": "food_blueprint"
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
@@ -1764,6 +1875,5 @@
         "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
       }
     }
-  ],
-  "blocked_queue": []
+  ]
 }

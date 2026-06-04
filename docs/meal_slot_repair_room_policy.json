@@ -1,0 +1,42 @@
+{
+  "schema_version": "v3.meal_slot_repair_room_policy.1",
+  "policy_id": "V3-MEAL-SLOT-REPAIR-ROOM-POLICY-001",
+  "active": true,
+  "rule_id": "V3C-016-LIGHT_ALLOWED_REPAIR_ROOM",
+  "summary": "A light meal cannot be planner-handover ready when it is below calorie or protein target and still has practical room to improve the portion.",
+  "plain_english": "Do not let LIGHT_ALLOWED become a habit. If a breakfast or other meal is light but there is room to add food without breaking fullness, cost, time, or person rules, route it back for portion repair before Luke reviews it.",
+  "source_refs": [
+    "Luke correction 2026-06-04: I do not want to make a habit of all light allowed if there is room for fullness.",
+    "V3/shared/meal_slot_target_authority.csv"
+  ],
+  "applies_when": {
+    "row_status": "LIGHT_ALLOWED",
+    "deficit_dimensions": [
+      "calories",
+      "protein_g"
+    ],
+    "deficit_policy": [
+      "must_balance_by_day"
+    ]
+  },
+  "repair_room_thresholds": {
+    "minimum_fullness_target_room_points": 5,
+    "minimum_cost_room_gbp": 0.2,
+    "active_time_must_pass": true
+  },
+  "light_allowed_exception": {
+    "requires_saved_exception": true,
+    "accepted_exception_field": "light_meal_exception",
+    "accepted_exception_values": [
+      "staple_light_meal",
+      "deliberate_light_slot",
+      "scheduler_only_gap_fill"
+    ]
+  },
+  "block": {
+    "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
+    "route_back_phase": "food_blueprint",
+    "planner_handover_allowed": false,
+    "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception."
+  }
+}
