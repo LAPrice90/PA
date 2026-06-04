@@ -70,7 +70,7 @@ function firstParagraph(markdown, fallback) {
   return lines.find((line) => line !== title && !line.includes(":") && line.length > 24) || fallback;
 }
 
-function sectionLines(markdown, heading) {
+function sectionContentLines(markdown, heading) {
   const lines = String(markdown || "").split(/\r?\n/);
   const start = lines.findIndex((line) => line.trim().toLowerCase() === `## ${heading}`.toLowerCase());
   if (start === -1) return [];
@@ -78,10 +78,60 @@ function sectionLines(markdown, heading) {
   for (let index = start + 1; index < lines.length; index += 1) {
     const line = lines[index].trim();
     if (line.startsWith("## ")) break;
-    if (!line || line.startsWith("### ")) continue;
-    output.push(line.replace(/^- /, ""));
+    output.push(line);
   }
-  return output.slice(0, 8);
+  return output;
+}
+
+function ingredientGroups(markdown) {
+  const lines = sectionContentLines(markdown, "Ingredients");
+  const groups = [];
+  let current = { title: "Ingredients", items: [] };
+  lines.forEach((line) => {
+    if (!line) return;
+    if (line.startsWith("### ")) {
+      if (current.items.length) groups.push(current);
+      current = { title: line.replace(/^###\s+/, ""), items: [] };
+      return;
+    }
+    if (line.startsWith("- ")) current.items.push(line.replace(/^- /, ""));
+  });
+  if (current.items.length) groups.push(current);
+  return groups;
+}
+
+function methodSteps(markdown) {
+  const lines = sectionContentLines(markdown, "Method");
+  const steps = [];
+  let current = null;
+  let mode = "instruction";
+  lines.forEach((line) => {
+    if (!line) return;
+    if (line.startsWith("### ")) {
+      if (current) steps.push(current);
+      current = {
+        title: line.replace(/^###\s+/, "").replace(/^\d+\.\s*/, ""),
+        instructions: [],
+        ingredients: [],
+      };
+      mode = "instruction";
+      return;
+    }
+    if (!current) return;
+    if (line.toLowerCase() === "uses:") {
+      mode = "ingredients";
+      return;
+    }
+    if (line.startsWith("- ")) {
+      const item = line.replace(/^- /, "");
+      if (mode === "ingredients") current.ingredients.push(item);
+      else current.instructions.push(item);
+      return;
+    }
+    current.instructions.push(line);
+  });
+  if (current) steps.push(current);
+  return steps.filter((step) => step.title || step.instructions.length || step.ingredients.length);
 }
 
 function statusLabel(recipe) {
@@ -237,23 +287,62 @@ function renderNutrition(recipe) {
 }
 
 function renderRecipePreview(recipe) {
-  const ingredients = sectionLines(recipe.recipe_card_markdown, "Ingredients");
-  const method = sectionLines(recipe.recipe_card_markdown, "Method");
+  const ingredients = ingredientGroups(recipe.recipe_card_markdown);
+  const method = methodSteps(recipe.recipe_card_markdown);
   return `
     <section class="story-section recipe-story">
       <h3>Recipe Card</h3>
       <div class="recipe-preview">
         <div>
           <h4>What goes in</h4>
-          <ul>
-            ${ingredients.length ? ingredients.slice(0, 6).map((line) => `<li>${escapeHtml(line)}</li>`).join("") : `<li>No ingredient preview saved.</li>`}
-          </ul>
+          ${
+            ingredients.length
+              ? ingredients
+                  .map(
+                    (group) => `
+                      <div class="ingredient-group">
+                        <strong>${escapeHtml(group.title)}</strong>
+                        <ul>
+                          ${group.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                        </ul>
+                      </div>
+                    `,
+                  )
+                  .join("")
+              : `<p class="friendly-empty">No ingredient preview saved.</p>`
+          }
         </div>
         <div>
-          <h4>How it cooks</h4>
-          <ol>
-            ${method.length ? method.slice(0, 4).map((line) => `<li>${escapeHtml(line)}</li>`).join("") : `<li>No method preview saved.</li>`}
-          </ol>
+          <h4>Cooking steps</h4>
+          ${
+            method.length
+              ? `<div class="method-list">
+                  ${method
+                    .map(
+                      (step, index) => `
+                        <article class="method-step">
+                          <span>${index + 1}</span>
+                          <div>
+                            <strong>${escapeHtml(step.title || `Step ${index + 1}`)}</strong>
+                            ${step.instructions.length ? `<p>${escapeHtml(step.instructions.join(" "))}</p>` : ""}
+                            ${
+                              step.ingredients.length
+                                ? `<div class="step-ingredients">
+                                    <em>Step ingredients</em>
+                                    <ul>
+                                      ${step.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                                    </ul>
+                                  </div>`
+                                : ""
+                            }
+                          </div>
+                        </article>
+                      `,
+                    )
+                    .join("")}
+                </div>`
+              : `<p class="friendly-empty">No method preview saved.</p>`
+          }
         </div>
       </div>
     </section>

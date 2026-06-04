@@ -388,6 +388,74 @@ button {
   font-size: 14px;
 }
 
+.ingredient-group,
+.method-step {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ingredient-group + .ingredient-group,
+.method-step + .method-step {
+  margin-top: 10px;
+}
+
+.ingredient-group strong,
+.method-step strong {
+  display: block;
+  color: var(--black);
+  line-height: 1.2;
+}
+
+.method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.method-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.method-step > span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.method-step p {
+  margin: 7px 0 0;
+  color: #333b47;
+}
+
+.step-ingredients {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.step-ingredients em {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--blue);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .recipe-preview ul,
 .recipe-preview ol {
   margin: 0;
