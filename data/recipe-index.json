@@ -11,8 +11,8 @@
     "expected_public_recipe_count": 1
   },
   "recipe_count": 1,
-  "approved_count": 0,
-  "needs_review_count": 1,
+  "approved_count": 1,
+  "needs_review_count": 0,
   "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
@@ -28,19 +28,26 @@
       "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
       "run_slug": "poached-eggs-on-toast-v1",
       "title": "Buttered Poached Eggs On White Sourdough Toast",
-      "status": "needs_review",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
+      "status": "approved",
+      "planner_ready": true,
+      "algorithmic_planning_allowed": true,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "review_file": "",
-        "notes": "",
+        "status": "confirmed",
+        "confirmed": true,
+        "failed": false,
+        "confirmed_by": "Luke",
+        "confirmed_at": "2026-06-04T18:00:39+00:00",
+        "failed_by": "",
+        "failed_at": "",
+        "decision": "pass",
+        "reason_code": "",
+        "reason_label": "",
+        "repair_ticket": "",
+        "review_file": "human_review.json",
+        "notes": "Luke confirmed pass in Codex chat after selecting Pass on the website; copied JSON was not pasted, so this uses the controlled manual import path.",
         "required_for_planning": true
       },
       "meal_type": "breakfast",
@@ -1775,33 +1782,7 @@
       }
     }
   ],
-  "user_review_queue": [
-    {
-      "recipe_id": "V3-FACTORY-POACHED-EGGS-ON-TOAST-001",
-      "title": "Buttered Poached Eggs On White Sourdough Toast",
-      "run_slug": "poached-eggs-on-toast-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/poached-eggs-on-toast-v1",
-        "output_bundle": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle",
-        "finished_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/finished-recipe-card.md",
-        "recipe_data_invoice": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/recipe-data-invoice.csv",
-        "solver_recipe_card": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/output_bundle/solver-recipe-card.json",
-        "factory_runner_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/poached-eggs-on-toast-v1/source-authority-binding-report.json"
-      }
-    }
-  ],
+  "user_review_queue": [],
   "repair_queue": [],
   "blocked_queue": []
 }
