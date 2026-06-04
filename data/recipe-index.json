@@ -14,8 +14,8 @@
   },
   "recipe_count": 3,
   "approved_count": 2,
-  "needs_review_count": 1,
-  "needs_repair_count": 0,
+  "needs_review_count": 0,
+  "needs_repair_count": 1,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -30,27 +30,28 @@
       "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
       "run_slug": "chicken-fajitas-v1",
       "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-      "status": "needs_review",
+      "status": "needs_repair",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-04T21:06:12.250Z",
+        "decision": "fail",
+        "reason_code": "other_notes",
+        "reason_label": "Other notes",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/chicken-fajitas-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/review_queue/rejected/chicken-fajitas-v1/failed_human_review_import.json",
+        "notes": "Awkward measurements \"Nature's Pick Brown Onions - 1.1 medium onions\\nNature's Pick Garlic - 3.2 small clove\" this is not a realistic use of veg, half a lime is fine but 1/5 of a garlic or 1/10 of an onion is not",
+        "required_for_planning": true,
+        "route_back_phase": "food_blueprint"
       },
       "meal_type": "dinner",
       "people": [
@@ -4444,7 +4445,7 @@
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "",
+        "route_back_phase": "food_blueprint",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
         "first_issue": {}
       },
@@ -7943,28 +7944,31 @@
       }
     }
   ],
-  "user_review_queue": [
+  "user_review_queue": [],
+  "repair_queue": [
     {
       "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
       "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
       "run_slug": "chicken-fajitas-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
+      "plain_english_summary": "Luke rejected this recipe. It must be repaired from the owning phase before review continues.",
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-04T21:06:12.250Z",
+        "decision": "fail",
+        "reason_code": "other_notes",
+        "reason_label": "Other notes",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/chicken-fajitas-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/review_queue/rejected/chicken-fajitas-v1/failed_human_review_import.json",
+        "notes": "Awkward measurements \"Nature's Pick Brown Onions - 1.1 medium onions\\nNature's Pick Garlic - 3.2 small clove\" this is not a realistic use of veg, half a lime is fine but 1/5 of a garlic or 1/10 of an onion is not",
+        "required_for_planning": true,
+        "route_back_phase": "food_blueprint"
       },
+      "route_back_phase": "food_blueprint",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
         "output_bundle": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle",
@@ -7977,6 +7981,5 @@
       }
     }
   ],
-  "repair_queue": [],
   "blocked_queue": []
 }
