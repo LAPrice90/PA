@@ -1,8 +1,8 @@
-# Diet Planner Recipe Review
+# Diet Planner V3 App
 
-Mobile-first V3 recipe review card for Luke confirmation.
+Mobile-first V3 app launcher and recipe review card for Luke confirmation.
 
-This repo currently contains a static review screen:
+This repo currently contains a static app:
 
 - `index.html`
 - `styles.css`
@@ -10,7 +10,14 @@ This repo currently contains a static review screen:
 - `data/recipe-index.json`
 - `assets/poached-eggs-hero.png`
 
-Plain English: this is the food-profile view for reviewing recipes on a phone. It shows the menu description, suitability, per-person nutrition, recipe preview, shopping costs, proof summary, a checked review image, and local-only Pass/Fail buttons.
+Plain English: the root page is a simple front door with three options: Profiles, Recipe Review, and Weekly Planner. Recipe Review is the food-profile view for reviewing recipes on a phone. Profiles and Weekly Planner are coming-soon placeholders.
+
+Routes:
+
+- `#/` or no hash: Home.
+- `#/recipes`: Recipe Review.
+- `#/profiles`: Profiles coming soon.
+- `#/planner`: Weekly Planner coming soon.
 
 The design has moved from warm meal-kit colours to a sharper minimalist style: white cards, black header, electric green pass state, coral fail state, and blue proof/status accents.
 
@@ -20,14 +27,15 @@ Important boundary:
 - They do not approve a recipe.
 - They do not create `human_review.json`.
 - They do not create planner rows, shopping plans, calendar events, Google output, live receipts, or automation output.
+- Profiles and Weekly Planner do not expose real profile data or planning controls yet.
 
 Current data state:
 
 - 3 recipes in the review index.
 - 0 approved.
-- 0 needs review.
-- 3 blocked.
-- Poached Eggs is blocked by `CULINARY_BASELINE_MISSING` because the technical proof omitted butter, seasoning, and chef edge.
+- 1 needs review.
+- 2 blocked.
+- Poached Eggs is a source-authorised review recipe, but it is not planner-approved because `human_review.json` is absent.
 
 Review image rule:
 
