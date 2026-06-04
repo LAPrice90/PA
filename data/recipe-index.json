@@ -93,25 +93,11 @@
         "light_allowed_repair_required": true,
         "light_allowed_repair_blocks": [
           {
-            "person": "Luke",
-            "meal_slot": "breakfast",
-            "target_id": "MSTA-LUKE-BREAKFAST-001",
-            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
-            "route_back_phase": "food_blueprint",
-            "fullness_target_room_points": 8.9,
-            "cost_room_gbp": 1.89,
-            "deficits_checked": {
-              "calories": 22.8,
-              "protein_g": 0.6
-            }
-          },
-          {
             "person": "Sarah",
             "meal_slot": "breakfast",
             "target_id": "MSTA-SARAH-BREAKFAST-001",
             "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
             "route_back_phase": "food_blueprint",
             "fullness_target_room_points": 15.4,
             "cost_room_gbp": 1.58,
@@ -179,21 +165,15 @@
             "source_refs": "V2/data/user_profile.csv:USR-LUKE;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json",
             "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
             "light_allowed_repair_gate": {
-              "status": "BLOCK",
+              "status": "PASS",
               "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
-              "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-              "route_back_phase": "food_blueprint",
-              "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
-              "fullness_target_room_points": 8.9,
-              "cost_room_gbp": 1.89,
-              "minimum_fullness_target_room_points": 5.0,
-              "minimum_cost_room_gbp": 0.2,
-              "active_time_pass": true,
+              "reason": "fullness_met_or_no_meaningful_protein_gap",
+              "fullness_met": true,
               "deficits_checked": {
                 "calories": 22.8,
                 "protein_g": 0.6
               },
-              "requires_saved_exception": true
+              "minimum_protein_deficit_g": 2.0
             }
           },
           {
@@ -257,7 +237,7 @@
               "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
               "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
               "route_back_phase": "food_blueprint",
-              "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+              "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
               "fullness_target_room_points": 15.4,
               "cost_room_gbp": 1.58,
               "minimum_fullness_target_room_points": 5.0,
@@ -267,6 +247,11 @@
                 "calories": 49.9,
                 "protein_g": 7.1
               },
+              "protein_needs_repair": true,
+              "calorie_needs_repair": false,
+              "fullness_met": true,
+              "minimum_protein_deficit_g": 2.0,
+              "minimum_calorie_deficit_kcal_when_fullness_not_met": 50.0,
               "requires_saved_exception": true
             }
           },
@@ -414,21 +399,15 @@
           },
           "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
           "repair_gate": {
-            "status": "BLOCK",
+            "status": "PASS",
             "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
-            "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
-            "route_back_phase": "food_blueprint",
-            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
-            "fullness_target_room_points": 8.9,
-            "cost_room_gbp": 1.89,
-            "minimum_fullness_target_room_points": 5.0,
-            "minimum_cost_room_gbp": 0.2,
-            "active_time_pass": true,
+            "reason": "fullness_met_or_no_meaningful_protein_gap",
+            "fullness_met": true,
             "deficits_checked": {
               "calories": 22.8,
               "protein_g": 0.6
             },
-            "requires_saved_exception": true
+            "minimum_protein_deficit_g": 2.0
           }
         },
         {
@@ -446,7 +425,7 @@
             "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
             "issue_code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
             "route_back_phase": "food_blueprint",
-            "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+            "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
             "fullness_target_room_points": 15.4,
             "cost_room_gbp": 1.58,
             "minimum_fullness_target_room_points": 5.0,
@@ -456,6 +435,11 @@
               "calories": 49.9,
               "protein_g": 7.1
             },
+            "protein_needs_repair": true,
+            "calorie_needs_repair": false,
+            "fullness_met": true,
+            "minimum_protein_deficit_g": 2.0,
+            "minimum_calorie_deficit_kcal_when_fullness_not_met": 50.0,
             "requires_saved_exception": true
           }
         }
@@ -1791,14 +1775,14 @@
         "validation": "BLOCK",
         "output_bundle": "PASSED",
         "audit_status": "approved",
-        "issue_count": 13,
+        "issue_count": 11,
         "warning_count": 0,
         "route_back_phase": "food_blueprint",
-        "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+        "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
         "first_issue": {
           "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
           "severity": "issue",
-          "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+          "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
           "route_back_phase": "food_blueprint"
         }
       },
@@ -1857,11 +1841,11 @@
       "title": "Buttered Poached Eggs On White Sourdough Toast",
       "run_slug": "poached-eggs-on-toast-v1",
       "route_back_phase": "food_blueprint",
-      "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+      "plain_english_summary": "Stopped during V3 artifact validation: LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE. Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
       "first_issue": {
         "code": "LIGHT_ALLOWED_REPAIR_ROOM_AVAILABLE",
         "severity": "issue",
-        "message": "Recipe is light but still has practical room to improve the portion. Repair the portion or save an explicit light-meal exception.",
+        "message": "Recipe has a meaningful protein gap and still has practical room to improve the portion. Repair the protein or save an explicit light-meal exception.",
         "route_back_phase": "food_blueprint"
       },
       "paths": {
