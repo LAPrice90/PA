@@ -8,7 +8,7 @@
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1"
     ],
-    "hidden_reference_count": 2,
+    "hidden_reference_count": 4,
     "expected_public_recipe_count": 2
   },
   "recipe_count": 2,
@@ -3376,8 +3376,8 @@
         "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
         "status": "approved_for_review_display",
         "asset_path": "assets/scrambled-eggs-hero.png",
-        "generated_image_source": "V3/recipe_explorer_app/assets/scrambled-eggs-hero.png",
-        "creation_mode": "local_programmatic_png_after_builtin_image_generator_unavailable",
+        "generated_image_source": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/image_candidates/scrambled-eggs-hero-ai-candidate-2026-06-04.png",
+        "creation_mode": "ai_generated_review_candidate_approved_by_virtual_luke",
         "prompt_summary": "Creamy scrambled eggs on one slice of buttered white sourdough toast with light black pepper. No tomatoes, herbs, salad, avocado, beans, sauce, drinks, text, logos, or extra food.",
         "truth_sources": [
           "recipe_card.md",
@@ -3408,7 +3408,7 @@
           "status": "PASS",
           "checked_by": "Codex visual inspection",
           "checked_at": "2026-06-04",
-          "notes": "Image is a render-only illustration. It shows scrambled eggs on buttered white sourdough toast with black pepper only and does not add forbidden foods."
+          "notes": "Image is a render-only generated food photo. It shows scrambled eggs on buttered white sourdough toast with black pepper only and does not add forbidden foods."
         },
         "planner_handover_effect": "none",
         "human_review_effect": "none"
@@ -3458,6 +3458,23 @@
   ],
   "hidden_reference_runs": [
     {
+      "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
+      "run_slug": "chicken-fajitas-v1",
+      "title": "V3-FACTORY-CHICKEN-FAJITAS-001",
+      "status": "blocked",
+      "reason": "reference/debug run hidden from public recipe review",
+      "paths": {
+        "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
+        "output_bundle": "",
+        "finished_recipe_card": "",
+        "recipe_data_invoice": "",
+        "solver_recipe_card": "",
+        "factory_runner_report": "",
+        "validation_summary": "",
+        "source_authority_report": ""
+      }
+    },
+    {
       "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
       "run_slug": "gochujang-sticky-beef-noodles-v1",
       "title": "Gochujang Sticky Beef Noodles With Charred Greens",
@@ -3489,6 +3506,23 @@
         "factory_runner_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/factory-runner-report.json",
         "validation_summary": "",
         "source_authority_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/source-authority-binding-report.json"
+      }
+    },
+    {
+      "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
+      "run_slug": "strawberry-banana-yoghurt-bowl-v1",
+      "title": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
+      "status": "blocked",
+      "reason": "reference/debug run hidden from public recipe review",
+      "paths": {
+        "run_dir": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1",
+        "output_bundle": "",
+        "finished_recipe_card": "",
+        "recipe_data_invoice": "",
+        "solver_recipe_card": "",
+        "factory_runner_report": "",
+        "validation_summary": "",
+        "source_authority_report": ""
       }
     }
   ],
