@@ -214,6 +214,35 @@
             "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-RICE-BROWN-BLOCKED",
             "notes": "Brown rice is blocked unless Luke explicitly re-approves it later."
           }
+        },
+        {
+          "rule_id": "PFRA-HOUSEHOLD-WONKY-PEPPERS-001",
+          "person": "Household",
+          "rule_type": "blocked_preference",
+          "severity": "hard",
+          "target_type": "food_family",
+          "target_code": "PFFA-WONKY-PEPPERS",
+          "target_label": "Wonky peppers",
+          "ingredient_code": "",
+          "sku_code": "",
+          "scope": "all_slots",
+          "action": "replace_with_mixed_peppers_3pk",
+          "planner_impact": "Use the normal Aldi mixed peppers 3-pack. Do not choose wonky peppers for recipes or shopping.",
+          "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+          "notes": "Luke 2026-06-04 reported wonky peppers went bad quickly.",
+          "family": {
+            "family_code": "PFFA-WONKY-PEPPERS",
+            "label": "Wonky peppers",
+            "match_terms": [
+              "wonky peppers",
+              "wonky mixed peppers",
+              "nature's pick wonky mixed peppers",
+              "aldi-natures-pick-wonky-mixed-peppers-600g"
+            ],
+            "exclude_terms": [],
+            "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+            "notes": "Luke 2026-06-04 blocked wonky peppers after they went bad quickly. Use normal Aldi mixed peppers 3-pack instead."
+          }
         }
       ],
       "planner_notes": [],
@@ -621,6 +650,35 @@
             "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-RICE-BROWN-BLOCKED",
             "notes": "Brown rice is blocked unless Luke explicitly re-approves it later."
           }
+        },
+        {
+          "rule_id": "PFRA-HOUSEHOLD-WONKY-PEPPERS-001",
+          "person": "Household",
+          "rule_type": "blocked_preference",
+          "severity": "hard",
+          "target_type": "food_family",
+          "target_code": "PFFA-WONKY-PEPPERS",
+          "target_label": "Wonky peppers",
+          "ingredient_code": "",
+          "sku_code": "",
+          "scope": "all_slots",
+          "action": "replace_with_mixed_peppers_3pk",
+          "planner_impact": "Use the normal Aldi mixed peppers 3-pack. Do not choose wonky peppers for recipes or shopping.",
+          "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+          "notes": "Luke 2026-06-04 reported wonky peppers went bad quickly.",
+          "family": {
+            "family_code": "PFFA-WONKY-PEPPERS",
+            "label": "Wonky peppers",
+            "match_terms": [
+              "wonky peppers",
+              "wonky mixed peppers",
+              "nature's pick wonky mixed peppers",
+              "aldi-natures-pick-wonky-mixed-peppers-600g"
+            ],
+            "exclude_terms": [],
+            "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+            "notes": "Luke 2026-06-04 blocked wonky peppers after they went bad quickly. Use normal Aldi mixed peppers 3-pack instead."
+          }
         }
       ],
       "planner_notes": [],
@@ -894,6 +952,35 @@
             "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-RICE-BROWN-BLOCKED",
             "notes": "Brown rice is blocked unless Luke explicitly re-approves it later."
           }
+        },
+        {
+          "rule_id": "PFRA-HOUSEHOLD-WONKY-PEPPERS-001",
+          "person": "Household",
+          "rule_type": "blocked_preference",
+          "severity": "hard",
+          "target_type": "food_family",
+          "target_code": "PFFA-WONKY-PEPPERS",
+          "target_label": "Wonky peppers",
+          "ingredient_code": "",
+          "sku_code": "",
+          "scope": "all_slots",
+          "action": "replace_with_mixed_peppers_3pk",
+          "planner_impact": "Use the normal Aldi mixed peppers 3-pack. Do not choose wonky peppers for recipes or shopping.",
+          "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+          "notes": "Luke 2026-06-04 reported wonky peppers went bad quickly.",
+          "family": {
+            "family_code": "PFFA-WONKY-PEPPERS",
+            "label": "Wonky peppers",
+            "match_terms": [
+              "wonky peppers",
+              "wonky mixed peppers",
+              "nature's pick wonky mixed peppers",
+              "aldi-natures-pick-wonky-mixed-peppers-600g"
+            ],
+            "exclude_terms": [],
+            "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+            "notes": "Luke 2026-06-04 blocked wonky peppers after they went bad quickly. Use normal Aldi mixed peppers 3-pack instead."
+          }
         }
       ],
       "planner_notes": [],
@@ -1008,6 +1095,19 @@
         "exclude_terms": [],
         "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-RICE-BROWN-BLOCKED",
         "notes": "Brown rice is blocked unless Luke explicitly re-approves it later."
+      },
+      {
+        "family_code": "PFFA-WONKY-PEPPERS",
+        "label": "Wonky peppers",
+        "match_terms": [
+          "wonky peppers",
+          "wonky mixed peppers",
+          "nature's pick wonky mixed peppers",
+          "aldi-natures-pick-wonky-mixed-peppers-600g"
+        ],
+        "exclude_terms": [],
+        "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+        "notes": "Luke 2026-06-04 blocked wonky peppers after they went bad quickly. Use normal Aldi mixed peppers 3-pack instead."
       }
     ],
     "food_rules": [
@@ -1066,6 +1166,35 @@
           "exclude_terms": [],
           "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-RICE-BROWN-BLOCKED",
           "notes": "Brown rice is blocked unless Luke explicitly re-approves it later."
+        }
+      },
+      {
+        "rule_id": "PFRA-HOUSEHOLD-WONKY-PEPPERS-001",
+        "person": "Household",
+        "rule_type": "blocked_preference",
+        "severity": "hard",
+        "target_type": "food_family",
+        "target_code": "PFFA-WONKY-PEPPERS",
+        "target_label": "Wonky peppers",
+        "ingredient_code": "",
+        "sku_code": "",
+        "scope": "all_slots",
+        "action": "replace_with_mixed_peppers_3pk",
+        "planner_impact": "Use the normal Aldi mixed peppers 3-pack. Do not choose wonky peppers for recipes or shopping.",
+        "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+        "notes": "Luke 2026-06-04 reported wonky peppers went bad quickly.",
+        "family": {
+          "family_code": "PFFA-WONKY-PEPPERS",
+          "label": "Wonky peppers",
+          "match_terms": [
+            "wonky peppers",
+            "wonky mixed peppers",
+            "nature's pick wonky mixed peppers",
+            "aldi-natures-pick-wonky-mixed-peppers-600g"
+          ],
+          "exclude_terms": [],
+          "source_refs": "V2/data/household_ingredient_profile_rule.csv:HIPR-PEPPER-WONKY-BLOCKED",
+          "notes": "Luke 2026-06-04 blocked wonky peppers after they went bad quickly. Use normal Aldi mixed peppers 3-pack instead."
         }
       }
     ],
@@ -1145,10 +1274,10 @@
       "shop": "Aldi",
       "category": "pantry",
       "pack_display": "200g",
-      "pack_cost": 1.99,
-      "unit_cost": 0.00995,
+      "pack_cost": 1.79,
+      "unit_cost": 0.00895,
       "pantry_default": false,
-      "data_status": "example_locked",
+      "data_status": "active",
       "search_text": "sku-chia-200g ing-chia chia seeds aldi pantry"
     },
     {
@@ -2835,8 +2964,8 @@
       "shop": "Aldi UK",
       "category": "fruit_veg",
       "pack_display": "227g",
-      "pack_cost": 1.49,
-      "unit_cost": 0.006564,
+      "pack_cost": 1.65,
+      "unit_cost": 0.007269,
       "pantry_default": false,
       "data_status": "active",
       "search_text": "aldi-natures-pick-strawberries-227g ing-strawberries nature's pick strawberries aldi uk fruit_veg"
