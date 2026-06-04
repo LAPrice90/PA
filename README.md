@@ -10,13 +10,13 @@ This repo currently contains a static app:
 - `data/recipe-index.json`
 - `assets/poached-eggs-hero.png`
 
-Plain English: the root page is a simple front door with three options: Profiles, Recipe Review, and Weekly Planner. Recipe Review is the food-profile view for reviewing recipes on a phone. Profiles and Weekly Planner are coming-soon placeholders.
+Plain English: the root page is a simple front door with three options: Profiles, Recipe Review, and Weekly Planner. Recipe Review is the food-profile view for reviewing recipes on a phone. Profiles is now a profile settings and draft-change screen. Weekly Planner is still a coming-soon placeholder.
 
 Routes:
 
 - `#/` or no hash: Home.
 - `#/recipes`: Recipe Review.
-- `#/profiles`: Profiles coming soon.
+- `#/profiles`: Profile settings and draft changes.
 - `#/planner`: Weekly Planner coming soon.
 
 The design has moved from warm meal-kit colours to a sharper minimalist style: white cards, black header, electric green pass state, coral fail state, and blue proof/status accents.
@@ -27,7 +27,9 @@ Important boundary:
 - They do not approve a recipe.
 - They do not create `human_review.json`.
 - They do not create planner rows, shopping plans, calendar events, Google output, live receipts, or automation output.
-- Profiles and Weekly Planner do not expose real profile data or planning controls yet.
+- Profiles reads saved profile authority and can create browser-local draft changes.
+- Profile drafts do not change planner truth until Codex imports and validates them.
+- Weekly Planner does not expose planning controls yet.
 
 Current data state:
 
@@ -35,7 +37,16 @@ Current data state:
 - 0 approved.
 - 1 needs review.
 - 2 blocked.
+- 3 household profiles in the profile index.
+- 413 searchable SKU rows.
+- 7 active profile food rules.
 - Poached Eggs is a source-authorised review recipe, but it is not planner-approved because `human_review.json` is absent.
+
+Profile authority rule:
+
+- Sarah's pasta rule is pasta-only, not a general gluten rule.
+- Normal pasta can require a Sarah branch; noodles, bread, flour, soy sauce, and pastry are not caught by that rule.
+- Product dislike/cannot-eat edits are draft requests only until imported into the authority files.
 
 Review image rule:
 

@@ -1,12 +1,18 @@
 const REPO_URL = "https://github.com/LAPrice90/PA";
 const DECISION_KEY = "v3_recipe_review_decisions";
+const PROFILE_DRAFT_KEY = "v3_profile_draft_changes";
 
 const state = {
   index: null,
+  profileIndex: null,
   selectedId: "",
+  selectedPerson: "Luke",
   filter: "all",
   route: "home",
   decisions: loadDecisions(),
+  profileDrafts: loadProfileDrafts(),
+  activeProfileEdit: null,
+  profileSkuQuery: "",
 };
 
 const els = {
@@ -15,6 +21,12 @@ const els = {
   recipesView: document.querySelector("#recipes-view"),
   profilesView: document.querySelector("#profiles-view"),
   plannerView: document.querySelector("#planner-view"),
+  profileDataStatus: document.querySelector("#profile-data-status"),
+  profileTabs: document.querySelector("#profile-tabs"),
+  profileContent: document.querySelector("#profile-content"),
+  profileSkuSearch: document.querySelector("#profile-sku-search"),
+  profileSkuResults: document.querySelector("#profile-sku-results"),
+  profileDraftQueue: document.querySelector("#profile-draft-queue"),
   dataStatus: document.querySelector("#data-status"),
   profile: document.querySelector("#recipe-profile"),
   recipeList: document.querySelector("#recipe-list"),
@@ -57,6 +69,7 @@ function showRoute(route) {
     element.classList.toggle("is-hidden", name !== route);
   });
   if (route === "recipes" && state.index) renderAll();
+  if (route === "profiles" && state.profileIndex) renderProfiles();
 }
 
 function loadDecisions() {
@@ -69,6 +82,19 @@ function loadDecisions() {
 
 function saveDecisions() {
   localStorage.setItem(DECISION_KEY, JSON.stringify(state.decisions));
+}
+
+function loadProfileDrafts() {
+  try {
+    const drafts = JSON.parse(localStorage.getItem(PROFILE_DRAFT_KEY) || "[]");
+    return Array.isArray(drafts) ? drafts : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProfileDrafts() {
+  localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(state.profileDrafts));
 }
 
 function escapeHtml(value) {
@@ -587,6 +613,422 @@ function renderAll() {
   renderProfile(recipe);
 }
 
+function currentProfile() {
+  const people = state.profileIndex?.people || [];
+  return people.find((profile) => profile.person === state.selectedPerson) || people[0] || null;
+}
+
+function profileStatus(textValue, tone = "good") {
+  return `<span class="state-pill ${tone}">${escapeHtml(textValue)}</span>`;
+}
+
+function metricTile(label, value, suffix = "") {
+  const display = value === "" || value === null || value === undefined ? "Not set" : `${escapeHtml(value)}${suffix}`;
+  return `
+    <div class="profile-metric">
+      <span>${escapeHtml(label)}</span>
+      <strong>${display}</strong>
+    </div>
+  `;
+}
+
+function mealSlotLabel(value) {
+  return String(value || "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function renderProfileTabs() {
+  const people = state.profileIndex?.people || [];
+  els.profileTabs.innerHTML = people
+    .map(
+      (profile) => `
+        <button class="profile-tab ${profile.person === state.selectedPerson ? "active" : ""}" type="button" data-profile-person="${escapeHtml(profile.person)}">
+          ${escapeHtml(profile.person)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
+function renderDailyGoals(profile) {
+  const goals = profile.daily_goals || {};
+  return `
+    <section class="profile-section">
+      <div class="section-title-row">
+        <h3>Daily Goals</h3>
+        <button class="mini-button" type="button" data-open-profile-edit="daily">Edit</button>
+      </div>
+      <div class="profile-grid">
+        ${metricTile("Calories", goals.kcal_min && goals.kcal_max ? `${goals.kcal_min}-${goals.kcal_max}` : "")}
+        ${metricTile("Protein", goals.protein_max_g ? `${goals.protein_min_g}-${goals.protein_max_g}` : goals.protein_min_g, goals.protein_min_g ? "g" : "")}
+        ${metricTile("Fruit/Veg", goals.fruitveg_min_tenths, goals.fruitveg_min_tenths ? " tenths" : "")}
+        ${metricTile("Fish", goals.fish_meal_min_week, goals.fish_meal_min_week ? " per week" : "")}
+        ${metricTile("Oily Fish", goals.oily_fish_meal_min_week, goals.oily_fish_meal_min_week ? " per week" : "")}
+        ${metricTile("Child Breakfast Min", goals.home_breakfast_kcal_min, goals.home_breakfast_kcal_min ? " kcal" : "")}
+      </div>
+    </section>
+  `;
+}
+
+function renderMealTargets(profile) {
+  const targets = profile.meal_targets || [];
+  return `
+    <section class="profile-section">
+      <h3>Meal Targets</h3>
+      <div class="target-list">
+        ${targets
+          .map(
+            (target) => `
+              <article class="target-card">
+                <div>
+                  <strong>${escapeHtml(mealSlotLabel(target.meal_slot))}</strong>
+                  <span>${escapeHtml(target.slot_context || target.slot_family)}</span>
+                </div>
+                <div class="target-values">
+                  <em>${escapeHtml(target.kcal_target_min)}-${escapeHtml(target.kcal_target_max)} kcal</em>
+                  <em>${escapeHtml(target.protein_target_min_g)}-${escapeHtml(target.protein_target_max_g)}g protein</em>
+                  <em>${escapeHtml(target.fullness_target_min)}-${escapeHtml(target.fullness_target_max)} fullness</em>
+                </div>
+                <button class="mini-button" type="button" data-open-profile-edit="meal" data-target-id="${escapeHtml(target.target_id)}">Edit</button>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderFoodRules(profile) {
+  const rules = profile.food_rules || [];
+  return `
+    <section class="profile-section">
+      <h3>Food Rules</h3>
+      <div class="rule-list">
+        ${rules
+          .map(
+            (rule) => `
+              <article class="rule-card ${rule.severity === "hard" ? "hard" : "soft-rule"}">
+                <div>
+                  <strong>${escapeHtml(rule.target_label || rule.target_code)}</strong>
+                  <span>${escapeHtml(rule.person)} - ${escapeHtml(rule.rule_type)} - ${escapeHtml(rule.scope)}</span>
+                </div>
+                <p>${escapeHtml(rule.planner_impact || rule.notes)}</p>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderFinishers(profile) {
+  const finishers = profile.finishers || [];
+  if (!finishers.length) {
+    return `
+      <section class="profile-section">
+        <h3>Finishers</h3>
+        <p class="friendly-empty">No adult finisher controls are saved for this profile.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="profile-section">
+      <h3>Finishers</h3>
+      <div class="finisher-list">
+        ${finishers
+          .map(
+            (finisher) => `
+              <div class="finisher-pill">
+                <strong>${escapeHtml(finisher.name)}</strong>
+                <span>${escapeHtml(finisher.min_units)}-${escapeHtml(finisher.max_units)} ${escapeHtml(finisher.portion_unit)}</span>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function inputField(label, name, value, type = "number") {
+  return `
+    <label class="edit-field">
+      <span>${escapeHtml(label)}</span>
+      <input name="${escapeHtml(name)}" data-authority-field="${escapeHtml(name)}" type="${escapeHtml(type)}" value="${escapeHtml(value ?? "")}" />
+    </label>
+  `;
+}
+
+function renderProfileEditor(profile) {
+  const edit = state.activeProfileEdit;
+  if (!edit) return "";
+  if (edit.type === "daily") {
+    const goals = profile.daily_goals || {};
+    return `
+      <section class="profile-section edit-panel">
+        <h3>Edit Daily Goals Draft</h3>
+        <form data-profile-edit-form data-target-table="profile_goal_authority" data-target-id="${escapeHtml(goals.goal_id)}">
+          <div class="edit-grid">
+            ${inputField("Kcal min", "kcal_min", goals.kcal_min)}
+            ${inputField("Kcal max", "kcal_max", goals.kcal_max)}
+            ${inputField("Protein min g", "protein_min_g", goals.protein_min_g)}
+            ${inputField("Protein max g", "protein_max_g", goals.protein_max_g)}
+            ${inputField("Fruit/Veg tenths", "fruitveg_min_tenths", goals.fruitveg_min_tenths)}
+            ${inputField("Fish meals per week", "fish_meal_min_week", goals.fish_meal_min_week)}
+            ${inputField("Oily fish per week", "oily_fish_meal_min_week", goals.oily_fish_meal_min_week)}
+          </div>
+          <label class="edit-field wide">
+            <span>Reason</span>
+            <textarea name="reason" placeholder="Optional reason for the change"></textarea>
+          </label>
+          <div class="edit-actions">
+            <button class="mini-button dark" type="submit">Save Draft</button>
+            <button class="mini-button" type="button" data-close-profile-edit>Cancel</button>
+          </div>
+        </form>
+      </section>
+    `;
+  }
+  const target = (profile.meal_targets || []).find((row) => row.target_id === edit.targetId);
+  if (!target) return "";
+  return `
+    <section class="profile-section edit-panel">
+      <h3>Edit ${escapeHtml(mealSlotLabel(target.meal_slot))} Draft</h3>
+      <form data-profile-edit-form data-target-table="meal_slot_target_authority" data-target-id="${escapeHtml(target.target_id)}">
+        <div class="edit-grid">
+          ${inputField("Kcal target min", "kcal_target_min", target.kcal_target_min)}
+          ${inputField("Kcal target max", "kcal_target_max", target.kcal_target_max)}
+          ${inputField("Kcal hard min", "kcal_hard_min", target.kcal_hard_min)}
+          ${inputField("Kcal hard max", "kcal_hard_max", target.kcal_hard_max)}
+          ${inputField("Protein target min g", "protein_target_min_g", target.protein_target_min_g)}
+          ${inputField("Protein target max g", "protein_target_max_g", target.protein_target_max_g)}
+          ${inputField("Fullness target min", "fullness_target_min", target.fullness_target_min)}
+          ${inputField("Fullness target max", "fullness_target_max", target.fullness_target_max)}
+          ${inputField("Cost max GBP", "cost_max_gbp", target.cost_max_gbp)}
+          ${inputField("Active time max minutes", "active_time_max_minutes", target.active_time_max_minutes)}
+        </div>
+        <label class="edit-field wide">
+          <span>Reason</span>
+          <textarea name="reason" placeholder="Optional reason for the change"></textarea>
+        </label>
+        <div class="edit-actions">
+          <button class="mini-button dark" type="submit">Save Draft</button>
+          <button class="mini-button" type="button" data-close-profile-edit>Cancel</button>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
+function renderPlannerBoundary() {
+  return `
+    <section class="profile-section boundary-note">
+      <h3>Planner Boundary</h3>
+      <p>This screen creates draft changes only. A future import job must validate the draft before the planner can use it.</p>
+      <div class="proof-bites">
+        ${profileStatus("No planner rows", "review")}
+        ${profileStatus("No recipes", "review")}
+        ${profileStatus("No Google output", "review")}
+      </div>
+    </section>
+  `;
+}
+
+function renderProfiles() {
+  const profile = currentProfile();
+  if (!state.profileIndex || !profile) {
+    els.profileDataStatus.textContent = "Missing";
+    els.profileDataStatus.className = "state-pill blocked";
+    els.profileContent.innerHTML = `<div class="loading-card">Could not load data/profile-index.json.</div>`;
+    return;
+  }
+  state.selectedPerson = profile.person;
+  els.profileDataStatus.textContent = "Loaded";
+  els.profileDataStatus.className = "state-pill good";
+  renderProfileTabs();
+  els.profileContent.innerHTML = [
+    renderProfileEditor(profile),
+    renderDailyGoals(profile),
+    renderMealTargets(profile),
+    renderFoodRules(profile),
+    renderFinishers(profile),
+    renderPlannerBoundary(),
+  ].join("");
+  renderSkuResults();
+  renderDraftQueue();
+}
+
+function sourceValueForDraft(profile, table, targetId, field) {
+  if (table === "profile_goal_authority") return profile.daily_goals?.[field] ?? "";
+  if (table === "meal_slot_target_authority") {
+    const row = (profile.meal_targets || []).find((target) => target.target_id === targetId);
+    return row?.[field] ?? "";
+  }
+  return "";
+}
+
+function createDraft(change) {
+  return {
+    draft_id: `DRAFT-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    created_at: new Date().toISOString(),
+    source: "v3_phone_profiles_app",
+    status: "draft_local_only",
+    import_required: true,
+    ...change,
+  };
+}
+
+function addDraft(change) {
+  state.profileDrafts.unshift(createDraft(change));
+  saveProfileDrafts();
+  renderDraftQueue();
+}
+
+function handleProfileEditSubmit(form) {
+  const profile = currentProfile();
+  if (!profile) return;
+  const formData = new FormData(form);
+  const table = form.dataset.targetTable;
+  const targetId = form.dataset.targetId;
+  const reason = String(formData.get("reason") || "Drafted in Profiles app").trim();
+  const fields = [...form.querySelectorAll("[data-authority-field]")].map((input) => input.name);
+  let changed = 0;
+  fields.forEach((field) => {
+    const oldValue = sourceValueForDraft(profile, table, targetId, field);
+    const newValue = String(formData.get(field) ?? "").trim();
+    if (String(oldValue ?? "") === newValue) return;
+    state.profileDrafts.unshift(
+      createDraft({
+        person: profile.person,
+        target_table: table,
+        target_id: targetId,
+        field,
+        old_value: oldValue,
+        new_value: newValue,
+        reason,
+        planner_effect: "requires_authority_import_before_planner_use",
+      }),
+    );
+    changed += 1;
+  });
+  if (changed) saveProfileDrafts();
+  state.activeProfileEdit = null;
+  renderProfiles();
+}
+
+function addFoodRuleDraft(button) {
+  const profile = currentProfile();
+  if (!profile) return;
+  const sku = (state.profileIndex?.sku_search_index || []).find((row) => row.sku_code === button.dataset.skuCode);
+  if (!sku) return;
+  const targetType = button.dataset.targetType;
+  const ruleType = button.dataset.ruleType;
+  const targetCode = targetType === "sku" ? sku.sku_code : sku.ingredient_code;
+  const targetLabel = targetType === "sku" ? sku.product_name : `Ingredient family ${sku.ingredient_code}`;
+  const newRule = {
+    person: profile.person,
+    rule_type: ruleType,
+    severity: ruleType === "cannot_eat" ? "hard" : "soft",
+    target_type: targetType,
+    target_code: targetCode,
+    target_label: targetLabel,
+    ingredient_code: sku.ingredient_code,
+    sku_code: targetType === "sku" ? sku.sku_code : "",
+    scope: "all_slots",
+    action: ruleType === "cannot_eat" ? "block_for_person" : "avoid_default",
+    planner_impact:
+      ruleType === "cannot_eat"
+        ? "Planner must block this product for the selected person."
+        : "Planner should avoid this product unless no better option exists.",
+  };
+  addDraft({
+    person: profile.person,
+    target_table: "profile_food_rule_authority",
+    target_id: "new_rule",
+    field: "new_food_rule",
+    old_value: "",
+    new_value: JSON.stringify(newRule),
+    reason: `Drafted from SKU search for ${sku.product_name}`,
+    planner_effect: "requires_authority_import_before_planner_use",
+  });
+}
+
+function renderSkuResults() {
+  if (!els.profileSkuResults) return;
+  const query = state.profileSkuQuery.trim().toLowerCase();
+  const skuRows = state.profileIndex?.sku_search_index || [];
+  if (query.length < 2) {
+    els.profileSkuResults.innerHTML = `<p class="friendly-empty">${escapeHtml(skuRows.length)} saved SKUs available. Type at least 2 letters.</p>`;
+    return;
+  }
+  const matches = skuRows.filter((row) => row.search_text.includes(query)).slice(0, 8);
+  if (!matches.length) {
+    els.profileSkuResults.innerHTML = `<p class="friendly-empty">No saved SKU matched that search.</p>`;
+    return;
+  }
+  els.profileSkuResults.innerHTML = matches
+    .map(
+      (row) => `
+        <article class="sku-result">
+          <div>
+            <strong>${escapeHtml(row.product_name)}</strong>
+            <span>${escapeHtml(row.shop)} - ${escapeHtml(row.category)} - ${escapeHtml(row.pack_display)}</span>
+          </div>
+          <div class="sku-actions">
+            <button class="mini-button" type="button" data-add-food-rule data-rule-type="cannot_eat" data-target-type="sku" data-sku-code="${escapeHtml(row.sku_code)}">Cannot eat</button>
+            <button class="mini-button" type="button" data-add-food-rule data-rule-type="dislike" data-target-type="sku" data-sku-code="${escapeHtml(row.sku_code)}">Dislike</button>
+            <button class="mini-button dark" type="button" data-add-food-rule data-rule-type="avoid" data-target-type="ingredient_code" data-sku-code="${escapeHtml(row.sku_code)}">Avoid family</button>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function draftPlainSummary(draft) {
+  if (draft.field === "new_food_rule") {
+    try {
+      const rule = JSON.parse(draft.new_value || "{}");
+      return `${rule.rule_type || "rule"} for ${rule.target_label || rule.target_code || "selected product"} - ${rule.planner_impact || "requires planner validation"}`;
+    } catch {
+      return "New food rule draft requires validation before planner use.";
+    }
+  }
+  const oldValue = String(draft.old_value ?? "") || "blank";
+  const newValue = String(draft.new_value ?? "") || "blank";
+  return `${draft.field}: ${oldValue} -> ${newValue}`;
+}
+
+function renderDraftQueue() {
+  if (!els.profileDraftQueue) return;
+  if (!state.profileDrafts.length) {
+    els.profileDraftQueue.innerHTML = `<p class="friendly-empty">No draft profile changes saved on this device.</p>`;
+    return;
+  }
+  els.profileDraftQueue.innerHTML = `
+    <div class="draft-actions">
+      <button class="mini-button" type="button" data-copy-profile-drafts>Copy Draft JSON</button>
+      <button class="mini-button danger" type="button" data-clear-profile-drafts>Clear</button>
+    </div>
+    <div class="draft-list">
+      ${state.profileDrafts
+        .map(
+          (draft) => `
+            <article class="draft-card">
+              <strong>${escapeHtml(draft.person)} - ${escapeHtml(draft.field)}</strong>
+              <span>${escapeHtml(draft.target_table)} / ${escapeHtml(draft.target_id)}</span>
+              <p>${escapeHtml(draftPlainSummary(draft))}</p>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function moveSelection(direction) {
   const recipes = filteredRecipes();
   if (!recipes.length) return;
@@ -628,6 +1070,78 @@ function attachEvents() {
     });
   });
 
+  els.profileTabs.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-profile-person]");
+    if (!button) return;
+    state.selectedPerson = button.dataset.profilePerson;
+    state.activeProfileEdit = null;
+    renderProfiles();
+  });
+
+  els.profileContent.addEventListener("click", (event) => {
+    const openButton = event.target.closest("[data-open-profile-edit]");
+    if (openButton) {
+      state.activeProfileEdit = {
+        type: openButton.dataset.openProfileEdit,
+        targetId: openButton.dataset.targetId || "",
+      };
+      renderProfiles();
+      return;
+    }
+    const closeButton = event.target.closest("[data-close-profile-edit]");
+    if (closeButton) {
+      state.activeProfileEdit = null;
+      renderProfiles();
+    }
+  });
+
+  els.profileContent.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-profile-edit-form]");
+    if (!form) return;
+    event.preventDefault();
+    handleProfileEditSubmit(form);
+  });
+
+  els.profileSkuSearch.addEventListener("input", (event) => {
+    state.profileSkuQuery = event.target.value;
+    renderSkuResults();
+  });
+
+  els.profileSkuResults.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-add-food-rule]");
+    if (!button) return;
+    addFoodRuleDraft(button);
+  });
+
+  els.profileDraftQueue.addEventListener("click", async (event) => {
+    const copyButton = event.target.closest("[data-copy-profile-drafts]");
+    if (copyButton) {
+      const payload = JSON.stringify(
+        {
+          schema_version: "v3.profile_draft_changes.1",
+          copied_at: new Date().toISOString(),
+          import_required: true,
+          drafts: state.profileDrafts,
+        },
+        null,
+        2,
+      );
+      try {
+        await navigator.clipboard.writeText(payload);
+        copyButton.textContent = "Copied";
+      } catch {
+        copyButton.textContent = "Copy failed";
+      }
+      return;
+    }
+    const clearButton = event.target.closest("[data-clear-profile-drafts]");
+    if (clearButton) {
+      state.profileDrafts = [];
+      saveProfileDrafts();
+      renderDraftQueue();
+    }
+  });
+
   window.addEventListener("hashchange", () => showRoute(routeFromHash()));
   document.querySelector(".github-link").setAttribute("href", REPO_URL);
 }
@@ -636,16 +1150,29 @@ async function init() {
   attachEvents();
   showRoute(routeFromHash());
   try {
-    const response = await fetch("./data/recipe-index.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    state.index = await response.json();
+    const [recipeResponse, profileResponse] = await Promise.all([
+      fetch("./data/recipe-index.json", { cache: "no-store" }),
+      fetch("./data/profile-index.json", { cache: "no-store" }),
+    ]);
+    if (!recipeResponse.ok) throw new Error(`recipe-index HTTP ${recipeResponse.status}`);
+    if (!profileResponse.ok) throw new Error(`profile-index HTTP ${profileResponse.status}`);
+    state.index = await recipeResponse.json();
+    state.profileIndex = await profileResponse.json();
     const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
     state.selectedId = firstReview?.recipe_id || state.index.recipes[0]?.recipe_id || "";
     if (state.route === "recipes") renderAll();
+    if (state.route === "profiles") renderProfiles();
   } catch (error) {
     els.dataStatus.textContent = "Missing";
     els.dataStatus.className = "state-pill blocked";
     els.profile.innerHTML = `<div class="loading-card">Could not load data/recipe-index.json.</div>`;
+    if (els.profileDataStatus) {
+      els.profileDataStatus.textContent = "Missing";
+      els.profileDataStatus.className = "state-pill blocked";
+    }
+    if (els.profileContent) {
+      els.profileContent.innerHTML = `<div class="loading-card">Could not load profile app data.</div>`;
+    }
     console.error(error);
   }
 }

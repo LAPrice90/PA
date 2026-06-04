@@ -25,7 +25,7 @@
             <nav class="home-actions" aria-label="App sections">
               <a class="home-action" href="#/profiles">
                 <span>Profiles</span>
-                <strong>Coming soon</strong>
+                <strong>Open settings</strong>
               </a>
               <a class="home-action primary" href="#/recipes">
                 <span>Recipe Review</span>
@@ -83,16 +83,39 @@
           </aside>
         </section>
 
-        <section id="profiles-view" class="placeholder-view is-hidden" aria-label="Profiles coming soon">
-          <div class="placeholder-panel">
-            <p class="home-kicker">Profiles</p>
-            <h2>Profiles are coming soon</h2>
-            <p>This page will eventually hold household profile settings. It is empty for now and does not show personal data.</p>
-            <div class="placeholder-actions">
-              <a class="round-link" href="#/">Home</a>
-              <a class="round-link dark" href="#/recipes">Recipe Review</a>
+        <section id="profiles-view" class="profiles-view is-hidden" aria-label="Profile settings">
+          <section class="profile-workbench" aria-label="Household profiles">
+            <div class="profile-main-panel">
+              <div class="profile-topline">
+                <div>
+                  <p class="home-kicker">Profiles</p>
+                  <h2>Household settings</h2>
+                </div>
+                <span id="profile-data-status" class="state-pill pending">Loading</span>
+              </div>
+              <p class="profile-intro">Goals, meal sizes, food rules, and SKU-linked dislikes. Edits save as drafts until validated into the real authority files.</p>
+              <div id="profile-tabs" class="profile-tabs" role="tablist" aria-label="Choose person"></div>
+              <div id="profile-content" class="profile-content">
+                <div class="loading-card">Loading profile authority...</div>
+              </div>
             </div>
-          </div>
+
+            <aside class="profile-side-panel" aria-label="Profile tools">
+              <section class="drawer-section">
+                <h2>Product Search</h2>
+                <p class="tool-copy">Search saved SKUs, then draft a person rule for the exact product or its ingredient family.</p>
+                <label class="field-label" for="profile-sku-search">Search products</label>
+                <input id="profile-sku-search" class="text-input" type="search" placeholder="pasta, kiwi, bread..." autocomplete="off" />
+                <div id="profile-sku-results" class="sku-results"></div>
+              </section>
+
+              <section class="drawer-section soft">
+                <h2>Draft Queue</h2>
+                <p>Drafts stay on this device until copied or imported. They do not change planner data.</p>
+                <div id="profile-draft-queue" class="draft-queue"></div>
+              </section>
+            </aside>
+          </section>
         </section>
 
         <section id="planner-view" class="placeholder-view is-hidden" aria-label="Weekly planner coming soon">
