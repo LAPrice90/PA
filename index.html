@@ -52,11 +52,26 @@
             </article>
 
             <section class="decision-panel" aria-label="Recipe decision">
-              <p id="decision-copy">Review the recipe, then choose Pass or Fail. This only saves a local UI decision.</p>
+              <p id="decision-copy">Review the recipe, then choose Pass or Fail. Copy the review JSON for Codex import.</p>
+              <div class="review-fields">
+                <label for="fail-reason">Fail reason</label>
+                <select id="fail-reason">
+                  <option value="taste_food_idea_wrong">Taste or food idea wrong</option>
+                  <option value="portion_wrong">Portion wrong</option>
+                  <option value="method_cooking_flow_wrong">Method or cooking flow wrong</option>
+                  <option value="shopping_ingredients_wrong">Shopping or ingredients wrong</option>
+                  <option value="nutrition_target_wrong">Nutrition or target wrong</option>
+                  <option value="layout_readability_wrong">Layout or readability wrong</option>
+                  <option value="other_notes">Other notes</option>
+                </select>
+                <label for="review-notes">Notes</label>
+                <textarea id="review-notes" rows="2" placeholder="Optional notes for repair or approval"></textarea>
+              </div>
               <div class="decision-actions">
                 <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
                 <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
               </div>
+              <button id="copy-review-decision" class="copy-decision-button" type="button">Copy Review JSON</button>
             </section>
           </section>
 
@@ -69,9 +84,10 @@
               <div id="queue-summary" class="queue-summary"></div>
               <div class="filter-pills" role="group" aria-label="Recipe status filters">
                 <button class="filter-pill active" data-filter="all" type="button">All</button>
-                <button class="filter-pill" data-filter="needs_review" type="button">Review</button>
-                <button class="filter-pill" data-filter="approved" type="button">Passed</button>
-                <button class="filter-pill" data-filter="blocked" type="button">Blocked</button>
+                <button class="filter-pill" data-filter="needs_review" type="button">To Review</button>
+                <button class="filter-pill" data-filter="approved" type="button">Approved</button>
+                <button class="filter-pill" data-filter="needs_repair" type="button">Needs Repair</button>
+                <button class="filter-pill" data-filter="blocked" type="button">Technical Block</button>
               </div>
               <div id="recipe-list" class="recipe-list"></div>
             </section>

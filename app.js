@@ -2,6 +2,16 @@ const REPO_URL = "https://github.com/LAPrice90/PA";
 const DECISION_KEY = "v3_recipe_review_decisions";
 const PROFILE_DRAFT_KEY = "v3_profile_draft_changes";
 
+const FAIL_REASONS = {
+  taste_food_idea_wrong: "Taste or food idea wrong",
+  portion_wrong: "Portion wrong",
+  method_cooking_flow_wrong: "Method or cooking flow wrong",
+  shopping_ingredients_wrong: "Shopping or ingredients wrong",
+  nutrition_target_wrong: "Nutrition or target wrong",
+  layout_readability_wrong: "Layout or readability wrong",
+  other_notes: "Other notes",
+};
+
 const state = {
   index: null,
   profileIndex: null,
@@ -33,6 +43,9 @@ const els = {
   queueSummary: document.querySelector("#queue-summary"),
   reviewCount: document.querySelector("#review-count"),
   decisionCopy: document.querySelector("#decision-copy"),
+  failReason: document.querySelector("#fail-reason"),
+  reviewNotes: document.querySelector("#review-notes"),
+  copyReviewDecision: document.querySelector("#copy-review-decision"),
   passButton: document.querySelector("#pass-recipe"),
   failButton: document.querySelector("#fail-recipe"),
   nextButton: document.querySelector("#next-recipe"),
@@ -201,17 +214,35 @@ function statusLabel(recipe) {
   if (recipe.review_quality?.status === "BLOCK") return "Needs recipe edit";
   if (recipe.status === "approved") return "Confirmed";
   if (recipe.status === "needs_review") return "Needs review";
+  if (recipe.status === "needs_repair") return "Needs repair";
   return "Blocked";
 }
 
 function statusTone(recipe) {
   if (recipe.status === "approved") return "good";
   if (recipe.status === "needs_review") return "review";
+  if (recipe.status === "needs_repair") return "blocked";
   return "blocked";
 }
 
 function recipeDecision(recipe) {
-  return state.decisions[recipe.recipe_id] || "";
+  const raw = state.decisions[recipe.recipe_id] || "";
+  if (!raw) return {};
+  if (typeof raw === "string") {
+    return {
+      decision: raw,
+      reason_code: raw === "fail" ? "other_notes" : "accepted",
+      reason_label: raw === "fail" ? FAIL_REASONS.other_notes : "Accepted",
+      notes: "",
+    };
+  }
+  return {
+    decision: raw.decision || "",
+    reason_code: raw.reason_code || (raw.decision === "fail" ? "other_notes" : "accepted"),
+    reason_label: raw.reason_label || (raw.decision === "fail" ? FAIL_REASONS[raw.reason_code] || FAIL_REASONS.other_notes : "Accepted"),
+    notes: raw.notes || "",
+    updated_at: raw.updated_at || "",
+  };
 }
 
 function filteredRecipes() {
@@ -279,6 +310,7 @@ function suitabilityItems(recipe) {
 function renderHero(recipe) {
   const image = heroImage(recipe);
   const decision = recipeDecision(recipe);
+  const localDecisionLabel = decision.decision === "pass" ? "Locally passed" : decision.decision === "fail" ? "Locally failed" : "";
   return `
     <section class="hero-card ${statusTone(recipe)}">
       <div class="hero-image" ${image ? `style="background-image: url('${image}')"` : ""}>
@@ -288,7 +320,7 @@ function renderHero(recipe) {
       <div class="hero-copy">
         <div class="hero-row">
           <span class="state-pill ${statusTone(recipe)}">${escapeHtml(statusLabel(recipe))}</span>
-          ${decision ? `<span class="state-pill chosen">${escapeHtml(decision === "pass" ? "Locally passed" : "Locally failed")}</span>` : ""}
+          ${localDecisionLabel ? `<span class="state-pill chosen">${escapeHtml(localDecisionLabel)}</span>` : ""}
         </div>
         <h2>${escapeHtml(recipe.title)}</h2>
         <p>${escapeHtml(firstParagraph(recipe.recipe_card_markdown, "A recipe profile ready for review."))}</p>
@@ -514,7 +546,11 @@ function renderProofSummary(recipe) {
   const visualReady = visual.status === "approved_for_review_display" && visual.visual_truth_check?.status === "PASS";
   const quality = recipe.review_quality || {};
   const qualityBlocked = quality.status === "BLOCK";
-  const decisionText = recipe.human_review?.confirmed ? "Luke confirmed" : "Needs Luke confirmation";
+  const decisionText = recipe.human_review?.confirmed
+    ? "Luke confirmed"
+    : recipe.human_review?.failed
+      ? "Luke rejected - repair needed"
+      : "Needs Luke confirmation";
   return `
     <section class="story-section proof-story">
       <h3>Proof, Without The Noise</h3>
@@ -550,22 +586,34 @@ function renderProfile(recipe) {
 }
 
 function renderDecisionPanel(recipe) {
-  const decision = recipe ? recipeDecision(recipe) : "";
+  const decision = recipe ? recipeDecision(recipe) : {};
   if (!recipe) {
     els.decisionCopy.textContent = "No recipe selected.";
     return;
   }
-  if (decision === "pass") {
-    els.decisionCopy.textContent = "Local UI decision: Pass. This has not created a recipe approval file.";
-  } else if (decision === "fail") {
-    els.decisionCopy.textContent = "Local UI decision: Fail. This has not changed the recipe data.";
-  } else if (recipe.status === "needs_review") {
-    els.decisionCopy.textContent = "This recipe needs Luke review. Pass or Fail only saves a local UI note.";
-  } else {
-    els.decisionCopy.textContent = "Review this profile. Pass or Fail only saves a local UI note.";
+  if (els.failReason) {
+    els.failReason.value = decision.reason_code && decision.reason_code !== "accepted" ? decision.reason_code : "taste_food_idea_wrong";
   }
-  els.passButton.classList.toggle("selected", decision === "pass");
-  els.failButton.classList.toggle("selected", decision === "fail");
+  if (els.reviewNotes) {
+    els.reviewNotes.value = decision.notes || "";
+  }
+  if (decision.decision === "pass") {
+    els.decisionCopy.textContent = "Local decision: Pass. Copy the review JSON, then Codex can import it as `human_review.json`.";
+  } else if (decision.decision === "fail") {
+    els.decisionCopy.textContent = "Local decision: Fail. Copy the review JSON so Codex can create a repair ticket.";
+  } else if (recipe.status === "needs_repair") {
+    els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
+  } else if (recipe.status === "needs_review") {
+    els.decisionCopy.textContent = "This recipe needs Luke review. Pass or Fail creates a local decision to import.";
+  } else {
+    els.decisionCopy.textContent = "Review this profile. Import is still required before project truth changes.";
+  }
+  els.passButton.classList.toggle("selected", decision.decision === "pass");
+  els.failButton.classList.toggle("selected", decision.decision === "fail");
+  if (els.copyReviewDecision) {
+    els.copyReviewDecision.disabled = !decision.decision;
+    els.copyReviewDecision.textContent = "Copy Review JSON";
+  }
 }
 
 function renderQueue() {
@@ -574,7 +622,9 @@ function renderQueue() {
   els.queueSummary.innerHTML = `
     <span><strong>${index.recipe_count}</strong> total</span>
     <span><strong>${index.needs_review_count || 0}</strong> to review</span>
-    <span><strong>${index.blocked_count}</strong> blocked</span>
+    <span><strong>${index.approved_count || 0}</strong> approved</span>
+    <span><strong>${index.needs_repair_count || 0}</strong> repair</span>
+    <span><strong>${index.blocked_count || 0}</strong> technical</span>
   `;
   const recipes = filteredRecipes();
   if (!recipes.length) {
@@ -585,10 +635,11 @@ function renderQueue() {
     .map((recipe) => {
       const active = recipe.recipe_id === state.selectedId ? "active" : "";
       const decision = recipeDecision(recipe);
+      const local = decision.decision ? `local ${decision.decision}` : statusLabel(recipe);
       return `
         <button class="queue-recipe ${active}" type="button" data-recipe-id="${escapeHtml(recipe.recipe_id)}">
           <span>${escapeHtml(recipe.title)}</span>
-          <em>${escapeHtml(decision ? decision : statusLabel(recipe))}</em>
+          <em>${escapeHtml(local)}</em>
         </button>
       `;
     })
@@ -1045,9 +1096,51 @@ function moveSelection(direction) {
 function setDecision(value) {
   const recipe = currentRecipe();
   if (!recipe) return;
-  state.decisions[recipe.recipe_id] = value;
+  const reasonCode = value === "fail" ? (els.failReason?.value || "other_notes") : "accepted";
+  state.decisions[recipe.recipe_id] = {
+    decision: value,
+    reason_code: reasonCode,
+    reason_label: value === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
+    notes: els.reviewNotes?.value || "",
+    updated_at: new Date().toISOString(),
+  };
   saveDecisions();
   renderAll();
+}
+
+function buildReviewDecisionPayload(recipe) {
+  const decision = recipe ? recipeDecision(recipe) : {};
+  const decisionValue = decision.decision || "";
+  if (!recipe || !decisionValue) return null;
+  const reasonCode = decisionValue === "fail" ? (els.failReason?.value || decision.reason_code || "other_notes") : "accepted";
+  return {
+    schema_version: "v3.recipe_review_decision.1",
+    recipe_id: recipe.recipe_id,
+    run_slug: recipe.run_slug,
+    title: recipe.title,
+    decision: decisionValue,
+    reason_code: reasonCode,
+    reason_label: decisionValue === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
+    notes: els.reviewNotes?.value || decision.notes || "",
+    reviewed_by: "Luke",
+    reviewed_at: new Date().toISOString(),
+    source: "recipe_explorer_app_local_export",
+    import_required: true,
+  };
+}
+
+async function copyReviewDecision() {
+  const recipe = currentRecipe();
+  const payload = buildReviewDecisionPayload(recipe);
+  if (!payload) return;
+  const jsonText = JSON.stringify(payload, null, 2);
+  try {
+    await navigator.clipboard.writeText(jsonText);
+    els.copyReviewDecision.textContent = "Copied for Codex";
+  } catch {
+    window.prompt("Copy this review JSON for Codex import:", jsonText);
+    els.copyReviewDecision.textContent = "Copy manually";
+  }
 }
 
 function attachEvents() {
@@ -1055,6 +1148,7 @@ function attachEvents() {
   els.previousButton.addEventListener("click", () => moveSelection(-1));
   els.passButton.addEventListener("click", () => setDecision("pass"));
   els.failButton.addEventListener("click", () => setDecision("fail"));
+  els.copyReviewDecision.addEventListener("click", copyReviewDecision);
 
   els.recipeList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-recipe-id]");

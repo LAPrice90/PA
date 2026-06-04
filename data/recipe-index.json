@@ -13,6 +13,7 @@
   "recipe_count": 1,
   "approved_count": 0,
   "needs_review_count": 1,
+  "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -1801,5 +1802,6 @@
       }
     }
   ],
+  "repair_queue": [],
   "blocked_queue": []
 }

@@ -1069,7 +1069,7 @@
         }
       }
     ],
-    "sku_count": 413,
+    "sku_count": 412,
     "change_log_row_count": 0
   },
   "sku_search_index": [
@@ -6363,19 +6363,6 @@
       "pantry_default": false,
       "data_status": "active",
       "search_text": "tesco-black-beans-400g ing-v1-black-beans-in-water tesco black beans tesco uk pantry"
-    },
-    {
-      "sku_code": "tesco-brioche-burger-buns-4pk",
-      "ingredient_code": "ING-V1-BRIOCHE-BURGER-BUNS",
-      "product_name": "Tesco Brioche Burger Buns",
-      "shop": "Tesco UK",
-      "category": "pantry",
-      "pack_display": "4count",
-      "pack_cost": 0.99,
-      "unit_cost": 0.2475,
-      "pantry_default": false,
-      "data_status": "active",
-      "search_text": "tesco-brioche-burger-buns-4pk ing-v1-brioche-burger-buns tesco brioche burger buns tesco uk pantry"
     },
     {
       "sku_code": "tesco-aleyna-sliced-green-jalapenos-480g",
