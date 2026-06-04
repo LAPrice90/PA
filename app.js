@@ -748,13 +748,15 @@ function renderProfile(recipe) {
 }
 
 function renderReviewStatusPage(status) {
+  const menuAction = `<a class="round-link" href="#/">Back To Menu</a>`;
   const approvedAction =
     status.approved > 0
       ? `
+        ${menuAction}
         <a class="round-link dark" href="#/database">Open Recipe Database</a>
         <a class="round-link" href="#/shopping">Open Shopping List</a>
       `
-      : `<a class="round-link dark" href="#/">Home</a>`;
+      : menuAction;
   const repairAction =
     status.mode === "work_remaining"
       ? `
