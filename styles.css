@@ -1212,10 +1212,32 @@ button {
   backdrop-filter: blur(10px);
 }
 
+.decision-panel.decision-made {
+  border-top-width: 4px;
+}
+
+.decision-panel.decision-pass {
+  border-top-color: var(--green);
+}
+
+.decision-panel.decision-fail {
+  border-top-color: var(--coral);
+}
+
 .decision-panel p {
   margin: 0 0 10px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.decision-panel.decision-made p {
+  color: var(--black);
+  font-weight: 850;
+}
+
+.decision-panel.decision-pass label[for="fail-reason"],
+.decision-panel.decision-pass #fail-reason {
+  display: none !important;
 }
 
 .review-fields {

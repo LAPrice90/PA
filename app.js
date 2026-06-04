@@ -699,6 +699,7 @@ function renderProfile(recipe) {
 
 function renderDecisionPanel(recipe) {
   const decision = recipe ? recipeDecision(recipe) : {};
+  document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
   if (!recipe) {
     els.decisionCopy.textContent = "No recipe selected.";
     return;
@@ -710,21 +711,27 @@ function renderDecisionPanel(recipe) {
     els.reviewNotes.value = decision.notes || "";
   }
   if (decision.decision === "pass") {
-    els.decisionCopy.textContent = "Local decision: Pass. Copy the review JSON, then Codex can import it as `human_review.json`.";
+    els.decisionCopy.textContent = "Pass selected on this phone. Paste the copied JSON into Codex so it can be imported as `human_review.json`.";
   } else if (decision.decision === "fail") {
-    els.decisionCopy.textContent = "Local decision: Fail. Copy the review JSON so Codex can create a repair ticket.";
+    els.decisionCopy.textContent = "Fail selected on this phone. Paste the copied JSON into Codex so it can create a repair ticket.";
   } else if (recipe.status === "needs_repair") {
     els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
   } else if (recipe.status === "needs_review") {
-    els.decisionCopy.textContent = "This recipe needs Luke review. Pass or Fail creates a local decision to import.";
+    els.decisionCopy.textContent = "Choose Pass or Fail. The app will copy review JSON for Codex import.";
   } else {
     els.decisionCopy.textContent = "Review this profile. Import is still required before project truth changes.";
   }
   els.passButton.classList.toggle("selected", decision.decision === "pass");
   els.failButton.classList.toggle("selected", decision.decision === "fail");
+  document.querySelector(".decision-panel")?.classList.toggle("decision-made", Boolean(decision.decision));
+  document.querySelector(".decision-panel")?.classList.toggle("decision-pass", decision.decision === "pass");
+  document.querySelector(".decision-panel")?.classList.toggle("decision-fail", decision.decision === "fail");
+  els.passButton.textContent = decision.decision === "pass" ? "Pass selected" : "Pass";
+  els.failButton.textContent = decision.decision === "fail" ? "Fail selected" : "Fail";
   if (els.copyReviewDecision) {
     els.copyReviewDecision.disabled = !decision.decision;
-    els.copyReviewDecision.textContent = "Copy Review JSON";
+    els.copyReviewDecision.textContent =
+      decision.decision === "pass" ? "Copy Pass JSON" : decision.decision === "fail" ? "Copy Fail JSON" : "Choose Pass or Fail first";
   }
 }
 
@@ -1417,7 +1424,7 @@ function moveSelection(direction) {
   renderAll();
 }
 
-function setDecision(value) {
+function setDecision(value, autoCopy = false) {
   const recipe = currentRecipe();
   if (!recipe) return;
   const reasonCode = value === "fail" ? (els.failReason?.value || "other_notes") : "accepted";
@@ -1430,6 +1437,7 @@ function setDecision(value) {
   };
   saveDecisions();
   renderAll();
+  if (autoCopy) copyReviewDecision();
 }
 
 function buildReviewDecisionPayload(recipe) {
@@ -1460,18 +1468,22 @@ async function copyReviewDecision() {
   const jsonText = JSON.stringify(payload, null, 2);
   try {
     await navigator.clipboard.writeText(jsonText);
-    els.copyReviewDecision.textContent = "Copied for Codex";
+    const label = payload.decision === "pass" ? "Pass" : "Fail";
+    els.copyReviewDecision.textContent = `${label} JSON copied`;
+    els.decisionCopy.textContent = `${label} selected and JSON copied. Paste it into Codex to import the review.`;
   } catch {
     showCopyFallback(document.querySelector(".decision-panel"), jsonText);
     els.copyReviewDecision.textContent = "Select JSON below";
+    const label = payload.decision === "pass" ? "Pass" : "Fail";
+    els.decisionCopy.textContent = `${label} selected. Copy the JSON box below and paste it into Codex to import the review.`;
   }
 }
 
 function attachEvents() {
   els.nextButton.addEventListener("click", () => moveSelection(1));
   els.previousButton.addEventListener("click", () => moveSelection(-1));
-  els.passButton.addEventListener("click", () => setDecision("pass"));
-  els.failButton.addEventListener("click", () => setDecision("fail"));
+  els.passButton.addEventListener("click", () => setDecision("pass", true));
+  els.failButton.addEventListener("click", () => setDecision("fail", true));
   els.copyReviewDecision.addEventListener("click", copyReviewDecision);
 
   els.recipeList.addEventListener("click", (event) => {
