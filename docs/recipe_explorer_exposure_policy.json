@@ -18,8 +18,10 @@
   "rules": [
     "Only Luke-requested, deliberately exposed recipe runs may appear in the public Recipe Review app.",
     "Factory samples, blocked scaffolds, and old V2 debug runs stay on disk for developer evidence but do not count as current recipes.",
-    "Adding a recipe to this public list is not recipe approval and does not create planner readiness."
+    "Adding a recipe to this public list is not recipe approval and does not create planner readiness.",
+    "A deliberately exposed recipe may appear as blocked when the current factory gate routes it back for repair."
   ],
   "current_public_recipe_count_expected": 1,
-  "current_public_recipe_note": "The current public V3 recipe shelf is Eggs on Toast / Poached Eggs On Sourdough Toast only."
+  "allow_blocked_public_review_recipes": true,
+  "current_public_recipe_note": "The current public V3 recipe shelf is Eggs on Toast / Poached Eggs On Sourdough Toast only. It may show as blocked while the current V3 repair gate is active."
 }
