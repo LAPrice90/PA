@@ -5447,8 +5447,8 @@
       "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
       "run_slug": "chicken-fajitas-v1",
       "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-      "status": "needs_repair",
-      "reason": "reference/debug run hidden from public recipe review",
+      "status": "blocked",
+      "reason": "temporarily hidden from the current public review shelf while Luke reviews the repaired yoghurt bowl",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
         "output_bundle": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle",
