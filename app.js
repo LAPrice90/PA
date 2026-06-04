@@ -16,8 +16,11 @@ const state = {
   index: null,
   profileIndex: null,
   selectedId: "",
+  selectedDatabaseId: "",
+  selectedShoppingId: "",
   selectedPerson: "Luke",
   filter: "all",
+  databaseFilter: "all",
   route: "home",
   decisions: loadDecisions(),
   profileDrafts: loadProfileDrafts(),
@@ -29,8 +32,17 @@ const els = {
   appTitle: document.querySelector("#app-title"),
   homeView: document.querySelector("#home-view"),
   recipesView: document.querySelector("#recipes-view"),
+  databaseView: document.querySelector("#database-view"),
+  shoppingView: document.querySelector("#shopping-view"),
   profilesView: document.querySelector("#profiles-view"),
   plannerView: document.querySelector("#planner-view"),
+  databaseDataStatus: document.querySelector("#database-data-status"),
+  shoppingDataStatus: document.querySelector("#shopping-data-status"),
+  databaseFilters: document.querySelector("#database-filters"),
+  databaseList: document.querySelector("#database-list"),
+  databaseDetail: document.querySelector("#database-detail"),
+  shoppingRecipeList: document.querySelector("#shopping-recipe-list"),
+  shoppingDetail: document.querySelector("#shopping-detail"),
   profileDataStatus: document.querySelector("#profile-data-status"),
   profileTabs: document.querySelector("#profile-tabs"),
   profileContent: document.querySelector("#profile-content"),
@@ -56,6 +68,8 @@ const els = {
 const routeTitles = {
   home: "Diet Planner",
   recipes: "Recipe Review",
+  database: "Recipe Database",
+  shopping: "Shopping List",
   profiles: "Profiles",
   planner: "Weekly Planner",
 };
@@ -63,6 +77,8 @@ const routeTitles = {
 function routeFromHash() {
   const hash = window.location.hash.replace(/^#\/?/, "").trim().toLowerCase();
   if (hash === "recipes") return "recipes";
+  if (hash === "database") return "database";
+  if (hash === "shopping") return "shopping";
   if (hash === "profiles") return "profiles";
   if (hash === "planner") return "planner";
   return "home";
@@ -76,12 +92,16 @@ function showRoute(route) {
   [
     ["home", els.homeView],
     ["recipes", els.recipesView],
+    ["database", els.databaseView],
+    ["shopping", els.shoppingView],
     ["profiles", els.profilesView],
     ["planner", els.plannerView],
   ].forEach(([name, element]) => {
-    element.classList.toggle("is-hidden", name !== route);
+    if (element) element.classList.toggle("is-hidden", name !== route);
   });
   if (route === "recipes" && state.index) renderAll();
+  if (route === "database" && state.index) renderDatabase();
+  if (route === "shopping" && state.index) renderShoppingMenu();
   if (route === "profiles" && state.profileIndex) renderProfiles();
 }
 
@@ -127,6 +147,20 @@ function number(value, places = 1) {
 
 function money(value) {
   return `GBP ${Number(value || 0).toFixed(2)}`;
+}
+
+function showCopyFallback(container, jsonText) {
+  if (!container) return;
+  const existing = container.querySelector("[data-copy-fallback]");
+  if (existing) existing.remove();
+  const fallback = document.createElement("textarea");
+  fallback.className = "copy-fallback";
+  fallback.dataset.copyFallback = "true";
+  fallback.readOnly = true;
+  fallback.value = jsonText;
+  container.appendChild(fallback);
+  fallback.focus();
+  fallback.select();
 }
 
 function plainText(markdown) {
@@ -253,6 +287,79 @@ function filteredRecipes() {
 function currentRecipe() {
   if (!state.index) return null;
   return state.index.recipes.find((recipe) => recipe.recipe_id === state.selectedId) || filteredRecipes()[0] || state.index.recipes[0] || null;
+}
+
+function approvedRecipes() {
+  if (!state.index) return [];
+  return state.index.recipes.filter((recipe) => recipe.status === "approved");
+}
+
+function mealTypeLabel(value) {
+  return String(value || "recipe")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function databaseMealTypes() {
+  return [...new Set(approvedRecipes().map((recipe) => recipe.meal_type || "recipe"))].sort((a, b) =>
+    mealTypeLabel(a).localeCompare(mealTypeLabel(b)),
+  );
+}
+
+function filteredDatabaseRecipes() {
+  const recipes = approvedRecipes();
+  if (state.databaseFilter === "all") return recipes;
+  return recipes.filter((recipe) => (recipe.meal_type || "recipe") === state.databaseFilter);
+}
+
+function currentDatabaseRecipe() {
+  const recipes = filteredDatabaseRecipes();
+  return (
+    recipes.find((recipe) => recipe.recipe_id === state.selectedDatabaseId) ||
+    recipes[0] ||
+    approvedRecipes().find((recipe) => recipe.recipe_id === state.selectedDatabaseId) ||
+    approvedRecipes()[0] ||
+    null
+  );
+}
+
+function currentShoppingRecipe() {
+  const recipes = approvedRecipes();
+  return recipes.find((recipe) => recipe.recipe_id === state.selectedShoppingId) || recipes[0] || null;
+}
+
+function nutritionHeadline(recipe) {
+  const totals = recipe.person_totals || {};
+  const preferred = totals.Luke ? "Luke" : Object.keys(totals)[0];
+  if (!preferred) return "Nutrition saved";
+  const row = totals[preferred] || {};
+  return `${preferred}: ${number(row.calories)} kcal / ${number(row.protein_g)}g protein`;
+}
+
+function recipeCostHeadline(recipe) {
+  const shoppingTotal = recipe.shopping_total_used_cost_gbp;
+  if (shoppingTotal !== undefined && shoppingTotal !== null) return money(shoppingTotal);
+  const values = Object.values(recipe.person_totals || {});
+  const total = values.reduce((sum, row) => sum + Number(row.cost_gbp || 0), 0);
+  return total ? money(total) : "Cost saved";
+}
+
+function approvedCard(recipe, active, idAttribute) {
+  const image = heroImage(recipe);
+  return `
+    <button class="database-card ${active ? "active" : ""}" type="button" ${idAttribute}="${escapeHtml(recipe.recipe_id)}">
+      <span class="database-card-image" ${image ? `style="background-image: url('${image}')"` : ""}>
+        ${image ? "" : `<span class="database-image-fallback"></span>`}
+      </span>
+      <span class="database-card-copy">
+        <strong>${escapeHtml(recipe.title)}</strong>
+        <em>${escapeHtml(mealTypeLabel(recipe.meal_type))} - ${escapeHtml(recipe.timing?.total_minutes ? `${recipe.timing.total_minutes} min` : "Time saved")}</em>
+        <small>${escapeHtml((recipe.people || []).join(", ") || "People saved")}</small>
+        <small>${escapeHtml(nutritionHeadline(recipe))}</small>
+        <small>${escapeHtml(recipeCostHeadline(recipe))}</small>
+      </span>
+    </button>
+  `;
 }
 
 function heroImage(recipe) {
@@ -665,6 +772,218 @@ function renderAll() {
   renderQueue();
   renderCount();
   renderProfile(recipe);
+}
+
+function renderDatabaseFilters() {
+  if (!els.databaseFilters) return;
+  const mealTypes = databaseMealTypes();
+  const buttons = [
+    `<button class="database-filter ${state.databaseFilter === "all" ? "active" : ""}" type="button" data-database-filter="all">All</button>`,
+    ...mealTypes.map(
+      (mealType) =>
+        `<button class="database-filter ${state.databaseFilter === mealType ? "active" : ""}" type="button" data-database-filter="${escapeHtml(mealType)}">${escapeHtml(mealTypeLabel(mealType))}</button>`,
+    ),
+  ];
+  els.databaseFilters.innerHTML = buttons.join("");
+}
+
+function renderSendBackPanel(recipe) {
+  const reasonOptions = Object.entries(FAIL_REASONS)
+    .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
+    .join("");
+  return `
+    <section class="story-section send-back-panel">
+      <div class="section-title-row">
+        <h3>Send Back For Changes</h3>
+        <span>Import required</span>
+      </div>
+      <p>This creates a Fail-style JSON packet. Codex must import it before the recipe leaves the approved database.</p>
+      <div class="review-fields database-review-fields">
+        <label for="database-fail-reason">Reason</label>
+        <select id="database-fail-reason" data-send-back-reason>
+          ${reasonOptions}
+        </select>
+        <label for="database-review-notes">Notes</label>
+        <textarea id="database-review-notes" data-send-back-notes rows="2" placeholder="What should be changed?"></textarea>
+      </div>
+      <button class="copy-decision-button" type="button" data-copy-send-back="${escapeHtml(recipe.recipe_id)}">Copy Send-Back JSON</button>
+    </section>
+  `;
+}
+
+function buildSendBackPayload(recipe, reasonCode, notes) {
+  return {
+    schema_version: "v3.recipe_review_decision.1",
+    recipe_id: recipe.recipe_id,
+    run_slug: recipe.run_slug,
+    title: recipe.title,
+    decision: "fail",
+    reason_code: reasonCode || "other_notes",
+    reason_label: FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes,
+    notes: notes || "",
+    reviewed_by: "Luke",
+    reviewed_at: new Date().toISOString(),
+    source: "recipe_database_send_back_export",
+    import_required: true,
+  };
+}
+
+async function copySendBackDecision(button) {
+  const recipe = currentDatabaseRecipe();
+  if (!recipe || button.dataset.copySendBack !== recipe.recipe_id) return;
+  const reason = els.databaseDetail.querySelector("[data-send-back-reason]")?.value || "other_notes";
+  const notes = els.databaseDetail.querySelector("[data-send-back-notes]")?.value || "";
+  const jsonText = JSON.stringify(buildSendBackPayload(recipe, reason, notes), null, 2);
+  try {
+    await navigator.clipboard.writeText(jsonText);
+    button.textContent = "Copied for Codex";
+  } catch {
+    showCopyFallback(button.closest(".send-back-panel"), jsonText);
+    button.textContent = "Select JSON below";
+  }
+}
+
+function renderDatabase() {
+  if (!els.databaseList || !els.databaseDetail) return;
+  if (!state.index) {
+    els.databaseDataStatus.textContent = "Missing";
+    els.databaseDataStatus.className = "state-pill blocked";
+    els.databaseList.innerHTML = `<p class="friendly-empty">Could not load recipe data.</p>`;
+    return;
+  }
+  els.databaseDataStatus.textContent = "Loaded";
+  els.databaseDataStatus.className = "state-pill good";
+  renderDatabaseFilters();
+  const approved = approvedRecipes();
+  if (!approved.length) {
+    els.databaseList.innerHTML = `
+      <div class="empty-panel">
+        <strong>No approved recipes yet</strong>
+        <p>Pass a recipe in Recipe Review, copy the review JSON, then Codex imports it and rebuilds this shelf.</p>
+      </div>
+    `;
+    els.databaseDetail.innerHTML = `
+      <div class="empty-panel wide">
+        <strong>Approved shelf is protected</strong>
+        <p>Browser-local Pass state does not count as approval. This area only reads saved imported review files.</p>
+      </div>
+    `;
+    return;
+  }
+  const recipes = filteredDatabaseRecipes();
+  const recipe = currentDatabaseRecipe();
+  if (recipe) state.selectedDatabaseId = recipe.recipe_id;
+  if (!recipes.length) {
+    els.databaseList.innerHTML = `<p class="friendly-empty">No approved recipes match this filter.</p>`;
+    els.databaseDetail.innerHTML = `<div class="empty-panel wide"><strong>No match</strong><p>Choose another meal type.</p></div>`;
+    return;
+  }
+  els.databaseList.innerHTML = recipes.map((item) => approvedCard(item, item.recipe_id === recipe?.recipe_id, "data-database-recipe-id")).join("");
+  els.databaseDetail.innerHTML = recipe
+    ? [
+        renderHero(recipe),
+        renderSuitability(recipe),
+        renderNutrition(recipe),
+        renderRecipePreview(recipe),
+        renderShopping(recipe),
+        renderProofSummary(recipe),
+        renderSendBackPanel(recipe),
+      ].join("")
+    : `<div class="empty-panel wide"><strong>No recipe selected</strong><p>Choose an approved recipe from the menu.</p></div>`;
+}
+
+function groupedShoppingRows(recipe) {
+  const rows = Array.isArray(recipe.shopping_rows) ? recipe.shopping_rows : [];
+  const categories = new Map();
+  rows.forEach((row) => {
+    const category = row.ingredient_category || "Food";
+    const treatment = shoppingTreatmentLabel(row.shopping_treatment);
+    if (!categories.has(category)) categories.set(category, new Map());
+    if (!categories.get(category).has(treatment)) categories.get(category).set(treatment, []);
+    categories.get(category).get(treatment).push(row);
+  });
+  return categories;
+}
+
+function renderShoppingGroups(recipe) {
+  const categories = groupedShoppingRows(recipe);
+  if (!categories.size) return `<p class="friendly-empty">No recipe-level shopping rows are saved for this recipe.</p>`;
+  return Array.from(categories.entries())
+    .map(
+      ([category, treatments]) => `
+        <section class="shopping-category-group">
+          <h4>${escapeHtml(category)}</h4>
+          ${Array.from(treatments.entries())
+            .map(
+              ([treatment, rows]) => `
+                <div class="shopping-treatment-group">
+                  <strong>${escapeHtml(treatment)}</strong>
+                  <div class="shopping-list">
+                    ${rows
+                      .map(
+                        (row) => `
+                          <div class="shopping-line">
+                            <div>
+                              <strong>${escapeHtml(row.ingredient_name)}</strong>
+                              <span>${escapeHtml(row.purchase_display || row.pack_label || "pack")} - ${escapeHtml(row.needed_kitchen_display || `${number(row.needed_quantity)} ${row.needed_unit || ""}`)}</span>
+                            </div>
+                            <em>${money(row.estimated_used_cost_gbp)}</em>
+                          </div>
+                        `,
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              `,
+            )
+            .join("")}
+        </section>
+      `,
+    )
+    .join("");
+}
+
+function renderShoppingMenu() {
+  if (!els.shoppingRecipeList || !els.shoppingDetail) return;
+  if (!state.index) {
+    els.shoppingDataStatus.textContent = "Missing";
+    els.shoppingDataStatus.className = "state-pill blocked";
+    els.shoppingRecipeList.innerHTML = `<p class="friendly-empty">Could not load recipe data.</p>`;
+    return;
+  }
+  els.shoppingDataStatus.textContent = "Loaded";
+  els.shoppingDataStatus.className = "state-pill good";
+  const recipes = approvedRecipes();
+  if (!recipes.length) {
+    els.shoppingRecipeList.innerHTML = `
+      <div class="empty-panel">
+        <strong>No approved recipes yet</strong>
+        <p>Recipe shopping appears here after a recipe is confirmed by imported review JSON.</p>
+      </div>
+    `;
+    els.shoppingDetail.innerHTML = `
+      <div class="empty-panel wide">
+        <strong>Recipe-level only</strong>
+        <p>This screen cannot create a weekly shop. The weekly planner will do that later.</p>
+      </div>
+    `;
+    return;
+  }
+  const recipe = currentShoppingRecipe();
+  if (recipe) state.selectedShoppingId = recipe.recipe_id;
+  els.shoppingRecipeList.innerHTML = recipes.map((item) => approvedCard(item, item.recipe_id === recipe?.recipe_id, "data-shopping-recipe-id")).join("");
+  els.shoppingDetail.innerHTML = recipe
+    ? `
+      <section class="shopping-summary-card">
+        <div class="section-title-row">
+          <h3>${escapeHtml(recipe.title)}</h3>
+          <span>${money(recipe.shopping_total_used_cost_gbp)}</span>
+        </div>
+        <p>Recipe-level shopping only. Pack labels, quantities, category, pantry, and cost come from saved recipe data.</p>
+      </section>
+      ${renderShoppingGroups(recipe)}
+    `
+    : `<div class="empty-panel wide"><strong>No recipe selected</strong><p>Choose an approved recipe to view its shopping rows.</p></div>`;
 }
 
 function currentProfile() {
@@ -1138,8 +1457,8 @@ async function copyReviewDecision() {
     await navigator.clipboard.writeText(jsonText);
     els.copyReviewDecision.textContent = "Copied for Codex";
   } catch {
-    window.prompt("Copy this review JSON for Codex import:", jsonText);
-    els.copyReviewDecision.textContent = "Copy manually";
+    showCopyFallback(document.querySelector(".decision-panel"), jsonText);
+    els.copyReviewDecision.textContent = "Select JSON below";
   }
 }
 
@@ -1165,6 +1484,35 @@ function attachEvents() {
       state.selectedId = first?.recipe_id || "";
       renderAll();
     });
+  });
+
+  els.databaseFilters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-database-filter]");
+    if (!button) return;
+    state.databaseFilter = button.dataset.databaseFilter;
+    const first = filteredDatabaseRecipes()[0];
+    state.selectedDatabaseId = first?.recipe_id || "";
+    renderDatabase();
+  });
+
+  els.databaseList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-database-recipe-id]");
+    if (!button) return;
+    state.selectedDatabaseId = button.dataset.databaseRecipeId;
+    renderDatabase();
+  });
+
+  els.databaseDetail.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-copy-send-back]");
+    if (!button) return;
+    copySendBackDecision(button);
+  });
+
+  els.shoppingRecipeList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-shopping-recipe-id]");
+    if (!button) return;
+    state.selectedShoppingId = button.dataset.shoppingRecipeId;
+    renderShoppingMenu();
   });
 
   els.profileTabs.addEventListener("click", (event) => {
@@ -1256,13 +1604,32 @@ async function init() {
     state.index = await recipeResponse.json();
     state.profileIndex = await profileResponse.json();
     const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
+    const firstApproved = approvedRecipes()[0];
     state.selectedId = firstReview?.recipe_id || state.index.recipes[0]?.recipe_id || "";
+    state.selectedDatabaseId = firstApproved?.recipe_id || "";
+    state.selectedShoppingId = firstApproved?.recipe_id || "";
     if (state.route === "recipes") renderAll();
+    if (state.route === "database") renderDatabase();
+    if (state.route === "shopping") renderShoppingMenu();
     if (state.route === "profiles") renderProfiles();
   } catch (error) {
     els.dataStatus.textContent = "Missing";
     els.dataStatus.className = "state-pill blocked";
     els.profile.innerHTML = `<div class="loading-card">Could not load data/recipe-index.json.</div>`;
+    if (els.databaseDataStatus) {
+      els.databaseDataStatus.textContent = "Missing";
+      els.databaseDataStatus.className = "state-pill blocked";
+    }
+    if (els.databaseList) {
+      els.databaseList.innerHTML = `<p class="friendly-empty">Could not load recipe app data.</p>`;
+    }
+    if (els.shoppingDataStatus) {
+      els.shoppingDataStatus.textContent = "Missing";
+      els.shoppingDataStatus.className = "state-pill blocked";
+    }
+    if (els.shoppingRecipeList) {
+      els.shoppingRecipeList.innerHTML = `<p class="friendly-empty">Could not load recipe app data.</p>`;
+    }
     if (els.profileDataStatus) {
       els.profileDataStatus.textContent = "Missing";
       els.profileDataStatus.className = "state-pill blocked";
