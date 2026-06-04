@@ -29,6 +29,9 @@
       "tags": [],
       "timing": {},
       "person_totals": {},
+      "slot_fit": {},
+      "target_ranges": {},
+      "day_balance_requirements": [],
       "shopping_treatments": [],
       "binary_flags": {},
       "count_units": {},
@@ -149,6 +152,277 @@
           "portion_fullness_points": 81.6
         }
       },
+      "slot_fit": {
+        "target_authority_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\shared\\meal_slot_target_authority.csv",
+        "overall_status": "LIGHT_ALLOWED",
+        "planner_handover_allowed": true,
+        "day_balance_required": true,
+        "rows": [
+          {
+            "person": "Luke",
+            "meal_slot": "breakfast",
+            "target_id": "MSTA-LUKE-BREAKFAST-001",
+            "status": "LIGHT_ALLOWED",
+            "dimension_statuses": {
+              "calories": "LIGHT_ALLOWED",
+              "protein_g": "LIGHT_ALLOWED",
+              "fullness": "PASS",
+              "cost": "PASS",
+              "active_time": "PASS"
+            },
+            "actuals": {
+              "calories": 333.0,
+              "protein_g": 20.1,
+              "filling_points": 81.6,
+              "cost_gbp": 0.67,
+              "active_time_minutes": 20.0
+            },
+            "target_ranges": {
+              "kcal": {
+                "target_min": 400.0,
+                "target_max": 650.0,
+                "hard_min": 300.0,
+                "hard_max": 800.0
+              },
+              "protein_g": {
+                "target_min": 25.0,
+                "target_max": 40.0,
+                "hard_min": 18.0,
+                "hard_max": 70.0
+              },
+              "fullness": {
+                "target_min": 62.0,
+                "target_max": 104.0,
+                "hard_min": 50.0,
+                "hard_max": 113.0
+              },
+              "cost_max_gbp": 2.75,
+              "active_time_max_minutes": 30.0
+            },
+            "deficits": {
+              "calories": 67.0,
+              "protein_g": 4.9,
+              "fullness": 0.0
+            },
+            "excesses": {
+              "calories": 0.0,
+              "protein_g": 0.0,
+              "fullness": 0.0,
+              "cost_gbp": 0.0,
+              "active_time_minutes": 0.0
+            },
+            "deficit_policy": "must_balance_by_day",
+            "source_refs": "V2/data/user_profile.csv:USR-LUKE;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json",
+            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+          },
+          {
+            "person": "Sarah",
+            "meal_slot": "breakfast",
+            "target_id": "MSTA-SARAH-BREAKFAST-001",
+            "status": "LIGHT_ALLOWED",
+            "dimension_statuses": {
+              "calories": "LIGHT_ALLOWED",
+              "protein_g": "LIGHT_ALLOWED",
+              "fullness": "PASS",
+              "cost": "PASS",
+              "active_time": "PASS"
+            },
+            "actuals": {
+              "calories": 333.0,
+              "protein_g": 20.1,
+              "filling_points": 81.6,
+              "cost_gbp": 0.67,
+              "active_time_minutes": 20.0
+            },
+            "target_ranges": {
+              "kcal": {
+                "target_min": 360.0,
+                "target_max": 520.0,
+                "hard_min": 250.0,
+                "hard_max": 650.0
+              },
+              "protein_g": {
+                "target_min": 25.0,
+                "target_max": 35.0,
+                "hard_min": 12.0,
+                "hard_max": 55.0
+              },
+              "fullness": {
+                "target_min": 50.0,
+                "target_max": 90.0,
+                "hard_min": 40.0,
+                "hard_max": 104.0
+              },
+              "cost_max_gbp": 2.25,
+              "active_time_max_minutes": 30.0
+            },
+            "deficits": {
+              "calories": 27.0,
+              "protein_g": 4.9,
+              "fullness": 0.0
+            },
+            "excesses": {
+              "calories": 0.0,
+              "protein_g": 0.0,
+              "fullness": 0.0,
+              "cost_gbp": 0.0,
+              "active_time_minutes": 0.0
+            },
+            "deficit_policy": "must_balance_by_day",
+            "source_refs": "V2/data/user_profile.csv:USR-SARAH;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json;explicit Poached Eggs expected LIGHT_ALLOWED result",
+            "day_balance_requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+          },
+          {
+            "person": "Louis",
+            "meal_slot": "breakfast",
+            "target_id": "MSTA-LOUIS-BREAKFAST-001",
+            "status": "OVER_TARGET_ALLOWED",
+            "dimension_statuses": {
+              "calories": "PASS",
+              "protein_g": "OVER_TARGET_ALLOWED",
+              "fullness": "OVER_TARGET_ALLOWED",
+              "cost": "PASS",
+              "active_time": "PASS"
+            },
+            "actuals": {
+              "calories": 333.0,
+              "protein_g": 20.1,
+              "filling_points": 81.6,
+              "cost_gbp": 0.67,
+              "active_time_minutes": 20.0
+            },
+            "target_ranges": {
+              "kcal": {
+                "target_min": 220.0,
+                "target_max": 350.0,
+                "hard_min": 180.0,
+                "hard_max": 450.0
+              },
+              "protein_g": {
+                "target_min": 6.0,
+                "target_max": 20.0,
+                "hard_min": 0.0,
+                "hard_max": 35.0
+              },
+              "fullness": {
+                "target_min": 40.0,
+                "target_max": 75.0,
+                "hard_min": 25.0,
+                "hard_max": 95.0
+              },
+              "cost_max_gbp": 1.75,
+              "active_time_max_minutes": 30.0
+            },
+            "deficits": {
+              "calories": 0.0,
+              "protein_g": 0.0,
+              "fullness": 0.0
+            },
+            "excesses": {
+              "calories": 0.0,
+              "protein_g": 0.1,
+              "fullness": 6.6,
+              "cost_gbp": 0.0,
+              "active_time_minutes": 0.0
+            },
+            "deficit_policy": "must_balance_by_day",
+            "source_refs": "V2/data/user_profile.csv:USR-LOUIS;V2/data/meal_assembly_target.csv:TGT-BREAKFAST-BREAKFAST_TOAST_MAIN-FIRST;V3/recipe-project/samples/honey-vanilla-french-toast-fruit-yoghurt-v3-sample/goal-packet.json",
+            "day_balance_requirement": ""
+          }
+        ]
+      },
+      "target_ranges": {
+        "Luke:breakfast": {
+          "kcal": {
+            "target_min": 400.0,
+            "target_max": 650.0,
+            "hard_min": 300.0,
+            "hard_max": 800.0
+          },
+          "protein_g": {
+            "target_min": 25.0,
+            "target_max": 40.0,
+            "hard_min": 18.0,
+            "hard_max": 70.0
+          },
+          "fullness": {
+            "target_min": 62.0,
+            "target_max": 104.0,
+            "hard_min": 50.0,
+            "hard_max": 113.0
+          },
+          "cost_max_gbp": 2.75,
+          "active_time_max_minutes": 30.0
+        },
+        "Sarah:breakfast": {
+          "kcal": {
+            "target_min": 360.0,
+            "target_max": 520.0,
+            "hard_min": 250.0,
+            "hard_max": 650.0
+          },
+          "protein_g": {
+            "target_min": 25.0,
+            "target_max": 35.0,
+            "hard_min": 12.0,
+            "hard_max": 55.0
+          },
+          "fullness": {
+            "target_min": 50.0,
+            "target_max": 90.0,
+            "hard_min": 40.0,
+            "hard_max": 104.0
+          },
+          "cost_max_gbp": 2.25,
+          "active_time_max_minutes": 30.0
+        },
+        "Louis:breakfast": {
+          "kcal": {
+            "target_min": 220.0,
+            "target_max": 350.0,
+            "hard_min": 180.0,
+            "hard_max": 450.0
+          },
+          "protein_g": {
+            "target_min": 6.0,
+            "target_max": 20.0,
+            "hard_min": 0.0,
+            "hard_max": 35.0
+          },
+          "fullness": {
+            "target_min": 40.0,
+            "target_max": 75.0,
+            "hard_min": 25.0,
+            "hard_max": 95.0
+          },
+          "cost_max_gbp": 1.75,
+          "active_time_max_minutes": 30.0
+        }
+      },
+      "day_balance_requirements": [
+        {
+          "person": "Luke",
+          "meal_slot": "breakfast",
+          "status": "LIGHT_ALLOWED",
+          "deficits": {
+            "calories": 67.0,
+            "protein_g": 4.9,
+            "fullness": 0.0
+          },
+          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+        },
+        {
+          "person": "Sarah",
+          "meal_slot": "breakfast",
+          "status": "LIGHT_ALLOWED",
+          "deficits": {
+            "calories": 27.0,
+            "protein_g": 4.9,
+            "fullness": 0.0
+          },
+          "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers"
+        }
+      ],
       "shopping_treatments": [
         "main_buy",
         "pantry_check"
@@ -206,6 +480,8 @@
         "datasheet_estimate_status": "source_authorised",
         "technical_trace_level": "source_authorised",
         "technical_verdict": "PASS",
+        "meal_slot_target_authority_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\shared\\meal_slot_target_authority.csv",
+        "meal_slot_target_status": "LIGHT_ALLOWED",
         "all_invoice_rows_source_authorised": true
       },
       "planner_handover": {
@@ -1501,6 +1777,9 @@
       "tags": [],
       "timing": {},
       "person_totals": {},
+      "slot_fit": {},
+      "target_ranges": {},
+      "day_balance_requirements": [],
       "shopping_treatments": [],
       "binary_flags": {},
       "count_units": {},

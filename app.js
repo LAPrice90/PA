@@ -181,10 +181,31 @@ function recipeTags(recipe) {
   return tags.slice(0, 4);
 }
 
+function slotFitLabel(recipe) {
+  const status = recipe.slot_fit?.overall_status || "";
+  const labels = {
+    PASS: "Fits target",
+    LIGHT_ALLOWED: "Light - balance day",
+    OVER_TARGET_ALLOWED: "Over target - allowed",
+    BLOCK: "Target blocked",
+  };
+  return labels[status] || "Not measured";
+}
+
+function dayBalanceLabel(recipe) {
+  const requirements = Array.isArray(recipe.day_balance_requirements) ? recipe.day_balance_requirements : [];
+  if (!requirements.length) return "No top-up needed";
+  const people = [...new Set(requirements.map((row) => row.person).filter(Boolean))];
+  if (!people.length) return "Top-up needed later";
+  return `${people.join(" and ")} need top-up later`;
+}
+
 function suitabilityItems(recipe) {
   const flags = recipe.binary_flags || {};
   const items = [];
   items.push({ label: "Meal", value: recipe.meal_type || "Unclassified" });
+  items.push({ label: "Meal target", value: slotFitLabel(recipe) });
+  items.push({ label: "Balance", value: dayBalanceLabel(recipe) });
   items.push({ label: "Time", value: recipe.timing?.total_minutes ? `${recipe.timing.total_minutes} minutes` : "Not proven" });
   items.push({ label: "Cooking", value: flags.serve_immediately ? "Serve fresh" : flags.stores_for_later ? "Stores for later" : "Check notes" });
   items.push({ label: "Shelf", value: recipe.status === "needs_review" ? "Waiting for Luke" : statusLabel(recipe) });
