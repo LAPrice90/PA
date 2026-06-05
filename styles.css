@@ -62,6 +62,39 @@ button {
   margin: 0 auto 18px;
 }
 
+.app-nav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.app-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid rgba(17, 19, 24, 0.09);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 950;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(12, 18, 28, 0.06);
+}
+
+.app-nav a:hover,
+.app-nav a:focus-visible,
+.app-nav a.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--white);
+  outline: none;
+}
+
 .tiny-label {
   margin: 0 0 3px;
   color: var(--blue);
@@ -1041,6 +1074,47 @@ button {
   line-height: 1;
 }
 
+.recipe-link-panel {
+  background: linear-gradient(135deg, #eef2ff, #ffffff);
+}
+
+.recipe-link-panel p,
+.shopping-summary-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.recipe-link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(36, 87, 255, 0.18);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.recipe-link-row.compact {
+  margin-top: 12px;
+}
+
+.recipe-link-row a {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.recipe-link-row a:hover,
+.recipe-link-row a:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
 .story-section {
   padding: 18px;
   border-bottom: 1px solid var(--line);
@@ -1583,8 +1657,23 @@ button {
   }
 
   .app-header {
+    flex-wrap: wrap;
     padding: 14px;
     margin: 0;
+  }
+
+  .app-nav {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .app-nav a {
+    min-height: 38px;
+    padding: 8px 10px;
+    white-space: nowrap;
   }
 
   .home-view,
@@ -1673,6 +1762,11 @@ button {
 
   .cost-headline {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recipe-link-row {
+    align-items: stretch;
     flex-direction: column;
   }
 

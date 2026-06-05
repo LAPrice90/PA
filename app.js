@@ -18,6 +18,7 @@ const state = {
   selectedId: "",
   selectedDatabaseId: "",
   selectedShoppingId: "",
+  routeTarget: "",
   selectedPerson: "Luke",
   filter: "all",
   databaseFilter: "all",
@@ -30,6 +31,7 @@ const state = {
 
 const els = {
   appTitle: document.querySelector("#app-title"),
+  appNav: document.querySelector(".app-nav"),
   homeView: document.querySelector("#home-view"),
   recipesView: document.querySelector("#recipes-view"),
   databaseView: document.querySelector("#database-view"),
@@ -75,20 +77,112 @@ const routeTitles = {
 };
 
 function routeFromHash() {
-  const hash = window.location.hash.replace(/^#\/?/, "").trim().toLowerCase();
-  if (hash === "recipes") return "recipes";
-  if (hash === "database") return "database";
-  if (hash === "shopping") return "shopping";
-  if (hash === "profiles") return "profiles";
-  if (hash === "planner") return "planner";
-  return "home";
+  const raw = window.location.hash.replace(/^#\/?/, "").trim();
+  const [routePart = "", targetPart = ""] = raw.split("/");
+  const route = routePart.toLowerCase();
+  return {
+    route: ["recipes", "database", "shopping", "profiles", "planner"].includes(route) ? route : "home",
+    target: decodeURIComponent(targetPart || "").trim(),
+  };
 }
 
-function showRoute(route) {
+function setHash(path) {
+  if (window.location.hash === path) return;
+  window.location.hash = path;
+}
+
+function selectedRecipeKey(recipe) {
+  return recipe?.run_slug || recipe?.recipe_id || "";
+}
+
+function recipeMatches(recipe, key) {
+  const clean = String(key || "").trim();
+  if (!clean || !recipe) return false;
+  return recipe.recipe_id === clean || recipe.run_slug === clean;
+}
+
+function recipeByKey(key, recipes = state.index?.recipes || []) {
+  return recipes.find((recipe) => recipeMatches(recipe, key)) || null;
+}
+
+function recipeUrl(recipe, route = "database") {
+  const key = selectedRecipeKey(recipe);
+  const path = key ? `#/${route}/${encodeURIComponent(key)}` : `#/${route}`;
+  return `${window.location.origin}${window.location.pathname}${path}`;
+}
+
+async function copyTextToClipboard(textValue, button, fallbackContainer) {
+  try {
+    await navigator.clipboard.writeText(textValue);
+    if (button) button.textContent = "Copied";
+  } catch {
+    const copied = copyTextWithTemporaryTextarea(textValue);
+    if (copied) {
+      if (button) button.textContent = "Copied";
+      return;
+    }
+    showCopyFallback(fallbackContainer, textValue);
+    if (button) button.textContent = "Select link below";
+  }
+}
+
+function copyTextWithTemporaryTextarea(textValue) {
+  const textarea = document.createElement("textarea");
+  textarea.value = textValue;
+  textarea.setAttribute("readonly", "readonly");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  }
+  textarea.remove();
+  return copied;
+}
+
+function renderRecipeLinkPanel(recipe) {
+  const url = recipeUrl(recipe, "database");
+  return `
+    <section class="story-section recipe-link-panel">
+      <div class="section-title-row">
+        <h3>Recipe Link</h3>
+        <span>Calendar safe</span>
+      </div>
+      <p>Use this link in a Google Calendar meal note to open the approved recipe directly.</p>
+      <div class="recipe-link-row">
+        <a href="${escapeHtml(url)}">${escapeHtml(url.replace(window.location.origin + window.location.pathname, ""))}</a>
+        <button class="mini-button dark" type="button" data-copy-recipe-link="${escapeHtml(recipe.recipe_id)}">Copy Link</button>
+      </div>
+    </section>
+  `;
+}
+
+function updateNav(route) {
+  if (!els.appNav) return;
+  els.appNav.querySelectorAll("a").forEach((link) => {
+    const hrefRoute = (link.getAttribute("href") || "#/")
+      .replace(/^#\/?/, "")
+      .split("/")[0]
+      .trim();
+    const linkRoute = hrefRoute || "home";
+    link.classList.toggle("active", linkRoute === route);
+  });
+}
+
+function showRoute(routeInfo) {
+  const route = typeof routeInfo === "string" ? routeInfo : routeInfo.route;
+  const target = typeof routeInfo === "string" ? "" : routeInfo.target;
   state.route = route;
+  state.routeTarget = target;
   document.body.dataset.route = route;
   els.appTitle.textContent = routeTitles[route] || routeTitles.home;
   document.title = route === "home" ? "Diet Planner V3" : `${routeTitles[route]} - Diet Planner V3`;
+  updateNav(route);
+  applyRouteTarget(route, target);
   [
     ["home", els.homeView],
     ["recipes", els.recipesView],
@@ -103,6 +197,22 @@ function showRoute(route) {
   if (route === "database" && state.index) renderDatabase();
   if (route === "shopping" && state.index) renderShoppingMenu();
   if (route === "profiles" && state.profileIndex) renderProfiles();
+}
+
+function applyRouteTarget(route, target) {
+  if (!target || !state.index) return;
+  const recipe = recipeByKey(target);
+  if (!recipe) return;
+  if (route === "recipes" && ["needs_review", "needs_repair", "blocked"].includes(recipe.status)) {
+    state.selectedId = recipe.recipe_id;
+  }
+  if (route === "database" && recipe.status === "approved") {
+    state.selectedDatabaseId = recipe.recipe_id;
+    state.databaseFilter = "all";
+  }
+  if (route === "shopping" && recipe.status === "approved") {
+    state.selectedShoppingId = recipe.recipe_id;
+  }
 }
 
 function loadDecisions() {
@@ -1066,6 +1176,7 @@ function renderDatabase() {
   els.databaseDetail.innerHTML = recipe
     ? [
         renderHero(recipe),
+        renderRecipeLinkPanel(recipe),
         renderSuitability(recipe),
         renderNutrition(recipe),
         renderRecipePreview(recipe),
@@ -1165,6 +1276,10 @@ function renderShoppingMenu() {
           <span>${escapeHtml(recipeCostHeadline(recipe))}</span>
         </div>
         <p>Recipe-level shopping only. Pack labels, quantities, category, pantry, and cost come from saved recipe data.</p>
+        <div class="recipe-link-row compact">
+          <a href="${escapeHtml(recipeUrl(recipe, "database"))}">Open recipe card</a>
+          <button class="mini-button dark" type="button" data-copy-shopping-recipe-link="${escapeHtml(recipe.recipe_id)}">Copy Recipe Link</button>
+        </div>
       </section>
       ${renderShoppingGroups(recipe)}
     `
@@ -1663,6 +1778,8 @@ function attachEvents() {
     const button = event.target.closest("[data-recipe-id]");
     if (!button) return;
     state.selectedId = button.dataset.recipeId;
+    const recipe = recipeByKey(state.selectedId, filteredRecipes());
+    if (recipe) setHash(`#/recipes/${encodeURIComponent(selectedRecipeKey(recipe))}`);
     renderAll();
   });
 
@@ -1682,6 +1799,7 @@ function attachEvents() {
       els.filters.forEach((item) => item.classList.toggle("active", item === button));
       const first = filteredRecipes()[0];
       state.selectedId = first?.recipe_id || "";
+      setHash(first ? `#/recipes/${encodeURIComponent(selectedRecipeKey(first))}` : "#/recipes");
       renderAll();
     });
   });
@@ -1692,6 +1810,7 @@ function attachEvents() {
     state.databaseFilter = button.dataset.databaseFilter;
     const first = filteredDatabaseRecipes()[0];
     state.selectedDatabaseId = first?.recipe_id || "";
+    setHash(first ? `#/database/${encodeURIComponent(selectedRecipeKey(first))}` : "#/database");
     renderDatabase();
   });
 
@@ -1699,20 +1818,40 @@ function attachEvents() {
     const button = event.target.closest("[data-database-recipe-id]");
     if (!button) return;
     state.selectedDatabaseId = button.dataset.databaseRecipeId;
+    const recipe = currentDatabaseRecipe();
+    if (recipe) setHash(`#/database/${encodeURIComponent(selectedRecipeKey(recipe))}`);
     renderDatabase();
   });
 
   els.databaseDetail.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-copy-send-back]");
-    if (!button) return;
-    copySendBackDecision(button);
+    const sendBackButton = event.target.closest("[data-copy-send-back]");
+    if (sendBackButton) {
+      copySendBackDecision(sendBackButton);
+      return;
+    }
+    const linkButton = event.target.closest("[data-copy-recipe-link]");
+    if (linkButton) {
+      const recipe = currentDatabaseRecipe();
+      if (!recipe) return;
+      copyTextToClipboard(recipeUrl(recipe, "database"), linkButton, linkButton.closest(".recipe-link-panel"));
+    }
   });
 
   els.shoppingRecipeList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-shopping-recipe-id]");
     if (!button) return;
     state.selectedShoppingId = button.dataset.shoppingRecipeId;
+    const recipe = currentShoppingRecipe();
+    if (recipe) setHash(`#/shopping/${encodeURIComponent(selectedRecipeKey(recipe))}`);
     renderShoppingMenu();
+  });
+
+  els.shoppingDetail.addEventListener("click", (event) => {
+    const linkButton = event.target.closest("[data-copy-shopping-recipe-link]");
+    if (!linkButton) return;
+    const recipe = currentShoppingRecipe();
+    if (!recipe) return;
+    copyTextToClipboard(recipeUrl(recipe, "database"), linkButton, linkButton.closest(".shopping-summary-card"));
   });
 
   els.profileTabs.addEventListener("click", (event) => {
@@ -1803,12 +1942,14 @@ async function init() {
     if (!profileResponse.ok) throw new Error(`profile-index HTTP ${profileResponse.status}`);
     state.index = await recipeResponse.json();
     state.profileIndex = await profileResponse.json();
-      const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
-      const firstReviewWork = state.index.recipes.find((recipe) => ["needs_review", "needs_repair", "blocked"].includes(recipe.status));
-      const firstApproved = approvedRecipes()[0];
-      state.selectedId = firstReview?.recipe_id || firstReviewWork?.recipe_id || "";
+    const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
+    const firstReviewWork = state.index.recipes.find((recipe) => ["needs_review", "needs_repair", "blocked"].includes(recipe.status));
+    const firstApproved = approvedRecipes()[0];
+    state.selectedId = firstReview?.recipe_id || firstReviewWork?.recipe_id || "";
     state.selectedDatabaseId = firstApproved?.recipe_id || "";
     state.selectedShoppingId = firstApproved?.recipe_id || "";
+    const currentRoute = routeFromHash();
+    applyRouteTarget(currentRoute.route, currentRoute.target);
     if (state.route === "recipes") renderAll();
     if (state.route === "database") renderDatabase();
     if (state.route === "shopping") renderShoppingMenu();
