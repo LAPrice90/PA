@@ -1363,6 +1363,43 @@ button {
   gap: 0;
 }
 
+.method-lane + .method-lane {
+  margin-top: 14px;
+}
+
+.method-lane-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.method-lane-heading span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.method-lane-heading strong {
+  color: var(--black);
+  font-size: 14px;
+}
+
+.method-lane.prep_ahead .method-lane-heading span {
+  background: #f28c28;
+}
+
+.method-lane.cook_serve .method-lane-heading span {
+  background: #1c534d;
+}
+
 .method-step {
   display: flex;
   align-items: flex-start;
@@ -1381,6 +1418,25 @@ button {
   color: var(--black);
   font-size: 13px;
   font-weight: 950;
+}
+
+.method-step.prep_ahead {
+  border-color: rgba(242, 140, 40, 0.3);
+  background: #fff7ed;
+}
+
+.method-step.prep_ahead > span {
+  background: #f28c28;
+  color: #fff;
+}
+
+.method-step.cook_serve {
+  border-color: rgba(28, 83, 77, 0.18);
+}
+
+.method-step.cook_serve > span {
+  background: #d7f4e7;
+  color: #1c534d;
 }
 
 .method-step p {

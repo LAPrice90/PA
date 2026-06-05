@@ -354,6 +354,76 @@ function methodSteps(markdown) {
   return steps.filter((step) => step.title || step.instructions.length || step.ingredients.length);
 }
 
+function methodLanes(markdown) {
+  const lines = sectionContentLines(markdown, "Method");
+  const lanes = [];
+  let currentLane = { title: "Cook & Serve", type: "cook_serve", steps: [] };
+  let current = null;
+  let mode = "instruction";
+
+  function pushStep() {
+    if (!current) return;
+    if (current.title || current.instructions.length || current.ingredients.length) currentLane.steps.push(current);
+    current = null;
+  }
+
+  function pushLane() {
+    pushStep();
+    if (currentLane.steps.length) lanes.push(currentLane);
+  }
+
+  lines.forEach((line) => {
+    if (!line) return;
+    if (line.startsWith("### ")) {
+      const title = line.replace(/^###\s+/, "").trim();
+      if (/^prep\s+ahead$/i.test(title)) {
+        pushLane();
+        currentLane = { title: "Prep Ahead", type: "prep_ahead", steps: [] };
+        mode = "instruction";
+        return;
+      }
+      if (/^(cook\s*&\s*serve|cook\s+and\s+serve)$/i.test(title)) {
+        pushLane();
+        currentLane = { title: "Cook & Serve", type: "cook_serve", steps: [] };
+        mode = "instruction";
+        return;
+      }
+      pushStep();
+      current = { title: title.replace(/^\d+\.\s*/, ""), instructions: [], ingredients: [] };
+      mode = "instruction";
+      return;
+    }
+    if (line.startsWith("#### ")) {
+      pushStep();
+      current = {
+        title: line.replace(/^####\s+/, "").trim(),
+        instructions: [],
+        ingredients: [],
+      };
+      mode = "instruction";
+      return;
+    }
+    if (!current) return;
+    if (line.toLowerCase() === "uses:") {
+      mode = "ingredients";
+      return;
+    }
+    if (line.startsWith("- ")) {
+      const item = line.replace(/^- /, "");
+      if (mode === "ingredients") current.ingredients.push(item);
+      else current.instructions.push(item);
+      return;
+    }
+    current.instructions.push(line);
+  });
+  pushLane();
+  if (!lanes.length) {
+    const legacy = methodSteps(markdown);
+    return legacy.length ? [{ title: "Cook & Serve", type: "cook_serve", steps: legacy }] : [];
+  }
+  return lanes;
+}
+
 function statusLabel(recipe) {
   if (recipe.review_quality?.status === "BLOCK") return "Needs recipe edit";
   if (recipe.status === "approved") return "Confirmed";
@@ -814,7 +884,7 @@ function renderPortioningGuide(recipe) {
 
 function renderRecipePreview(recipe) {
   const ingredients = ingredientGroupsFromShoppingRows(recipe) || ingredientGroups(recipe.recipe_card_markdown);
-  const method = methodSteps(recipe.recipe_card_markdown);
+  const lanes = methodLanes(recipe.recipe_card_markdown);
   return `
     <section class="story-section recipe-story">
       <h3>Recipe Card</h3>
@@ -841,32 +911,44 @@ function renderRecipePreview(recipe) {
         <div>
           <h4>Cooking steps</h4>
           ${
-            method.length
-              ? `<div class="method-list">
-                  ${method
-                    .map(
-                      (step, index) => `
-                        <article class="method-step">
-                          <span>${index + 1}</span>
-                          <div>
-                            <strong>${escapeHtml(step.title || `Step ${index + 1}`)}</strong>
-                            ${step.instructions.length ? `<p>${escapeHtml(step.instructions.join(" "))}</p>` : ""}
-                            ${
-                              step.ingredients.length
-                                ? `<div class="step-ingredients">
-                                    <em>Uses</em>
-                                    <ul>
-                                      ${step.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-                                    </ul>
-                                  </div>`
-                                : ""
-                            }
-                          </div>
-                        </article>
-                      `,
-                    )
-                    .join("")}
-                </div>`
+            lanes.length
+              ? lanes
+                  .map(
+                    (lane) => `
+                      <div class="method-lane ${escapeHtml(lane.type)}">
+                        <div class="method-lane-heading">
+                          <span>${escapeHtml(lane.type === "prep_ahead" ? "P+" : "Cook")}</span>
+                          <strong>${escapeHtml(lane.title)}</strong>
+                        </div>
+                        <div class="method-list">
+                          ${lane.steps
+                            .map(
+                              (step, index) => `
+                                <article class="method-step ${escapeHtml(lane.type)}">
+                                  <span>${escapeHtml(lane.type === "prep_ahead" ? `P${index + 1}` : `${index + 1}`)}</span>
+                                  <div>
+                                    <strong>${escapeHtml(step.title || `${lane.type === "prep_ahead" ? "Prep" : "Step"} ${index + 1}`)}</strong>
+                                    ${step.instructions.length ? `<p>${escapeHtml(step.instructions.join(" "))}</p>` : ""}
+                                    ${
+                                      step.ingredients.length
+                                        ? `<div class="step-ingredients">
+                                            <em>Uses</em>
+                                            <ul>
+                                              ${step.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                                            </ul>
+                                          </div>`
+                                        : ""
+                                    }
+                                  </div>
+                                </article>
+                              `,
+                            )
+                            .join("")}
+                        </div>
+                      </div>
+                    `,
+                  )
+                  .join("")
               : `<p class="friendly-empty">No method preview saved.</p>`
           }
         </div>
