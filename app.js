@@ -557,6 +557,14 @@ function durationLabel(minutes) {
   return `${number(parsed)} min`;
 }
 
+function eventWaitLabel(event) {
+  if (!Number(event?.passive_after_minutes || 0)) return "";
+  if (event.scheduling_precision === "day_before_flexible" || event.do_not_schedule_exact_wait) {
+    return "flexible day-before wait";
+  }
+  return `${durationLabel(event.passive_after_minutes)} wait`;
+}
+
 function approvedCard(recipe, active, idAttribute) {
   const image = heroImage(recipe);
   return `
@@ -692,7 +700,7 @@ function renderProcessEvents(recipe) {
               <article class="process-event-item">
                 <span>${escapeHtml(event.event_type === "prep_ahead" ? "Prep ahead" : "Cook/serve")}</span>
                 <strong>${escapeHtml(event.title || "Recipe event")}</strong>
-                <em>${escapeHtml(durationLabel(event.active_minutes))} active${Number(event.passive_after_minutes || 0) ? ` + ${escapeHtml(durationLabel(event.passive_after_minutes))} wait` : ""}</em>
+                <em>${escapeHtml(durationLabel(event.active_minutes))} active${eventWaitLabel(event) ? ` + ${escapeHtml(eventWaitLabel(event))}` : ""}</em>
                 ${event.schedule_hint ? `<p>${escapeHtml(event.schedule_hint)}</p>` : ""}
               </article>
             `,
