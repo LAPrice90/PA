@@ -1140,6 +1140,35 @@ button {
   font-weight: 900;
 }
 
+.portioning-table {
+  min-width: 430px;
+}
+
+.portioning-table tbody th {
+  min-width: 116px;
+  color: var(--black);
+}
+
+.portioning-table tbody th span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.portioning-table td {
+  font-weight: 850;
+}
+
+.portion-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .recipe-preview h4 {
   margin: 0 0 8px;
   color: var(--blue);

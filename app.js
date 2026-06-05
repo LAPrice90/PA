@@ -569,6 +569,57 @@ function renderNutrition(recipe) {
   `;
 }
 
+function renderPortioningGuide(recipe) {
+  const guide = recipe.portioning_guide || {};
+  const people = Array.isArray(guide.people) ? guide.people : [];
+  const rows = Array.isArray(guide.rows) ? guide.rows : [];
+  if (!people.length || !rows.length) {
+    return `
+      <section class="story-section">
+        <h3>Plate Portions</h3>
+        <p class="friendly-empty">No data-backed portioning table is saved yet.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="story-section portioning-story">
+      <div class="section-title-row">
+        <h3>Plate Portions</h3>
+        <span>From recipe data</span>
+      </div>
+      <div class="nutrition-table-wrap">
+        <table class="nutrition-table portioning-table">
+          <thead>
+            <tr>
+              <th>Food</th>
+              ${people.map((person) => `<th>${escapeHtml(person)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map((row) => {
+                const label = row.component_label || row.component_id || "Portion";
+                const ingredient = row.ingredient_name && row.ingredient_name !== label ? row.ingredient_name : "";
+                const values = row.values_by_person || {};
+                return `
+                  <tr>
+                    <th>
+                      ${escapeHtml(label)}
+                      ${ingredient ? `<span>${escapeHtml(ingredient)}</span>` : ""}
+                    </th>
+                    ${people.map((person) => `<td>${escapeHtml(values[person] || "")}</td>`).join("")}
+                  </tr>
+                `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+      <p class="portion-note">Built from saved datasheet rows. The app does not calculate serving splits.</p>
+    </section>
+  `;
+}
+
 function renderRecipePreview(recipe) {
   const ingredients = ingredientGroupsFromShoppingRows(recipe) || ingredientGroups(recipe.recipe_card_markdown);
   const method = methodSteps(recipe.recipe_card_markdown);
@@ -744,6 +795,7 @@ function renderProfile(recipe) {
     renderHero(recipe),
     renderSuitability(recipe),
     renderNutrition(recipe),
+    renderPortioningGuide(recipe),
     renderRecipePreview(recipe),
     renderShopping(recipe),
     renderChefCheck(recipe),
@@ -1016,6 +1068,7 @@ function renderDatabase() {
         renderHero(recipe),
         renderSuitability(recipe),
         renderNutrition(recipe),
+        renderPortioningGuide(recipe),
         renderRecipePreview(recipe),
         renderShopping(recipe),
         renderProofSummary(recipe),
