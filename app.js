@@ -320,6 +320,13 @@ function ingredientGroups(markdown) {
   return groups;
 }
 
+function equipmentItems(markdown) {
+  const lines = sectionContentLines(markdown, "Equipment");
+  return lines
+    .map((line) => line.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function methodSteps(markdown) {
   const lines = sectionContentLines(markdown, "Method");
   const steps = [];
@@ -884,6 +891,7 @@ function renderPortioningGuide(recipe) {
 
 function renderRecipePreview(recipe) {
   const ingredients = ingredientGroupsFromShoppingRows(recipe) || ingredientGroups(recipe.recipe_card_markdown);
+  const equipment = equipmentItems(recipe.recipe_card_markdown);
   const lanes = methodLanes(recipe.recipe_card_markdown);
   return `
     <section class="story-section recipe-story">
@@ -906,6 +914,16 @@ function renderRecipePreview(recipe) {
                   )
                   .join("")
               : `<p class="friendly-empty">No ingredient preview saved.</p>`
+          }
+        </div>
+        <div class="equipment-panel">
+          <h4>Equipment</h4>
+          ${
+            equipment.length
+              ? `<div class="equipment-list">
+                  ${equipment.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                </div>`
+              : `<p class="friendly-empty">No equipment list is saved yet.</p>`
           }
         </div>
         <div>

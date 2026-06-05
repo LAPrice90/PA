@@ -1338,6 +1338,7 @@ button {
 }
 
 .ingredient-group,
+.equipment-panel,
 .method-step {
   padding: 12px;
   border: 1px solid var(--line);
@@ -1348,6 +1349,30 @@ button {
 .ingredient-group + .ingredient-group,
 .method-step + .method-step {
   margin-top: 10px;
+}
+
+.equipment-panel {
+  border-color: rgba(54, 79, 107, 0.18);
+  background: #f7fbff;
+}
+
+.equipment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.equipment-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: inset 0 0 0 1px rgba(54, 79, 107, 0.14);
 }
 
 .ingredient-group strong,
