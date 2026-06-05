@@ -4,6 +4,43 @@
   "exposure_policy": {
     "policy_path": "V3/recipe_factory/rules/recipe_explorer_exposure_policy.json",
     "mode": "explicit_allowlist_only",
+    "review_queue_mode": "append_only_multi_recipe_queue",
+    "manual_visible_run_slugs": [],
+    "request_dir": "V3/recipe_factory/review_queue/public",
+    "request_run_slugs": [
+      "poached-eggs-on-toast-v1",
+      "scrambled-eggs-on-toast-v1",
+      "strawberry-banana-yoghurt-bowl-v1"
+    ],
+    "request_records": [
+      {
+        "run_slug": "poached-eggs-on-toast-v1",
+        "status": "active",
+        "request_path": "V3/recipe_factory/review_queue/public/poached-eggs-on-toast-v1.json",
+        "title": "Buttered Poached Eggs On White Sourdough Toast",
+        "source": "queue_migration_2026_06_05",
+        "created_at_utc": "2026-06-05T06:04:11+00:00",
+        "reason": "Existing public recipe migrated from shared allowlist to append-only queue request."
+      },
+      {
+        "run_slug": "scrambled-eggs-on-toast-v1",
+        "status": "active",
+        "request_path": "V3/recipe_factory/review_queue/public/scrambled-eggs-on-toast-v1.json",
+        "title": "Buttery Scrambled Eggs On White Sourdough Toast",
+        "source": "queue_migration_2026_06_05",
+        "created_at_utc": "2026-06-05T06:04:11+00:00",
+        "reason": "Existing public recipe migrated from shared allowlist to append-only queue request."
+      },
+      {
+        "run_slug": "strawberry-banana-yoghurt-bowl-v1",
+        "status": "active",
+        "request_path": "V3/recipe_factory/review_queue/public/strawberry-banana-yoghurt-bowl-v1.json",
+        "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
+        "source": "queue_migration_2026_06_05",
+        "created_at_utc": "2026-06-05T06:04:12+00:00",
+        "reason": "Existing public recipe migrated from shared allowlist to append-only queue request."
+      }
+    ],
     "visible_run_slugs": [
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1",
@@ -13,10 +50,10 @@
     "expected_public_recipe_count": 3
   },
   "recipe_count": 3,
-  "approved_count": 2,
+  "approved_count": 1,
   "needs_review_count": 1,
   "needs_repair_count": 0,
-  "blocked_count": 0,
+  "blocked_count": 1,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
     "app_calculates_recipe_logic": false,
@@ -1751,11 +1788,11 @@
       "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
       "run_slug": "scrambled-eggs-on-toast-v1",
       "title": "Buttery Scrambled Eggs On White Sourdough Toast",
-      "status": "approved",
-      "planner_ready": true,
-      "algorithmic_planning_allowed": true,
-      "technical_planner_ready": true,
-      "technical_algorithmic_planning_allowed": true,
+      "status": "blocked",
+      "planner_ready": false,
+      "algorithmic_planning_allowed": false,
+      "technical_planner_ready": false,
+      "technical_algorithmic_planning_allowed": false,
       "user_confirmation_required": false,
       "human_review": {
         "status": "confirmed",
@@ -2199,7 +2236,7 @@
         "profile_rule_status": "PASS",
         "profile_rule_checked_count": 7,
         "all_invoice_rows_source_authorised": true,
-        "current_factory_passed": true,
+        "current_factory_passed": false,
         "meal_slot_repair_required": false
       },
       "planner_handover": {
@@ -3436,14 +3473,20 @@
       "factory_status": {
         "factory_runner": "PASSED",
         "source_binding": "PASSED",
-        "validation": "PASS",
-        "output_bundle": "PASSED",
+        "validation": "BLOCK",
+        "output_bundle": "BLOCKED",
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
         "route_back_phase": "",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
-        "first_issue": {}
+        "first_issue": {
+          "code": "PLATE_SERVING_INSTRUCTIONS_MISSING",
+          "severity": "issue",
+          "message": "Serve section protein_scrambled_eggs must show per-person plate amounts for shared cooked food.",
+          "route_back_phase": "recipe_card_render",
+          "artifact": "card.json"
+        }
       },
       "paths": {
         "run_dir": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1",
@@ -5447,8 +5490,8 @@
       "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
       "run_slug": "chicken-fajitas-v1",
       "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-      "status": "needs_review",
-      "reason": "temporarily hidden from the current public review shelf while Luke reviews the repaired yoghurt bowl",
+      "status": "needs_repair",
+      "reason": "failed Luke review again because pantry spoon measures were unrealistic and the filling did not fit the one-wrap portion design",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
         "output_bundle": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle",
@@ -5530,5 +5573,30 @@
     }
   ],
   "repair_queue": [],
-  "blocked_queue": []
+  "blocked_queue": [
+    {
+      "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
+      "title": "Buttery Scrambled Eggs On White Sourdough Toast",
+      "run_slug": "scrambled-eggs-on-toast-v1",
+      "route_back_phase": "",
+      "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
+      "first_issue": {
+        "code": "PLATE_SERVING_INSTRUCTIONS_MISSING",
+        "severity": "issue",
+        "message": "Serve section protein_scrambled_eggs must show per-person plate amounts for shared cooked food.",
+        "route_back_phase": "recipe_card_render",
+        "artifact": "card.json"
+      },
+      "paths": {
+        "run_dir": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1",
+        "output_bundle": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle",
+        "finished_recipe_card": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/finished-recipe-card.md",
+        "recipe_data_invoice": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/recipe-data-invoice.csv",
+        "solver_recipe_card": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/output_bundle/solver-recipe-card.json",
+        "factory_runner_report": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/factory-runner-report.json",
+        "validation_summary": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/validation-summary.json",
+        "source_authority_report": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/source-authority-binding-report.json"
+      }
+    }
+  ]
 }
