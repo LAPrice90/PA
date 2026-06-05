@@ -958,6 +958,7 @@ function renderReviewStatusDecisionPanel(status) {
   panel?.classList.remove("decision-made", "decision-pass", "decision-fail");
   panel?.classList.add("completion-mode");
   document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
+  document.querySelector(".decision-panel [data-import-status]")?.remove();
   els.decisionCopy.textContent =
     status.mode === "complete"
       ? "Review queue complete. Approved recipes are now available from Recipe Database."
@@ -972,10 +973,38 @@ function renderReviewStatusDecisionPanel(status) {
   els.copyReviewDecision.textContent = "Nothing to copy";
 }
 
+function renderPendingImportStatus(recipe, decision) {
+  const panel = document.querySelector(".decision-panel");
+  if (!panel) return;
+  panel.querySelector("[data-import-status]")?.remove();
+  if (!decision.decision) return;
+  const isPass = decision.decision === "pass";
+  const status = document.createElement("div");
+  status.className = `import-status ${isPass ? "pass" : "fail"}`;
+  status.dataset.importStatus = "true";
+  status.innerHTML = `
+    <strong>${isPass ? "Pending Codex Import" : "Pending Repair Import"}</strong>
+    <p>${escapeHtml(isPass ? "This phone has prepared a Pass packet. The recipe is not approved in the project until Codex imports the JSON." : "This phone has prepared a Fail packet. The recipe does not move to Needs Repair until Codex imports the JSON.")}</p>
+    <div class="import-status-steps">
+      <span>1. Decision selected</span>
+      <span>2. Copy and paste JSON</span>
+      <span>${escapeHtml(isPass ? "3. Moves to Recipe Database" : "3. Repair ticket created")}</span>
+    </div>
+    <small>${escapeHtml(recipe.title)}</small>
+  `;
+  const copyButton = els.copyReviewDecision;
+  if (copyButton) {
+    copyButton.insertAdjacentElement("afterend", status);
+  } else {
+    panel.appendChild(status);
+  }
+}
+
 function renderDecisionPanel(recipe) {
   const decision = recipe ? recipeDecision(recipe) : {};
   document.querySelector(".decision-panel")?.classList.remove("completion-mode");
   document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
+  document.querySelector(".decision-panel [data-import-status]")?.remove();
   if (!recipe) {
     els.decisionCopy.textContent = "No recipe selected.";
     return;
@@ -987,13 +1016,13 @@ function renderDecisionPanel(recipe) {
     els.reviewNotes.value = decision.notes || "";
   }
   if (decision.decision === "pass") {
-    els.decisionCopy.textContent = "Pass selected on this phone. Paste the copied JSON into Codex so it can be imported as `human_review.json`.";
+    els.decisionCopy.textContent = "Pass selected on this phone. The recipe has not moved yet - paste the copied JSON into Codex to approve it properly.";
   } else if (decision.decision === "fail") {
-    els.decisionCopy.textContent = "Fail selected on this phone. Paste the copied JSON into Codex so it can create a repair ticket.";
+    els.decisionCopy.textContent = "Fail selected on this phone. The recipe has not moved yet - paste the copied JSON into Codex so it can create a repair ticket.";
   } else if (recipe.status === "needs_repair") {
     els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
   } else if (recipe.status === "needs_review") {
-    els.decisionCopy.textContent = "Choose Pass or Fail. The app will copy review JSON for Codex import.";
+    els.decisionCopy.textContent = "Choose Pass or Fail. The app will copy a decision packet, then Codex imports it into the real project.";
   } else {
     els.decisionCopy.textContent = "Review this profile. Import is still required before project truth changes.";
   }
@@ -1009,6 +1038,7 @@ function renderDecisionPanel(recipe) {
     els.copyReviewDecision.textContent =
       decision.decision === "pass" ? "Copy Pass JSON" : decision.decision === "fail" ? "Copy Fail JSON" : "Choose Pass or Fail first";
   }
+  renderPendingImportStatus(recipe, decision);
 }
 
 function renderQueue() {
@@ -1016,6 +1046,7 @@ function renderQueue() {
   if (!index) return;
   els.queueSummary.innerHTML = `
     <span><strong>${(index.needs_review_count || 0) + (index.needs_repair_count || 0) + (index.blocked_count || 0)}</strong> review queue</span>
+    <span><strong>${index.approved_count || 0}</strong> database</span>
     <span><strong>${index.needs_review_count || 0}</strong> to review</span>
     <span><strong>${index.needs_repair_count || 0}</strong> repair</span>
     <span><strong>${index.blocked_count || 0}</strong> technical</span>
@@ -1029,7 +1060,7 @@ function renderQueue() {
     .map((recipe) => {
       const active = recipe.recipe_id === state.selectedId ? "active" : "";
       const decision = recipeDecision(recipe);
-      const local = decision.decision ? `local ${decision.decision}` : statusLabel(recipe);
+      const local = decision.decision ? `${decision.decision} pending import` : statusLabel(recipe);
       return `
         <button class="queue-recipe ${active}" type="button" data-recipe-id="${escapeHtml(recipe.recipe_id)}">
           <span>${escapeHtml(recipe.title)}</span>
@@ -1758,12 +1789,12 @@ async function copyReviewDecision() {
     await navigator.clipboard.writeText(jsonText);
     const label = payload.decision === "pass" ? "Pass" : "Fail";
     els.copyReviewDecision.textContent = `${label} JSON copied`;
-    els.decisionCopy.textContent = `${label} selected and JSON copied. Paste it into Codex to import the review.`;
+    els.decisionCopy.textContent = `${label} packet copied. It is still pending until Codex imports it.`;
   } catch {
     showCopyFallback(document.querySelector(".decision-panel"), jsonText);
     els.copyReviewDecision.textContent = "Select JSON below";
     const label = payload.decision === "pass" ? "Pass" : "Fail";
-    els.decisionCopy.textContent = `${label} selected. Copy the JSON box below and paste it into Codex to import the review.`;
+    els.decisionCopy.textContent = `${label} selected. Copy the JSON box below and paste it into Codex to import the review. It is still pending until import.`;
   }
 }
 

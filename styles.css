@@ -990,6 +990,7 @@ button {
 .queue-summary span {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   min-height: 28px;
   padding: 5px 9px;
   border-radius: var(--radius);
@@ -1509,6 +1510,63 @@ button {
 .copy-decision-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.import-status {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.import-status.pass {
+  border-color: rgba(54, 197, 91, 0.32);
+  background: var(--green-soft);
+}
+
+.import-status.fail {
+  border-color: rgba(255, 93, 67, 0.32);
+  background: var(--coral-soft);
+}
+
+.import-status strong {
+  display: block;
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.import-status p {
+  margin: 6px 0 10px;
+  color: #333b47;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.import-status-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.import-status-steps span {
+  min-height: 34px;
+  padding: 7px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--black);
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.import-status small {
+  display: block;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .copy-fallback {
