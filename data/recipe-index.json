@@ -9,20 +9,8 @@
     "request_dir": "V3/recipe_factory/review_queue/public",
     "approved_dir": "V3/recipe_factory/review_queue/approved",
     "rejected_dir": "V3/recipe_factory/review_queue/rejected",
-    "request_run_slugs": [
-      "strawberry-banana-yoghurt-bowl-v1"
-    ],
-    "request_records": [
-      {
-        "run_slug": "strawberry-banana-yoghurt-bowl-v1",
-        "status": "active",
-        "request_path": "V3/recipe_factory/review_queue/public/strawberry-banana-yoghurt-bowl-v1.json",
-        "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
-        "source": "queue_migration_2026_06_05",
-        "created_at_utc": "2026-06-05T06:04:12+00:00",
-        "reason": "Existing public recipe migrated from shared allowlist to append-only queue request."
-      }
-    ],
+    "request_run_slugs": [],
+    "request_records": [],
     "approved_run_slugs": [
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
@@ -60,21 +48,33 @@
         "reason": "Luke review already passed; recipe belongs in Recipe Database, not the active review queue."
       }
     ],
-    "rejected_run_slugs": [],
-    "rejected_records": [],
+    "rejected_run_slugs": [
+      "strawberry-banana-yoghurt-bowl-v1"
+    ],
+    "rejected_records": [
+      {
+        "run_slug": "strawberry-banana-yoghurt-bowl-v1",
+        "status": "needs_repair",
+        "request_path": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/rejection.json",
+        "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
+        "source": "rejected_review_queue",
+        "created_at_utc": "2026-06-05T16:54:15+00:00",
+        "reason": "Portion wrong"
+      }
+    ],
     "visible_run_slugs": [
-      "strawberry-banana-yoghurt-bowl-v1",
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
-      "scrambled-eggs-on-toast-v1"
+      "scrambled-eggs-on-toast-v1",
+      "strawberry-banana-yoghurt-bowl-v1"
     ],
     "hidden_reference_count": 2,
     "expected_public_recipe_count": 4
   },
   "recipe_count": 4,
   "approved_count": 3,
-  "needs_review_count": 1,
-  "needs_repair_count": 0,
+  "needs_review_count": 0,
+  "needs_repair_count": 1,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -8065,27 +8065,28 @@
       "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
       "run_slug": "strawberry-banana-yoghurt-bowl-v1",
       "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
-      "status": "needs_review",
+      "status": "needs_repair",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-05T00:00:00Z",
+        "decision": "fail",
+        "reason_code": "portion_wrong",
+        "reason_label": "Portion wrong",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/human_review.json",
+        "notes": "Whole banana per head is too much for this yoghurt bowl.",
+        "required_for_planning": true,
+        "route_back_phase": "food_blueprint_or_datasheet"
       },
       "meal_type": "breakfast",
       "people": [
@@ -10019,7 +10020,7 @@
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "",
+        "route_back_phase": "food_blueprint_or_datasheet",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
         "first_issue": {}
       },
@@ -10071,28 +10072,31 @@
       }
     }
   ],
-  "user_review_queue": [
+  "user_review_queue": [],
+  "repair_queue": [
     {
       "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
       "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
       "run_slug": "strawberry-banana-yoghurt-bowl-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
+      "plain_english_summary": "Luke rejected this recipe. It must be repaired from the owning phase before review continues.",
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-05T00:00:00Z",
+        "decision": "fail",
+        "reason_code": "portion_wrong",
+        "reason_label": "Portion wrong",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/human_review.json",
+        "notes": "Whole banana per head is too much for this yoghurt bowl.",
+        "required_for_planning": true,
+        "route_back_phase": "food_blueprint_or_datasheet"
       },
+      "route_back_phase": "food_blueprint_or_datasheet",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1",
         "output_bundle": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/output_bundle",
@@ -10105,6 +10109,5 @@
       }
     }
   ],
-  "repair_queue": [],
   "blocked_queue": []
 }
