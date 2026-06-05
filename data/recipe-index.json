@@ -125,7 +125,54 @@
         "active_minutes": 45,
         "passive_minutes": 90,
         "total_minutes": 135,
-        "batch_round_count": 6
+        "elapsed_total_minutes": 135,
+        "display_label": "12 min prep-ahead + 33 min cook/serve",
+        "display_mode": "split_process_events",
+        "single_block_display_allowed": false,
+        "primary_cook_minutes": 33.0,
+        "prep_ahead_active_minutes": 12.0,
+        "cook_serve_active_minutes": 33.0,
+        "process_event_count": 2,
+        "batch_round_count": 6,
+        "process_events": [
+          {
+            "event_id": "process_prep_ahead_marinade",
+            "event_type": "prep_ahead",
+            "title": "Prep ahead: marinate fajita chicken",
+            "active_minutes": 12.0,
+            "passive_after_minutes": 60.0,
+            "method_step_ids": [
+              "step_1"
+            ],
+            "component_ids": [
+              "protein_marinated_chicken",
+              "sauce_lime_oil_spice_pool"
+            ],
+            "calendar_visibility": "separate_prep_task_if_scheduled_ahead"
+          },
+          {
+            "event_id": "process_cook_serve_fajitas",
+            "event_type": "cook_serve",
+            "title": "Cook and serve chicken fajita wraps",
+            "active_minutes": 33.0,
+            "passive_after_minutes": 0.0,
+            "method_step_ids": [
+              "step_2",
+              "step_3",
+              "step_4",
+              "step_5",
+              "step_6"
+            ],
+            "component_ids": [
+              "sauce_lime_yoghurt_crema",
+              "protein_marinated_chicken",
+              "vegetables_peppers_onion",
+              "carbs_protein_wraps",
+              "finish_cheddar_coriander"
+            ],
+            "calendar_visibility": "cook_task_only_no_marinade_wait"
+          }
+        ]
       },
       "person_totals": {
         "Luke": {
@@ -516,9 +563,15 @@
         "red_meat_meal_count": 0,
         "fruit_component_count": 0,
         "veg_component_count": 0,
-        "prep_session_count": 1,
+        "prep_session_count": 2,
+        "process_event_count": 2,
+        "prep_ahead_event_count": 1,
+        "cook_serve_event_count": 1,
+        "prep_ahead_active_minutes": 12.0,
+        "cook_serve_active_minutes": 33.0,
         "active_minutes": 45.0,
         "total_minutes": 135.0,
+        "primary_cook_minutes": 33.0,
         "people_served_count": 3
       },
       "unit_model": {

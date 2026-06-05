@@ -510,6 +510,24 @@ function recipeCostHeadline(recipe) {
   return hasSavedRecipeCost(recipe) ? `Total recipe cost ${money(recipe.shopping_total_used_cost_gbp)}` : "Total cost not saved";
 }
 
+function timingLabel(recipe) {
+  const timing = recipe?.timing || {};
+  if (timing.display_label) return timing.display_label;
+  if (Array.isArray(timing.process_events) && timing.process_events.length) {
+    const prep = timing.process_events
+      .filter((event) => event.event_type === "prep_ahead")
+      .reduce((total, event) => total + Number(event.active_minutes || 0), 0);
+    const cook = timing.process_events
+      .filter((event) => event.event_type === "cook_serve")
+      .reduce((total, event) => total + Number(event.active_minutes || 0), 0);
+    if (prep && cook) return `${number(prep)} min prep-ahead + ${number(cook)} min cook/serve`;
+  }
+  if (timing.primary_cook_minutes) return `${number(timing.primary_cook_minutes)} min cook/serve`;
+  if (timing.active_minutes) return `${number(timing.active_minutes)} min active`;
+  if (timing.total_minutes) return `${number(timing.total_minutes)} min`;
+  return "Time saved";
+}
+
 function approvedCard(recipe, active, idAttribute) {
   const image = heroImage(recipe);
   return `
@@ -519,7 +537,7 @@ function approvedCard(recipe, active, idAttribute) {
       </span>
       <span class="database-card-copy">
         <strong>${escapeHtml(recipe.title)}</strong>
-        <em>${escapeHtml(mealTypeLabel(recipe.meal_type))} - ${escapeHtml(recipe.timing?.total_minutes ? `${recipe.timing.total_minutes} min` : "Time saved")}</em>
+        <em>${escapeHtml(mealTypeLabel(recipe.meal_type))} - ${escapeHtml(timingLabel(recipe))}</em>
         <small>${escapeHtml((recipe.people || []).join(", ") || "People saved")}</small>
         <small>${escapeHtml(nutritionHeadline(recipe))}</small>
         <small>${escapeHtml(recipeCostHeadline(recipe))}</small>
@@ -541,7 +559,7 @@ function heroImage(recipe) {
 function recipeTags(recipe) {
   const tags = [
     recipe.meal_type || "Recipe",
-    recipe.timing?.total_minutes ? `${recipe.timing.total_minutes} min` : "",
+    timingLabel(recipe),
     (recipe.people || []).length ? `${recipe.people.length} people` : "",
     statusLabel(recipe),
   ].filter(Boolean);
@@ -573,7 +591,7 @@ function suitabilityItems(recipe) {
   items.push({ label: "Meal", value: recipe.meal_type || "Unclassified" });
   items.push({ label: "Meal target", value: slotFitLabel(recipe) });
   items.push({ label: "Balance", value: dayBalanceLabel(recipe) });
-  items.push({ label: "Time", value: recipe.timing?.total_minutes ? `${recipe.timing.total_minutes} minutes` : "Not proven" });
+  items.push({ label: "Time", value: timingLabel(recipe) });
   items.push({ label: "Cooking", value: flags.serve_immediately ? "Serve fresh" : flags.stores_for_later ? "Stores for later" : "Check notes" });
   items.push({ label: "Shelf", value: recipe.status === "needs_review" ? "Waiting for Luke" : statusLabel(recipe) });
   items.push({ label: "Planner", value: recipe.algorithmic_planning_allowed ? "Allowed" : "Not allowed yet" });
@@ -621,6 +639,30 @@ function renderSuitability(recipe) {
                 <span>${escapeHtml(item.label)}</span>
                 <strong>${escapeHtml(item.value)}</strong>
               </div>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderProcessEvents(recipe) {
+  const events = Array.isArray(recipe.timing?.process_events) ? recipe.timing.process_events : [];
+  if (!events.length) return "";
+  return `
+    <section class="story-section process-events">
+      <h3>Cooking Events</h3>
+      <p>This is how the future scheduler should treat the recipe. Long waits are not one continuous cooking task.</p>
+      <div class="process-event-list">
+        ${events
+          .map(
+            (event) => `
+              <article class="process-event-item">
+                <span>${escapeHtml(event.event_type === "prep_ahead" ? "Prep ahead" : "Cook/serve")}</span>
+                <strong>${escapeHtml(event.title || "Recipe event")}</strong>
+                <em>${escapeHtml(number(event.active_minutes || 0))} min active${Number(event.passive_after_minutes || 0) ? ` + ${escapeHtml(number(event.passive_after_minutes))} min wait` : ""}</em>
+              </article>
             `,
           )
           .join("")}
@@ -904,6 +946,7 @@ function renderProfile(recipe) {
   els.profile.innerHTML = [
     renderHero(recipe),
     renderSuitability(recipe),
+    renderProcessEvents(recipe),
     renderNutrition(recipe),
     renderRecipePreview(recipe),
     renderPortioningGuide(recipe),
