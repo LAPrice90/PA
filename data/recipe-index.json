@@ -9,8 +9,20 @@
     "request_dir": "V3/recipe_factory/review_queue/public",
     "approved_dir": "V3/recipe_factory/review_queue/approved",
     "rejected_dir": "V3/recipe_factory/review_queue/rejected",
-    "request_run_slugs": [],
-    "request_records": [],
+    "request_run_slugs": [
+      "strawberry-banana-yoghurt-bowl-v1"
+    ],
+    "request_records": [
+      {
+        "run_slug": "strawberry-banana-yoghurt-bowl-v1",
+        "status": "active",
+        "request_path": "V3/recipe_factory/review_queue/public/strawberry-banana-yoghurt-bowl-v1.json",
+        "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
+        "source": "MAINT-V3-YOGHURT-BOWL-PORTION-REPAIR-2026-06-05",
+        "created_at_utc": "2026-06-05T17:09:56+00:00",
+        "reason": "Repaired after Luke rejected whole banana per person; ready for review again."
+      }
+    ],
     "approved_run_slugs": [
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
@@ -48,33 +60,21 @@
         "reason": "Luke review already passed; recipe belongs in Recipe Database, not the active review queue."
       }
     ],
-    "rejected_run_slugs": [
-      "strawberry-banana-yoghurt-bowl-v1"
-    ],
-    "rejected_records": [
-      {
-        "run_slug": "strawberry-banana-yoghurt-bowl-v1",
-        "status": "needs_repair",
-        "request_path": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/rejection.json",
-        "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
-        "source": "rejected_review_queue",
-        "created_at_utc": "2026-06-05T16:54:15+00:00",
-        "reason": "Portion wrong"
-      }
-    ],
+    "rejected_run_slugs": [],
+    "rejected_records": [],
     "visible_run_slugs": [
+      "strawberry-banana-yoghurt-bowl-v1",
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
-      "scrambled-eggs-on-toast-v1",
-      "strawberry-banana-yoghurt-bowl-v1"
+      "scrambled-eggs-on-toast-v1"
     ],
     "hidden_reference_count": 2,
     "expected_public_recipe_count": 4
   },
   "recipe_count": 4,
   "approved_count": 3,
-  "needs_review_count": 0,
-  "needs_repair_count": 1,
+  "needs_review_count": 1,
+  "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -8065,28 +8065,27 @@
       "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
       "run_slug": "strawberry-banana-yoghurt-bowl-v1",
       "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
-      "status": "needs_repair",
+      "status": "needs_review",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": false,
+      "user_confirmation_required": true,
       "human_review": {
-        "status": "failed",
+        "status": "needs_user_confirmation",
         "confirmed": false,
-        "failed": true,
+        "failed": false,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "Luke",
-        "failed_at": "2026-06-05T00:00:00Z",
-        "decision": "fail",
-        "reason_code": "portion_wrong",
-        "reason_label": "Portion wrong",
-        "repair_ticket": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/repair_ticket.md",
-        "review_file": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/human_review.json",
-        "notes": "Whole banana per head is too much for this yoghurt bowl.",
-        "required_for_planning": true,
-        "route_back_phase": "food_blueprint_or_datasheet"
+        "failed_by": "",
+        "failed_at": "",
+        "decision": "",
+        "reason_code": "",
+        "reason_label": "",
+        "repair_ticket": "",
+        "review_file": "",
+        "notes": "",
+        "required_for_planning": true
       },
       "meal_type": "breakfast",
       "people": [
@@ -8123,28 +8122,28 @@
       },
       "person_totals": {
         "Luke": {
-          "calories": 314.5,
-          "protein_g": 19.4,
-          "carbs_g": 55.7,
+          "calories": 302.4,
+          "protein_g": 19.2,
+          "carbs_g": 52.7,
           "fat_g": 2.5,
-          "cost_gbp": 1.0,
-          "portion_fullness_points": 110.1
+          "cost_gbp": 0.95,
+          "portion_fullness_points": 108.3
         },
         "Sarah": {
-          "calories": 295.9,
-          "protein_g": 17.6,
-          "carbs_g": 53.0,
+          "calories": 263.5,
+          "protein_g": 17.1,
+          "carbs_g": 44.9,
           "fat_g": 2.4,
-          "cost_gbp": 0.96,
-          "portion_fullness_points": 101.4
+          "cost_gbp": 0.88,
+          "portion_fullness_points": 96.6
         },
         "Louis": {
-          "calories": 219.0,
-          "protein_g": 12.0,
-          "carbs_g": 42.9,
+          "calories": 182.6,
+          "protein_g": 11.5,
+          "carbs_g": 33.8,
           "fat_g": 0.7,
-          "cost_gbp": 0.73,
-          "portion_fullness_points": 73.0
+          "cost_gbp": 0.64,
+          "portion_fullness_points": 67.6
         }
       },
       "portioning_guide": {
@@ -8178,11 +8177,11 @@
             "component_label": "Fresh Fruit",
             "ingredient_name": "",
             "ingredient_category": "Fruit/Veg",
-            "portion_basis": "count_each_with_direct_amount",
+            "portion_basis": "direct_amount_weighed_from_whole_fruit_total",
             "values_by_person": {
-              "Luke": "1 banana + 50g strawberries",
-              "Sarah": "1 banana + 50g strawberries",
-              "Louis": "1 banana + 40g strawberries"
+              "Luke": "85g banana slices + 50g strawberries",
+              "Sarah": "60g banana slices + 50g strawberries",
+              "Louis": "55g banana slices + 40g strawberries"
             },
             "source_ref": "blueprint.json:components:fruit_banana_slices+fruit_fresh_strawberries"
           },
@@ -8224,10 +8223,10 @@
               "active_time": "PASS"
             },
             "actuals": {
-              "calories": 314.5,
-              "protein_g": 19.4,
-              "filling_points": 110.1,
-              "cost_gbp": 1.0,
+              "calories": 302.4,
+              "protein_g": 19.2,
+              "filling_points": 108.3,
+              "cost_gbp": 0.95,
               "active_time_minutes": 8.0
             },
             "target_ranges": {
@@ -8253,14 +8252,14 @@
               "active_time_max_minutes": 30.0
             },
             "deficits": {
-              "calories": 85.5,
-              "protein_g": 5.6,
+              "calories": 97.6,
+              "protein_g": 5.8,
               "fullness": 0.0
             },
             "excesses": {
               "calories": 0.0,
               "protein_g": 0.0,
-              "fullness": 6.1,
+              "fullness": 4.3,
               "cost_gbp": 0.0,
               "active_time_minutes": 0.0
             },
@@ -8272,7 +8271,7 @@
               "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
               "reason": "no_practical_repair_room",
               "fullness_target_room_points": 0.0,
-              "cost_room_gbp": 1.75,
+              "cost_room_gbp": 1.8,
               "active_time_pass": true
             }
           },
@@ -8289,10 +8288,10 @@
               "active_time": "PASS"
             },
             "actuals": {
-              "calories": 295.9,
-              "protein_g": 17.6,
-              "filling_points": 101.4,
-              "cost_gbp": 0.96,
+              "calories": 263.5,
+              "protein_g": 17.1,
+              "filling_points": 96.6,
+              "cost_gbp": 0.88,
               "active_time_minutes": 8.0
             },
             "target_ranges": {
@@ -8318,14 +8317,14 @@
               "active_time_max_minutes": 30.0
             },
             "deficits": {
-              "calories": 64.1,
-              "protein_g": 7.4,
+              "calories": 96.5,
+              "protein_g": 7.9,
               "fullness": 0.0
             },
             "excesses": {
               "calories": 0.0,
               "protein_g": 0.0,
-              "fullness": 11.4,
+              "fullness": 6.6,
               "cost_gbp": 0.0,
               "active_time_minutes": 0.0
             },
@@ -8337,7 +8336,7 @@
               "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
               "reason": "no_practical_repair_room",
               "fullness_target_room_points": 0.0,
-              "cost_room_gbp": 1.29,
+              "cost_room_gbp": 1.37,
               "active_time_pass": true
             }
           },
@@ -8354,10 +8353,10 @@
               "active_time": "PASS"
             },
             "actuals": {
-              "calories": 219.0,
-              "protein_g": 12.0,
-              "filling_points": 73.0,
-              "cost_gbp": 0.73,
+              "calories": 182.6,
+              "protein_g": 11.5,
+              "filling_points": 67.6,
+              "cost_gbp": 0.64,
               "active_time_minutes": 8.0
             },
             "target_ranges": {
@@ -8383,7 +8382,7 @@
               "active_time_max_minutes": 30.0
             },
             "deficits": {
-              "calories": 1.0,
+              "calories": 37.4,
               "protein_g": 0.0,
               "fullness": 0.0
             },
@@ -8403,7 +8402,7 @@
               "reason": "fullness_met_or_no_meaningful_protein_gap",
               "fullness_met": true,
               "deficits_checked": {
-                "calories": 1.0,
+                "calories": 37.4,
                 "protein_g": 0.0
               },
               "minimum_protein_deficit_g": 2.0
@@ -8485,8 +8484,8 @@
           "meal_slot": "breakfast",
           "status": "LIGHT_ALLOWED",
           "deficits": {
-            "calories": 85.5,
-            "protein_g": 5.6,
+            "calories": 97.6,
+            "protein_g": 5.8,
             "fullness": 0.0
           },
           "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
@@ -8495,7 +8494,7 @@
             "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
             "reason": "no_practical_repair_room",
             "fullness_target_room_points": 0.0,
-            "cost_room_gbp": 1.75,
+            "cost_room_gbp": 1.8,
             "active_time_pass": true
           }
         },
@@ -8504,8 +8503,8 @@
           "meal_slot": "breakfast",
           "status": "LIGHT_ALLOWED",
           "deficits": {
-            "calories": 64.1,
-            "protein_g": 7.4,
+            "calories": 96.5,
+            "protein_g": 7.9,
             "fullness": 0.0
           },
           "requirement": "future scheduler must fill this visible kcal/protein/fullness gap with later meals or finishers",
@@ -8514,7 +8513,7 @@
             "policy_ref": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V3\\recipe_factory\\rules\\meal_slot_repair_room_policy.json",
             "reason": "no_practical_repair_room",
             "fullness_target_room_points": 0.0,
-            "cost_room_gbp": 1.29,
+            "cost_room_gbp": 1.37,
             "active_time_pass": true
           }
         },
@@ -8523,7 +8522,7 @@
           "meal_slot": "breakfast",
           "status": "LIGHT_ALLOWED",
           "deficits": {
-            "calories": 1.0,
+            "calories": 37.4,
             "protein_g": 0.0,
             "fullness": 0.0
           },
@@ -8534,7 +8533,7 @@
             "reason": "fullness_met_or_no_meaningful_protein_gap",
             "fullness_met": true,
             "deficits_checked": {
-              "calories": 1.0,
+              "calories": 37.4,
               "protein_g": 0.0
             },
             "minimum_protein_deficit_g": 2.0
@@ -8585,7 +8584,6 @@
         "has_weighing_displays": true,
         "has_purchase_displays": true,
         "kitchen_units": [
-          "banana",
           "g",
           "tbsp"
         ],
@@ -8624,9 +8622,9 @@
           "audit_pass": true
         }
       },
-      "recipe_card_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia\n\nFresh strawberry and banana bowls with fat-free Greek-style yoghurt, measured honey and adult chia.\n\nServes: Luke, Sarah and Louis\n\nTime: 8 minutes\n\nYield: 3 bowls\n\nMeal role: breakfast\n\n## Ingredients\n\n### Dairy\n\n- Brooklea Fat Free Greek Style Yogurt - 730g total\n\n### Fruit/Veg\n\n- Nature's Pick Bananas - 3 bananas\n- Nature's Pick Strawberries - 140g\n\n### Pantry\n\n- Everyday Essentials Clear Honey - 15g total\n- Chia seeds - 10g total, Luke and Sarah only\n\n## Equipment\n\n- 3 breakfast bowls\n- Chopping board\n- Knife\n- Scales\n- Spoon\n\n## Mise En Place\n\n- Fruit board: wash and hull the strawberries, then peel and slice the bananas.\n- Bowl set: set out the bowls, scales, spoon, yoghurt, honey and chia seeds.\n\n## Method\n\n### 1. Prep the fruit\n\nWash and hull the strawberries, then peel and slice the bananas. This should take about 3 minutes.\n\nUses:\n\n- Bananas - 3\n- Strawberries - 140g\n\n### 2. Spoon in the yoghurt\n\nSpoon the yoghurt straight into the bowls.\n\nUses:\n\n- Yoghurt - Luke 290g, Sarah 260g, Louis 180g\n\n### 3. Add the fruit\n\nAdd 1 whole sliced banana to each bowl. Add strawberries on top.\n\nUses:\n\n- Banana - 1 per bowl\n- Strawberries - Luke 50g, Sarah 50g, Louis 40g\n\n### 4. Finish with honey and chia\n\nAdd honey to each bowl. Add chia to Luke and Sarah only. Serve straight away.\n\nUses:\n\n- Honey - 5g per bowl\n- Chia seeds - Luke 5g, Sarah 5g\n\n## Plate\n\n| Element | Luke | Sarah | Louis |\n|---|---:|---:|---:|\n| Greek yoghurt base | 290g | 260g | 180g |\n| Fresh fruit | 1 banana + 50g strawberries | 1 banana + 50g strawberries | 1 banana + 40g strawberries |\n| Honey and chia finish | 5g honey + 5g chia | 5g honey + 5g chia | 5g honey only |\n\n## Nutrition And Cost\n\n| Person | Kcal | Protein | Carbs | Fat | Cost | Fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 314.5 | 19.4g | 55.7g | 2.5g | GBP 1.00 | 110.1 |\n| Sarah | 295.9 | 17.6g | 53.0g | 2.4g | GBP 0.96 | 101.4 |\n| Louis | 219.0 | 12.0g | 42.9g | 0.7g | GBP 0.73 | 73.0 |\n\n## Cook's Notes\n\n- Use 1 whole banana per person. Do not split bananas into awkward hidden gram shares.\n- Serve straight away so the banana stays fresh and the chia does not thicken the adult bowls too much.\n- This is a lighter adult breakfast. The day planner must balance the adult protein gap later in the day.\n- Louis is cleared for yoghurt in this bowl, but chia is left off his portion.\n\n# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Plate Portions\n\nSource: saved `datasheet.json` finished serving elements, person rows, or component shares. The renderer does not invent serving splits.\n\n| Component | Luke | Sarah | Louis | Basis |\n|---|---:|---:|---:|---|\n| Greek Yoghurt Base | 290g yoghurt | 260g yoghurt | 180g yoghurt | direct_amount |\n| Fresh Fruit | 1 banana + 50g strawberries | 1 banana + 50g strawberries | 1 banana + 40g strawberries | count_each_with_direct_amount |\n| Honey And Chia Finish | 5g honey + 5g chia | 5g honey + 5g chia | 5g honey only | direct_amount_with_person_branch |\n",
-      "per_person_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Per Person Data\n\nVisible cooking rows only. Neutral helpers such as water, salt, and black pepper are method-only and stay out of this display.\n\n| Person | Calories | Protein | Carbs | Fat | Cost | Portion fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 314.5 kcal | 19.4g | 55.7g | 2.5g | GBP 1.00 | 110.1 |\n| Sarah | 295.9 kcal | 17.6g | 53g | 2.4g | GBP 0.96 | 101.4 |\n| Louis | 219 kcal | 12g | 42.9g | 0.7g | GBP 0.73 | 73 |\n\n## Ingredient Rows\n\n### Luke\n\n- Brooklea Fat Free Greek Style Yogurt - 290g; 179.8 kcal; 17.1g protein; GBP 0.43; fullness 84.1\n- Nature's Pick Bananas - 1 banana; 81 kcal; 1.2g protein; GBP 0.16; fullness 12\n- Nature's Pick Strawberries - 50g; 15 kcal; 0.3g protein; GBP 0.36; fullness 6\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n- Chia seeds - 5g; 24.3 kcal; 0.8g protein; GBP 0.04; fullness 4\n\n### Sarah\n\n- Brooklea Fat Free Greek Style Yogurt - 260g; 161.2 kcal; 15.3g protein; GBP 0.39; fullness 75.4\n- Nature's Pick Bananas - 1 banana; 81 kcal; 1.2g protein; GBP 0.16; fullness 12\n- Nature's Pick Strawberries - 50g; 15 kcal; 0.3g protein; GBP 0.36; fullness 6\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n- Chia seeds - 5g; 24.3 kcal; 0.8g protein; GBP 0.04; fullness 4\n\n### Louis\n\n- Brooklea Fat Free Greek Style Yogurt - 180g; 111.6 kcal; 10.6g protein; GBP 0.27; fullness 52.2\n- Nature's Pick Bananas - 1 banana; 81 kcal; 1.2g protein; GBP 0.16; fullness 12\n- Nature's Pick Strawberries - 40g; 12 kcal; 0.2g protein; GBP 0.29; fullness 4.8\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n",
-      "shopping_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Recipe Shopping List\n\nVisible shopping rows only. Neutral helpers such as water, salt, and black pepper are method-only and not listed for shopping.\n\n## Main Buy\n\n### Dairy\n\n- Brooklea Fat Free Greek Style Yogurt - need 730g; pack 1kg; used cost GBP 1.09\n\n### Fruit/Veg\n\n- Nature's Pick Bananas - need 3 bananas; pack 5 banana pack; used cost GBP 0.48\n- Nature's Pick Strawberries - need 140g; pack 227g; used cost GBP 1.01\n\n## Pantry Check\n\n### Pantry\n\n- Chia seeds - need 10g; pack 200g; used cost GBP 0.08\n- Everyday Essentials Clear Honey - need 3/4 tbsp (15g); pack bottle; used cost GBP 0.03\n",
+      "recipe_card_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia\n\nFresh strawberry and banana bowls with fat-free Greek-style yoghurt, measured honey and adult chia.\n\nServes: Luke, Sarah and Louis\n\nTime: 8 minutes\n\nYield: 3 bowls\n\nMeal role: breakfast\n\n## Ingredients\n\n### Dairy\n\n- Brooklea Fat Free Greek Style Yogurt - 730g total\n\n### Fruit/Veg\n\n- Nature's Pick Bananas - 2 bananas\n- Nature's Pick Strawberries - 140g\n\n### Pantry\n\n- Everyday Essentials Clear Honey - 15g total\n- Chia seeds - 10g total, Luke and Sarah only\n\n## Equipment\n\n- 3 breakfast bowls\n- Chopping board\n- Knife\n- Scales\n- Spoon\n\n## Mise En Place\n\n- Fruit board: wash and hull the strawberries, then peel and slice 2 bananas.\n- Bowl set: set out the bowls, scales, spoon, yoghurt, honey and chia seeds.\n\n## Method\n\n### 1. Prep the fruit\n\nWash and hull the strawberries, then peel and slice 2 bananas. This should take about 3 minutes.\n\nUses:\n\n- Bananas - 2\n- Strawberries - 140g\n\n### 2. Spoon in the yoghurt\n\nSpoon the yoghurt straight into the bowls.\n\nUses:\n\n- Yoghurt - Luke 290g, Sarah 260g, Louis 180g\n\n### 3. Add the fruit\n\nShare the sliced banana by weight, then add strawberries on top.\n\nUses:\n\n- Banana slices - Luke 85g, Sarah 60g, Louis 55g\n- Strawberries - Luke 50g, Sarah 50g, Louis 40g\n\n### 4. Finish with honey and chia\n\nAdd honey to each bowl. Add chia to Luke and Sarah only. Serve straight away.\n\nUses:\n\n- Honey - 5g per bowl\n- Chia seeds - Luke 5g, Sarah 5g\n\n## Plate\n\n| Element | Luke | Sarah | Louis |\n|---|---:|---:|---:|\n| Greek yoghurt base | 290g | 260g | 180g |\n| Fresh fruit | 85g banana + 50g strawberries | 60g banana + 50g strawberries | 55g banana + 40g strawberries |\n| Honey and chia finish | 5g honey + 5g chia | 5g honey + 5g chia | 5g honey only |\n\n## Nutrition And Cost\n\n| Person | Kcal | Protein | Carbs | Fat | Cost | Fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 302.4 | 19.2g | 52.7g | 2.5g | GBP 0.95 | 108.3 |\n| Sarah | 263.5 | 17.1g | 44.9g | 2.4g | GBP 0.88 | 96.6 |\n| Louis | 182.6 | 11.5g | 33.8g | 0.7g | GBP 0.64 | 67.6 |\n\n## Cook's Notes\n\n- Use 2 bananas total, sliced once, then weigh the banana into the bowls. This avoids a whole banana each and avoids leftover fruit.\n- Serve straight away so the banana stays fresh and the chia does not thicken the adult bowls too much.\n- This is a lighter adult breakfast. The day planner must balance the adult protein gap later in the day.\n- Louis is cleared for yoghurt in this bowl, but chia is left off his portion.\n\n# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Plate Portions\n\nSource: saved `datasheet.json` finished serving elements, person rows, or component shares. The renderer does not invent serving splits.\n\n| Component | Luke | Sarah | Louis | Basis |\n|---|---:|---:|---:|---|\n| Greek Yoghurt Base | 290g yoghurt | 260g yoghurt | 180g yoghurt | direct_amount |\n| Fresh Fruit | 85g banana slices + 50g strawberries | 60g banana slices + 50g strawberries | 55g banana slices + 40g strawberries | direct_amount_weighed_from_whole_fruit_total |\n| Honey And Chia Finish | 5g honey + 5g chia | 5g honey + 5g chia | 5g honey only | direct_amount_with_person_branch |\n",
+      "per_person_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Per Person Data\n\nVisible cooking rows only. Neutral helpers such as water, salt, and black pepper are method-only and stay out of this display.\n\n| Person | Calories | Protein | Carbs | Fat | Cost | Portion fullness |\n|---|---:|---:|---:|---:|---:|---:|\n| Luke | 302.4 kcal | 19.2g | 52.7g | 2.5g | GBP 0.95 | 108.3 |\n| Sarah | 263.5 kcal | 17.1g | 44.9g | 2.4g | GBP 0.88 | 96.6 |\n| Louis | 182.6 kcal | 11.5g | 33.8g | 0.7g | GBP 0.64 | 67.6 |\n\n## Ingredient Rows\n\n### Luke\n\n- Brooklea Fat Free Greek Style Yogurt - 290g; 179.8 kcal; 17.1g protein; GBP 0.43; fullness 84.1\n- Nature's Pick Bananas - 85g; 68.9 kcal; 1g protein; GBP 0.11; fullness 10.2\n- Nature's Pick Strawberries - 50g; 15 kcal; 0.3g protein; GBP 0.36; fullness 6\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n- Chia seeds - 5g; 24.3 kcal; 0.8g protein; GBP 0.04; fullness 4\n\n### Sarah\n\n- Brooklea Fat Free Greek Style Yogurt - 260g; 161.2 kcal; 15.3g protein; GBP 0.39; fullness 75.4\n- Nature's Pick Bananas - 60g; 48.6 kcal; 0.7g protein; GBP 0.08; fullness 7.2\n- Nature's Pick Strawberries - 50g; 15 kcal; 0.3g protein; GBP 0.36; fullness 6\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n- Chia seeds - 5g; 24.3 kcal; 0.8g protein; GBP 0.04; fullness 4\n\n### Louis\n\n- Brooklea Fat Free Greek Style Yogurt - 180g; 111.6 kcal; 10.6g protein; GBP 0.27; fullness 52.2\n- Nature's Pick Bananas - 55g; 44.6 kcal; 0.7g protein; GBP 0.07; fullness 6.6\n- Nature's Pick Strawberries - 40g; 12 kcal; 0.2g protein; GBP 0.29; fullness 4.8\n- Everyday Essentials Clear Honey - 1/4 tbsp (5g); 14.4 kcal; 0g protein; GBP 0.01; fullness 4\n",
+      "shopping_markdown": "# Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia - Recipe Shopping List\n\nVisible shopping rows only. Neutral helpers such as water, salt, and black pepper are method-only and not listed for shopping.\n\n## Main Buy\n\n### Dairy\n\n- Brooklea Fat Free Greek Style Yogurt - need 730g; pack 1kg; used cost GBP 1.09\n\n### Fruit/Veg\n\n- Nature's Pick Bananas - need 200g; pack 5 banana pack; used cost GBP 0.26\n- Nature's Pick Strawberries - need 140g; pack 227g; used cost GBP 1.01\n\n## Pantry Check\n\n### Pantry\n\n- Chia seeds - need 10g; pack 200g; used cost GBP 0.08\n- Everyday Essentials Clear Honey - need 3/4 tbsp (15g); pack bottle; used cost GBP 0.03\n",
       "invoice_rows": [
         {
           "recipe_version": "VAR-REC-V3-STRAWBERRY-BANANA-YOGHURT-BOWL-BREAKFAST-001-M100",
@@ -8683,15 +8681,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 85.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 85.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 85.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "85g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 85g",
+          "nutrition_quantity_value": 85.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -8699,12 +8697,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 68.9,
+          "protein_g": 1.0,
+          "carbs_g": 17.3,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.11,
+          "filling_points": 10.2,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -8913,15 +8911,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 60.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 60.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 60.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "60g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 60g",
+          "nutrition_quantity_value": 60.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -8929,12 +8927,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 48.6,
+          "protein_g": 0.7,
+          "carbs_g": 12.2,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.08,
+          "filling_points": 7.2,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -9143,15 +9141,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 55.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 55.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 55.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "55g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 55g",
+          "nutrition_quantity_value": 55.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -9159,12 +9157,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 44.6,
+          "protein_g": 0.7,
+          "carbs_g": 11.2,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.07,
+          "filling_points": 6.6,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -9329,15 +9327,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 85.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 85.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 85.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "85g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 85g",
+          "nutrition_quantity_value": 85.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -9345,12 +9343,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 68.9,
+          "protein_g": 1.0,
+          "carbs_g": 17.3,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.11,
+          "filling_points": 10.2,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -9559,15 +9557,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 60.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 60.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 60.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "60g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 60g",
+          "nutrition_quantity_value": 60.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -9575,12 +9573,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 48.6,
+          "protein_g": 0.7,
+          "carbs_g": 12.2,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.08,
+          "filling_points": 7.2,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -9789,15 +9787,15 @@
           "ingredient_name": "Nature's Pick Bananas",
           "ingredient_id": "ING-V1-BANANAS",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "raw_quantity_value": 100.0,
-          "raw_quantity_unit": "count_x100",
-          "edible_quantity_value": 100.0,
+          "raw_quantity_value": 55.0,
+          "raw_quantity_unit": "g",
+          "edible_quantity_value": 55.0,
           "edible_quantity_unit": "g",
-          "kitchen_quantity_value": 1.0,
-          "kitchen_quantity_unit": "banana",
-          "kitchen_display": "1 banana",
-          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 100g",
-          "nutrition_quantity_value": 100.0,
+          "kitchen_quantity_value": 55.0,
+          "kitchen_quantity_unit": "g",
+          "kitchen_display": "55g",
+          "weighing_display": "use whole banana count for cooking; nutrition uses the saved 100g count_x100 anchor; calculation anchor 55g",
+          "nutrition_quantity_value": 55.0,
           "nutrition_quantity_unit": "g",
           "purchase_display": "5 banana pack",
           "unit_source": "ingredient_unit_equivalents.json:UNIT-BANANA-COUNT-001",
@@ -9805,12 +9803,12 @@
           "public_visibility": "normal",
           "public_ingredient_list": true,
           "public_shopping_list": true,
-          "calories": 81.0,
-          "protein_g": 1.2,
-          "carbs_g": 20.3,
+          "calories": 44.6,
+          "protein_g": 0.7,
+          "carbs_g": 11.2,
           "fat_g": 0.1,
-          "cost_gbp": 0.16,
-          "filling_points": 12.0,
+          "cost_gbp": 0.07,
+          "filling_points": 6.6,
           "pantry_or_shopping": "main_buy",
           "pack_label": "5 each",
           "prep_stage": "Prep the fruit",
@@ -9939,14 +9937,14 @@
           "ingredient_category": "Fruit/Veg",
           "ingredient_name": "Nature's Pick Bananas",
           "sku_id": "aldi-natures-pick-bananas-5pk",
-          "needed_quantity": "300.0",
-          "needed_unit": "count_x100",
-          "needed_kitchen_quantity": "3.0",
-          "needed_kitchen_unit": "banana",
-          "needed_kitchen_display": "3 bananas",
+          "needed_quantity": "200.0",
+          "needed_unit": "g",
+          "needed_kitchen_quantity": "200.0",
+          "needed_kitchen_unit": "g",
+          "needed_kitchen_display": "200g",
           "pack_label": "5 each",
           "purchase_display": "5 banana pack",
-          "estimated_used_cost_gbp": "0.48"
+          "estimated_used_cost_gbp": "0.26"
         },
         {
           "shopping_treatment": "main_buy",
@@ -9991,7 +9989,7 @@
           "estimated_used_cost_gbp": "0.03"
         }
       ],
-      "shopping_total_used_cost_gbp": 2.69,
+      "shopping_total_used_cost_gbp": 2.47,
       "review_visual": {},
       "review_quality": {},
       "technical_proof": {
@@ -10020,7 +10018,7 @@
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "food_blueprint_or_datasheet",
+        "route_back_phase": "",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
         "first_issue": {}
       },
@@ -10072,31 +10070,28 @@
       }
     }
   ],
-  "user_review_queue": [],
-  "repair_queue": [
+  "user_review_queue": [
     {
       "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
       "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
       "run_slug": "strawberry-banana-yoghurt-bowl-v1",
-      "plain_english_summary": "Luke rejected this recipe. It must be repaired from the owning phase before review continues.",
+      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
       "human_review": {
-        "status": "failed",
+        "status": "needs_user_confirmation",
         "confirmed": false,
-        "failed": true,
+        "failed": false,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "Luke",
-        "failed_at": "2026-06-05T00:00:00Z",
-        "decision": "fail",
-        "reason_code": "portion_wrong",
-        "reason_label": "Portion wrong",
-        "repair_ticket": "V3/recipe_factory/review_queue/rejected/strawberry-banana-yoghurt-bowl-v1/repair_ticket.md",
-        "review_file": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/human_review.json",
-        "notes": "Whole banana per head is too much for this yoghurt bowl.",
-        "required_for_planning": true,
-        "route_back_phase": "food_blueprint_or_datasheet"
+        "failed_by": "",
+        "failed_at": "",
+        "decision": "",
+        "reason_code": "",
+        "reason_label": "",
+        "repair_ticket": "",
+        "review_file": "",
+        "notes": "",
+        "required_for_planning": true
       },
-      "route_back_phase": "food_blueprint_or_datasheet",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1",
         "output_bundle": "V3/recipe_factory/runs/strawberry-banana-yoghurt-bowl-v1/output_bundle",
@@ -10109,5 +10104,6 @@
       }
     }
   ],
+  "repair_queue": [],
   "blocked_queue": []
 }
