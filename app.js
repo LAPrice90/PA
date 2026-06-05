@@ -327,6 +327,13 @@ function equipmentItems(markdown) {
     .filter(Boolean);
 }
 
+function miseItems(markdown) {
+  const lines = sectionContentLines(markdown, "Mise En Place");
+  return lines
+    .map((line) => line.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function methodSteps(markdown) {
   const lines = sectionContentLines(markdown, "Method");
   const steps = [];
@@ -892,6 +899,7 @@ function renderPortioningGuide(recipe) {
 function renderRecipePreview(recipe) {
   const ingredients = ingredientGroupsFromShoppingRows(recipe) || ingredientGroups(recipe.recipe_card_markdown);
   const equipment = equipmentItems(recipe.recipe_card_markdown);
+  const mise = miseItems(recipe.recipe_card_markdown);
   const lanes = methodLanes(recipe.recipe_card_markdown);
   return `
     <section class="story-section recipe-story">
@@ -924,6 +932,16 @@ function renderRecipePreview(recipe) {
                   ${equipment.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
                 </div>`
               : `<p class="friendly-empty">No equipment list is saved yet.</p>`
+          }
+        </div>
+        <div class="mise-panel">
+          <h4>Prep setup</h4>
+          ${
+            mise.length
+              ? `<ul class="mise-list">
+                  ${mise.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>`
+              : `<p class="friendly-empty">No mise en place is saved yet.</p>`
           }
         </div>
         <div>

@@ -1339,6 +1339,7 @@ button {
 
 .ingredient-group,
 .equipment-panel,
+.mise-panel,
 .method-step {
   padding: 12px;
   border: 1px solid var(--line);
@@ -1347,6 +1348,7 @@ button {
 }
 
 .ingredient-group + .ingredient-group,
+.mise-panel + .mise-panel,
 .method-step + .method-step {
   margin-top: 10px;
 }
@@ -1354,6 +1356,11 @@ button {
 .equipment-panel {
   border-color: rgba(54, 79, 107, 0.18);
   background: #f7fbff;
+}
+
+.mise-panel {
+  border-color: rgba(242, 140, 40, 0.24);
+  background: #fff8ef;
 }
 
 .equipment-list {
@@ -1489,6 +1496,11 @@ button {
 .recipe-preview ol {
   margin: 0;
   padding-left: 20px;
+}
+
+.mise-list {
+  display: grid;
+  gap: 8px;
 }
 
 .recipe-preview li {
