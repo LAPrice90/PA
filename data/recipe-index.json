@@ -10,19 +10,9 @@
     "approved_dir": "V3/recipe_factory/review_queue/approved",
     "rejected_dir": "V3/recipe_factory/review_queue/rejected",
     "request_run_slugs": [
-      "chicken-fajitas-v1",
       "strawberry-banana-yoghurt-bowl-v1"
     ],
     "request_records": [
-      {
-        "run_slug": "chicken-fajitas-v1",
-        "status": "active",
-        "request_path": "V3/recipe_factory/review_queue/public/chicken-fajitas-v1.json",
-        "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-        "source": "MAINT-V3-PROTEIN-NO-HARD-MAX-2026-06-05",
-        "created_at_utc": "2026-06-05T14:38:18+00:00",
-        "reason": "Protein no-hard-max authority repair made the recipe technically clean again; return to Luke review."
-      },
       {
         "run_slug": "strawberry-banana-yoghurt-bowl-v1",
         "status": "active",
@@ -34,10 +24,21 @@
       }
     ],
     "approved_run_slugs": [
+      "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1"
     ],
     "approved_records": [
+      {
+        "run_slug": "chicken-fajitas-v1",
+        "status": "approved",
+        "request_path": "V3/recipe_factory/review_queue/approved/chicken-fajitas-v1.json",
+        "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
+        "source": "MAINT-V3-PROTEIN-NO-HARD-MAX-2026-06-05",
+        "created_at_utc": "2026-06-05T14:38:18+00:00",
+        "approved_at_utc": "2026-06-05T00:00:00Z",
+        "reason": "Luke review passed; recipe belongs in Recipe Database, not the active review queue."
+      },
       {
         "run_slug": "poached-eggs-on-toast-v1",
         "status": "approved",
@@ -62,8 +63,8 @@
     "rejected_run_slugs": [],
     "rejected_records": [],
     "visible_run_slugs": [
-      "chicken-fajitas-v1",
       "strawberry-banana-yoghurt-bowl-v1",
+      "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1"
     ],
@@ -71,8 +72,8 @@
     "expected_public_recipe_count": 4
   },
   "recipe_count": 4,
-  "approved_count": 2,
-  "needs_review_count": 2,
+  "approved_count": 3,
+  "needs_review_count": 1,
   "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
@@ -90,26 +91,26 @@
       "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
       "run_slug": "chicken-fajitas-v1",
       "title": "Chicken Fajita Plates With Mild Lime Yoghurt Crema",
-      "status": "needs_review",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
+      "status": "approved",
+      "planner_ready": true,
+      "algorithmic_planning_allowed": true,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
+        "status": "confirmed",
+        "confirmed": true,
         "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
+        "confirmed_by": "Luke",
+        "confirmed_at": "2026-06-05T00:00:00Z",
         "failed_by": "",
         "failed_at": "",
-        "decision": "",
+        "decision": "pass",
         "reason_code": "",
         "reason_label": "",
         "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
+        "review_file": "human_review.json",
+        "notes": "Luke confirmed fajitas in chat.",
         "required_for_planning": true
       },
       "meal_type": "dinner",
@@ -10071,38 +10072,6 @@
     }
   ],
   "user_review_queue": [
-    {
-      "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
-      "title": "Chicken Fajita Plates With Mild Lime Yoghurt Crema",
-      "run_slug": "chicken-fajitas-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
-        "output_bundle": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle",
-        "finished_recipe_card": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle/finished-recipe-card.md",
-        "recipe_data_invoice": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle/recipe-data-invoice.csv",
-        "solver_recipe_card": "V3/recipe_factory/runs/chicken-fajitas-v1/output_bundle/solver-recipe-card.json",
-        "factory_runner_report": "V3/recipe_factory/runs/chicken-fajitas-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/chicken-fajitas-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/chicken-fajitas-v1/source-authority-binding-report.json"
-      }
-    },
     {
       "recipe_id": "V3-FACTORY-STRAWBERRY-BANANA-YOGHURT-BOWL-001",
       "title": "Strawberry Banana Fat-Free Greek Yoghurt Bowl With Honey And Chia",
