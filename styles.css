@@ -1175,6 +1175,40 @@ button {
   font-size: 14px;
 }
 
+.prep-ahead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 6px 9px 6px 6px;
+  border: 1px solid rgba(28, 83, 77, 0.18);
+  border-radius: 999px;
+  background: #eaf8f4;
+  color: #1c534d;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.prep-ahead-badge.compact {
+  margin-right: 7px;
+  padding: 3px;
+  vertical-align: 2px;
+}
+
+.prep-ahead-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #1c534d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 950;
+}
+
 .process-events p {
   margin: -4px 0 14px;
   color: var(--muted);
@@ -1218,6 +1252,14 @@ button {
   font-size: 13px;
   font-style: normal;
   font-weight: 800;
+}
+
+.process-event-item p {
+  grid-column: 2;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .nutrition-table-wrap {
@@ -1892,5 +1934,9 @@ button {
 
   .process-event-item span {
     grid-row: auto;
+  }
+
+  .process-event-item p {
+    grid-column: 1;
   }
 }

@@ -528,6 +528,35 @@ function timingLabel(recipe) {
   return "Time saved";
 }
 
+function hasPrepAhead(recipe) {
+  const timing = recipe?.timing || {};
+  return Boolean(timing.has_prep_ahead || timing.prep_ahead_symbol || (Array.isArray(timing.process_events) && timing.process_events.some((event) => event.event_type === "prep_ahead")));
+}
+
+function prepAheadBadge(recipe, compact = false) {
+  if (!hasPrepAhead(recipe)) return "";
+  return `
+    <span class="prep-ahead-badge ${compact ? "compact" : ""}" title="Prep ahead recipe">
+      <span class="prep-ahead-symbol">P+</span>
+      ${compact ? "" : "<span>Prep ahead</span>"}
+    </span>
+  `;
+}
+
+function durationLabel(minutes) {
+  const parsed = Number(minutes || 0);
+  if (!parsed) return "";
+  if (parsed >= 1440 && parsed % 1440 === 0) {
+    const days = parsed / 1440;
+    return `${number(days)} ${days === 1 ? "day" : "days"}`;
+  }
+  if (parsed >= 60 && parsed % 60 === 0) {
+    const hours = parsed / 60;
+    return `${number(hours)} ${hours === 1 ? "hour" : "hours"}`;
+  }
+  return `${number(parsed)} min`;
+}
+
 function approvedCard(recipe, active, idAttribute) {
   const image = heroImage(recipe);
   return `
@@ -536,7 +565,7 @@ function approvedCard(recipe, active, idAttribute) {
         ${image ? "" : `<span class="database-image-fallback"></span>`}
       </span>
       <span class="database-card-copy">
-        <strong>${escapeHtml(recipe.title)}</strong>
+        <strong>${prepAheadBadge(recipe, true)}${escapeHtml(recipe.title)}</strong>
         <em>${escapeHtml(mealTypeLabel(recipe.meal_type))} - ${escapeHtml(timingLabel(recipe))}</em>
         <small>${escapeHtml((recipe.people || []).join(", ") || "People saved")}</small>
         <small>${escapeHtml(nutritionHeadline(recipe))}</small>
@@ -559,6 +588,7 @@ function heroImage(recipe) {
 function recipeTags(recipe) {
   const tags = [
     recipe.meal_type || "Recipe",
+    hasPrepAhead(recipe) ? "Prep ahead" : "",
     timingLabel(recipe),
     (recipe.people || []).length ? `${recipe.people.length} people` : "",
     statusLabel(recipe),
@@ -611,6 +641,7 @@ function renderHero(recipe) {
       <div class="hero-copy">
         <div class="hero-row">
           <span class="state-pill ${statusTone(recipe)}">${escapeHtml(statusLabel(recipe))}</span>
+          ${prepAheadBadge(recipe)}
           ${localDecisionLabel ? `<span class="state-pill chosen">${escapeHtml(localDecisionLabel)}</span>` : ""}
         </div>
         <h2>${escapeHtml(recipe.title)}</h2>
@@ -661,7 +692,8 @@ function renderProcessEvents(recipe) {
               <article class="process-event-item">
                 <span>${escapeHtml(event.event_type === "prep_ahead" ? "Prep ahead" : "Cook/serve")}</span>
                 <strong>${escapeHtml(event.title || "Recipe event")}</strong>
-                <em>${escapeHtml(number(event.active_minutes || 0))} min active${Number(event.passive_after_minutes || 0) ? ` + ${escapeHtml(number(event.passive_after_minutes))} min wait` : ""}</em>
+                <em>${escapeHtml(durationLabel(event.active_minutes))} active${Number(event.passive_after_minutes || 0) ? ` + ${escapeHtml(durationLabel(event.passive_after_minutes))} wait` : ""}</em>
+                ${event.schedule_hint ? `<p>${escapeHtml(event.schedule_hint)}</p>` : ""}
               </article>
             `,
           )
