@@ -9,20 +9,8 @@
     "request_dir": "V3/recipe_factory/review_queue/public",
     "approved_dir": "V3/recipe_factory/review_queue/approved",
     "rejected_dir": "V3/recipe_factory/review_queue/rejected",
-    "request_run_slugs": [
-      "cauliflower-cheese-soup-v1"
-    ],
-    "request_records": [
-      {
-        "run_slug": "cauliflower-cheese-soup-v1",
-        "status": "active",
-        "request_path": "V3/recipe_factory/review_queue/public/cauliflower-cheese-soup-v1.json",
-        "title": "Cauliflower Cheese Soup With Buttered Sourdough Croutons",
-        "source": "manual_recipe_builder",
-        "created_at_utc": "2026-06-05T19:44:52+00:00",
-        "reason": "Recipe is ready for Luke review."
-      }
-    ],
+    "request_run_slugs": [],
+    "request_records": [],
     "approved_run_slugs": [
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
@@ -71,22 +59,34 @@
         "reason": "Luke review passed; recipe belongs in Recipe Database, not the active review queue."
       }
     ],
-    "rejected_run_slugs": [],
-    "rejected_records": [],
+    "rejected_run_slugs": [
+      "cauliflower-cheese-soup-v1"
+    ],
+    "rejected_records": [
+      {
+        "run_slug": "cauliflower-cheese-soup-v1",
+        "status": "needs_repair",
+        "request_path": "V3/recipe_factory/review_queue/rejected/cauliflower-cheese-soup-v1/rejection.json",
+        "title": "Cauliflower Cheese Soup With Buttered Sourdough Croutons",
+        "source": "rejected_review_queue",
+        "created_at_utc": "2026-06-05T21:15:03+00:00",
+        "reason": "Method or cooking flow wrong"
+      }
+    ],
     "visible_run_slugs": [
-      "cauliflower-cheese-soup-v1",
       "chicken-fajitas-v1",
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1",
-      "strawberry-banana-yoghurt-bowl-v1"
+      "strawberry-banana-yoghurt-bowl-v1",
+      "cauliflower-cheese-soup-v1"
     ],
     "hidden_reference_count": 2,
     "expected_public_recipe_count": 5
   },
   "recipe_count": 5,
   "approved_count": 4,
-  "needs_review_count": 1,
-  "needs_repair_count": 0,
+  "needs_review_count": 0,
+  "needs_repair_count": 1,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -103,27 +103,28 @@
       "recipe_id": "V3-FACTORY-CAULIFLOWER-CHEESE-SOUP-001",
       "run_slug": "cauliflower-cheese-soup-v1",
       "title": "Cauliflower Cheese Soup With Buttered Sourdough Croutons",
-      "status": "needs_review",
+      "status": "needs_repair",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-05T21:15:03+00:00",
+        "decision": "fail",
+        "reason_code": "method_cooking_flow_wrong",
+        "reason_label": "Method or cooking flow wrong",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/cauliflower-cheese-soup-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/runs/cauliflower-cheese-soup-v1/human_review.json",
+        "notes": "Luke rejected the current soup method because batch blending is not acceptable. The method asks him to put half the soup in the Nutribullet, blend it, and then manage transfer/return accurately. This is a practical cooking-flow fail. Repair must either use a confirmed in-pan blending tool/route or redesign the recipe without batch blending; do not keep a Nutribullet batch-blend method.",
+        "required_for_planning": true,
+        "route_back_phase": "cookflow"
       },
       "meal_type": "dinner",
       "people": [
@@ -6187,7 +6188,7 @@
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "",
+        "route_back_phase": "cookflow",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, and app-ready output bundle rendering.",
         "first_issue": {}
       },
@@ -16519,28 +16520,31 @@
       }
     }
   ],
-  "user_review_queue": [
+  "user_review_queue": [],
+  "repair_queue": [
     {
       "recipe_id": "V3-FACTORY-CAULIFLOWER-CHEESE-SOUP-001",
       "title": "Cauliflower Cheese Soup With Buttered Sourdough Croutons",
       "run_slug": "cauliflower-cheese-soup-v1",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
+      "plain_english_summary": "Luke rejected this recipe. It must be repaired from the owning phase before review continues.",
       "human_review": {
-        "status": "needs_user_confirmation",
+        "status": "failed",
         "confirmed": false,
-        "failed": false,
+        "failed": true,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
+        "failed_by": "Luke",
+        "failed_at": "2026-06-05T21:15:03+00:00",
+        "decision": "fail",
+        "reason_code": "method_cooking_flow_wrong",
+        "reason_label": "Method or cooking flow wrong",
+        "repair_ticket": "V3/recipe_factory/review_queue/rejected/cauliflower-cheese-soup-v1/repair_ticket.md",
+        "review_file": "V3/recipe_factory/runs/cauliflower-cheese-soup-v1/human_review.json",
+        "notes": "Luke rejected the current soup method because batch blending is not acceptable. The method asks him to put half the soup in the Nutribullet, blend it, and then manage transfer/return accurately. This is a practical cooking-flow fail. Repair must either use a confirmed in-pan blending tool/route or redesign the recipe without batch blending; do not keep a Nutribullet batch-blend method.",
+        "required_for_planning": true,
+        "route_back_phase": "cookflow"
       },
+      "route_back_phase": "cookflow",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/cauliflower-cheese-soup-v1",
         "output_bundle": "V3/recipe_factory/runs/cauliflower-cheese-soup-v1/output_bundle",
@@ -16553,6 +16557,5 @@
       }
     }
   ],
-  "repair_queue": [],
   "blocked_queue": []
 }
