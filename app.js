@@ -140,7 +140,8 @@ function cleanImportedDecisions() {
   Object.entries(state.decisions).forEach(([recipeId, raw]) => {
     const recipe = byId.get(recipeId);
     const decision = normaliseDecision(recipeId, raw);
-    if (!recipe || (decision.send_status === "sent" && recipe.status !== "needs_review")) {
+    const stillReviewSurface = recipe && ["needs_review", "needs_repair", "blocked"].includes(recipe.status);
+    if (!recipe || (decision.send_status === "sent" && !stillReviewSurface)) {
       delete state.decisions[recipeId];
       changed = true;
     } else {
@@ -158,11 +159,11 @@ function recipeUrl(recipe, route = "database") {
 
 function reviewDecisionState(recipe) {
   const decision = normaliseDecision(recipe?.recipe_id, state.decisions[recipe?.recipe_id] || {});
-  if (recipe?.status === "needs_repair") return "needs_repair";
-  if (recipe?.status === "blocked") return "blocked";
   if (decision.send_status === "sent") return "sent_to_manager";
   if (decision.send_status === "failed") return "send_failed";
   if (decision.decision) return "ready_to_send";
+  if (recipe?.status === "needs_repair") return "needs_repair";
+  if (recipe?.status === "blocked") return "blocked";
   if (recipe?.status === "needs_review") return "needs_review";
   return recipe?.status || "";
 }
@@ -183,8 +184,8 @@ function reviewDecisionLabel(recipe) {
 function readyDecisions() {
   if (!state.index) return [];
   return state.index.recipes
-    .filter((recipe) => recipe.status === "needs_review")
-    .map((recipe) => ({ recipe, decision: normaliseDecision(recipe.recipe_id, state.decisions[recipe.recipe_id]) }))
+    .filter((recipe) => ["ready_to_send", "send_failed"].includes(reviewDecisionState(recipe)))
+    .map((recipe) => ({ recipe, decision: recipeDecision(recipe) }))
     .filter(({ decision }) => decision.decision && decision.send_status !== "sent");
 }
 
@@ -1394,7 +1395,7 @@ function renderDecisionPanel(recipe) {
   } else if (decision.decision === "fail") {
     els.decisionCopy.textContent = "Fail selected. Add notes, then send the basket when ready.";
   } else if (recipe.status === "needs_repair") {
-    els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
+    els.decisionCopy.textContent = "This recipe is already in repair. Choose Fail with notes if you want to send extra feedback to the manager.";
   } else if (recipe.status === "needs_review") {
     els.decisionCopy.textContent = "Choose Pass or Fail. The app sends a decision packet to the manager postbox, then Recipe Pulse imports it into the real project.";
   } else {
