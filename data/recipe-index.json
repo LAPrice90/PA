@@ -90,20 +90,8 @@
         "reason": "Luke review passed; recipe belongs in Recipe Database, not the active review queue."
       }
     ],
-    "rejected_run_slugs": [
-      "chicken-fajitas-v1"
-    ],
-    "rejected_records": [
-      {
-        "run_slug": "chicken-fajitas-v1",
-        "status": "needs_repair",
-        "request_path": "V3/recipe_factory/review_queue/rejected/chicken-fajitas-v1/rejection.json",
-        "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-        "source": "rejected_review_queue",
-        "created_at_utc": "2026-06-06T14:47:25+00:00",
-        "reason": "Nutrition or target wrong"
-      }
-    ],
+    "rejected_run_slugs": [],
+    "rejected_records": [],
     "visible_run_slugs": [
       "cauliflower-cheese-soup-v1",
       "ham-mushroom-and-egg-breakfast-skillet",
@@ -17801,116 +17789,7 @@
       }
     }
   ],
-  "hidden_reference_runs": [
-    {
-      "recipe_id": "V3-APPLE_CINNAMON_PROTEIN_PORRIDGE_WITH_GREEK_YOGHURT_SIDE",
-      "run_slug": "apple-cinnamon-protein-porridge-with-greek-yoghurt-side",
-      "title": "V3-APPLE_CINNAMON_PROTEIN_PORRIDGE_WITH_GREEK_YOGHURT_SIDE",
-      "status": "blocked",
-      "reason": "reference/debug run hidden from public recipe review",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/apple-cinnamon-protein-porridge-with-greek-yoghurt-side",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/apple-cinnamon-protein-porridge-with-greek-yoghurt-side/factory-runner-report.json",
-        "validation_summary": "",
-        "source_authority_report": "V3/recipe_factory/runs/apple-cinnamon-protein-porridge-with-greek-yoghurt-side/source-authority-binding-report.json",
-        "human_cookability_preflight": ""
-      }
-    },
-    {
-      "recipe_id": "V3-FACTORY-CHICKEN-FAJITAS-001",
-      "run_slug": "chicken-fajitas-v1",
-      "title": "Chicken Fajitas With Adult Lime Yoghurt Crema",
-      "status": "needs_repair",
-      "reason": "reference/debug run hidden from public recipe review",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/chicken-fajitas-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/chicken-fajitas-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/chicken-fajitas-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/chicken-fajitas-v1/source-authority-binding-report.json",
-        "human_cookability_preflight": "V3/recipe_factory/runs/chicken-fajitas-v1/human-cookability-preflight.json"
-      }
-    },
-    {
-      "recipe_id": "V3-CREAMY_GARLIC_CHICKEN_AND_BROCCOLI",
-      "run_slug": "creamy-garlic-chicken-and-broccoli",
-      "title": "V3-CREAMY_GARLIC_CHICKEN_AND_BROCCOLI",
-      "status": "blocked",
-      "reason": "reference/debug run hidden from public recipe review",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli/factory-runner-report.json",
-        "validation_summary": "",
-        "source_authority_report": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli/source-authority-binding-report.json",
-        "human_cookability_preflight": ""
-      }
-    },
-    {
-      "recipe_id": "V3-FACTORY-GOCHUJANG-STICKY-BEEF-NOODLES-001",
-      "run_slug": "gochujang-sticky-beef-noodles-v1",
-      "title": "Gochujang Sticky Beef Noodles With Charred Greens",
-      "status": "blocked",
-      "reason": "technical structure sample, not source-authorised or requested for review",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/gochujang-sticky-beef-noodles-v1/source-authority-binding-report.json",
-        "human_cookability_preflight": ""
-      }
-    },
-    {
-      "recipe_id": "V3-PORK_TENDERLOIN_APPLE_TRAYBAKE",
-      "run_slug": "pork-tenderloin-apple-traybake",
-      "title": "Pork Tenderloin Apple Traybake",
-      "status": "blocked",
-      "reason": "reference/debug run hidden from public recipe review",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/pork-tenderloin-apple-traybake",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/pork-tenderloin-apple-traybake/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/pork-tenderloin-apple-traybake/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/pork-tenderloin-apple-traybake/source-authority-binding-report.json",
-        "human_cookability_preflight": ""
-      }
-    },
-    {
-      "recipe_id": "V3-FACTORY-STICKY-SOY-GINGER-CHICKEN-RICE-001",
-      "run_slug": "sticky-soy-ginger-chicken-rice-v1",
-      "title": "Sticky Soy Ginger Chicken Rice Bowls",
-      "status": "blocked",
-      "reason": "old V2 scaffold/debug proof, not a requested V3 recipe",
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1",
-        "output_bundle": "",
-        "finished_recipe_card": "",
-        "recipe_data_invoice": "",
-        "solver_recipe_card": "",
-        "factory_runner_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/factory-runner-report.json",
-        "validation_summary": "",
-        "source_authority_report": "V3/recipe_factory/runs/sticky-soy-ginger-chicken-rice-v1/source-authority-binding-report.json",
-        "human_cookability_preflight": ""
-      }
-    }
-  ],
+  "hidden_reference_runs": [],
   "user_review_queue": [
     {
       "recipe_id": "V3-FACTORY-CAULIFLOWER-CHEESE-SOUP-001",

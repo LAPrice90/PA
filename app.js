@@ -1274,7 +1274,6 @@ function renderReviewStatusPage(status) {
   const repairAction =
     status.mode === "work_remaining"
       ? `
-        ${status.needsRepair ? `<button class="mini-button" type="button" data-complete-filter="needs_repair">Show Needs Repair</button>` : ""}
         ${status.blocked ? `<button class="mini-button" type="button" data-complete-filter="blocked">Show Technical Blocks</button>` : ""}
       `
       : "";
