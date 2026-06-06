@@ -2173,7 +2173,7 @@ function setDecision(value, autoSend = false) {
     reason_code: reasonCode,
     reason_label: value === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
     notes: els.reviewNotes?.value || "",
-    submission_id: previousDecision.submission_id || makeSubmissionId(recipe, value),
+    submission_id: previousDecision.decision === value && previousDecision.submission_id ? previousDecision.submission_id : makeSubmissionId(recipe, value),
     send_status: "ready",
     sent_at: "",
     postbox_response: null,
