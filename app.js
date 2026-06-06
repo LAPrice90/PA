@@ -32,6 +32,7 @@ const state = {
   decisions: loadDecisions(),
   profileDrafts: loadProfileDrafts(),
   postboxConfig: DEFAULT_POSTBOX_CONFIG,
+  basketSending: false,
   activeProfileEdit: null,
   profileSkuQuery: "",
 };
@@ -112,10 +113,91 @@ function recipeByKey(key, recipes = state.index?.recipes || []) {
   return recipes.find((recipe) => recipeMatches(recipe, key)) || null;
 }
 
+function normaliseDecision(recipeId, raw) {
+  if (!raw || typeof raw !== "object") return { decision: "" };
+  const decision = raw.decision === "pass" || raw.decision === "fail" ? raw.decision : "";
+  return {
+    decision,
+    reason_code: raw.reason_code || (decision === "fail" ? "other_notes" : "accepted"),
+    reason_label: raw.reason_label || (decision === "fail" ? FAIL_REASONS[raw.reason_code] || FAIL_REASONS.other_notes : "Accepted"),
+    notes: raw.notes || "",
+    submission_id: raw.submission_id || "",
+    send_status: raw.send_status || (raw.sent_at ? "sent" : decision ? "ready" : ""),
+    sent_at: raw.sent_at || "",
+    postbox_response: raw.postbox_response || null,
+    error_message: raw.error_message || "",
+    updated_at: raw.updated_at || "",
+    recipe_id: raw.recipe_id || recipeId || "",
+    run_slug: raw.run_slug || "",
+    title: raw.title || "",
+  };
+}
+
+function cleanImportedDecisions() {
+  if (!state.index) return;
+  const byId = new Map(state.index.recipes.map((recipe) => [recipe.recipe_id, recipe]));
+  let changed = false;
+  Object.entries(state.decisions).forEach(([recipeId, raw]) => {
+    const recipe = byId.get(recipeId);
+    const decision = normaliseDecision(recipeId, raw);
+    if (!recipe || (decision.send_status === "sent" && recipe.status !== "needs_review")) {
+      delete state.decisions[recipeId];
+      changed = true;
+    } else {
+      state.decisions[recipeId] = decision;
+    }
+  });
+  if (changed) saveDecisions();
+}
+
 function recipeUrl(recipe, route = "database") {
   const key = selectedRecipeKey(recipe);
   const path = key ? `#/${route}/${encodeURIComponent(key)}` : `#/${route}`;
   return `${window.location.origin}${window.location.pathname}${path}`;
+}
+
+function reviewDecisionState(recipe) {
+  const decision = normaliseDecision(recipe?.recipe_id, state.decisions[recipe?.recipe_id] || {});
+  if (recipe?.status === "needs_repair") return "needs_repair";
+  if (recipe?.status === "blocked") return "blocked";
+  if (decision.send_status === "sent") return "sent_to_manager";
+  if (decision.send_status === "failed") return "send_failed";
+  if (decision.decision) return "ready_to_send";
+  if (recipe?.status === "needs_review") return "needs_review";
+  return recipe?.status || "";
+}
+
+function reviewDecisionLabel(recipe) {
+  const stateName = reviewDecisionState(recipe);
+  const labels = {
+    needs_review: "To Review",
+    ready_to_send: "Ready",
+    sent_to_manager: "Sent to manager",
+    send_failed: "Send failed",
+    needs_repair: "Needs Repair",
+    blocked: "Technical Block",
+  };
+  return labels[stateName] || statusLabel(recipe);
+}
+
+function readyDecisions() {
+  if (!state.index) return [];
+  return state.index.recipes
+    .filter((recipe) => recipe.status === "needs_review")
+    .map((recipe) => ({ recipe, decision: normaliseDecision(recipe.recipe_id, state.decisions[recipe.recipe_id]) }))
+    .filter(({ decision }) => decision.decision && decision.send_status !== "sent");
+}
+
+function basketCounts() {
+  const recipes = state.index?.recipes || [];
+  return recipes.reduce(
+    (counts, recipe) => {
+      const stateName = reviewDecisionState(recipe);
+      if (stateName in counts) counts[stateName] += 1;
+      return counts;
+    },
+    { needs_review: 0, ready_to_send: 0, sent_to_manager: 0, send_failed: 0, needs_repair: 0, blocked: 0 },
+  );
 }
 
 function makeSubmissionId(recipe, decision) {
@@ -502,23 +584,17 @@ function statusTone(recipe) {
 
 function recipeDecision(recipe) {
   const raw = state.decisions[recipe.recipe_id] || "";
-  if (!raw) return {};
+  if (!raw) return { decision: "" };
   if (typeof raw === "string") {
     return {
       decision: raw,
       reason_code: raw === "fail" ? "other_notes" : "accepted",
       reason_label: raw === "fail" ? FAIL_REASONS.other_notes : "Accepted",
       notes: "",
+      send_status: raw ? "ready" : "",
     };
   }
-  return {
-    decision: raw.decision || "",
-    reason_code: raw.reason_code || (raw.decision === "fail" ? "other_notes" : "accepted"),
-    reason_label: raw.reason_label || (raw.decision === "fail" ? FAIL_REASONS[raw.reason_code] || FAIL_REASONS.other_notes : "Accepted"),
-    notes: raw.notes || "",
-    submission_id: raw.submission_id || "",
-    updated_at: raw.updated_at || "",
-  };
+  return normaliseDecision(recipe.recipe_id, raw);
 }
 
 function filteredRecipes() {
@@ -526,7 +602,13 @@ function filteredRecipes() {
   const reviewStatuses = new Set(["needs_review", "needs_repair", "blocked"]);
   return state.index.recipes.filter((recipe) => {
     if (!reviewStatuses.has(recipe.status)) return false;
-    return state.filter === "all" || recipe.status === state.filter;
+    const localState = reviewDecisionState(recipe);
+    if (state.filter === "all") return localState !== "sent_to_manager";
+    if (state.filter === "needs_review") return localState === "needs_review";
+    if (state.filter === "ready_to_send") return localState === "ready_to_send";
+    if (state.filter === "sent_to_manager") return localState === "sent_to_manager";
+    if (state.filter === "send_failed") return localState === "send_failed";
+    return recipe.status === state.filter;
   });
 }
 
@@ -543,6 +625,8 @@ function reviewQueueStatus() {
   const needsRepair = Number(index.needs_repair_count || 0);
   const blocked = Number(index.blocked_count || 0);
   const approved = Number(index.approved_count || 0);
+  const counts = basketCounts();
+  const activeOnThisPhone = counts.needs_review + counts.ready_to_send + counts.send_failed + counts.needs_repair + counts.blocked;
   if (!total) {
     return {
       mode: "empty",
@@ -553,6 +637,19 @@ function reviewQueueStatus() {
       needsRepair,
       blocked,
       approved,
+    };
+  }
+  if (needsReview > 0 && activeOnThisPhone === 0 && counts.sent_to_manager > 0) {
+    return {
+      mode: "sent",
+      title: "Decisions sent",
+      copy: "The selected recipes have been sent to the recipe manager. They will move after Recipe Pulse imports them.",
+      total,
+      needsReview,
+      needsRepair,
+      blocked,
+      approved,
+      sent: counts.sent_to_manager,
     };
   }
   if (needsReview === 0 && needsRepair === 0 && blocked === 0) {
@@ -583,7 +680,7 @@ function reviewQueueStatus() {
 }
 
 function shouldShowReviewStatusPage(status) {
-  return Boolean(status) && (state.filter === "all" || state.filter === "needs_review");
+  return Boolean(status) && ["complete", "empty", "sent", "work_remaining"].includes(status.mode) && (state.filter === "all" || state.filter === "needs_review");
 }
 
 function approvedRecipes() {
@@ -1191,6 +1288,7 @@ function renderReviewStatusPage(status) {
         <div><span>Total</span><strong>${escapeHtml(status.total)}</strong></div>
         <div><span>Approved</span><strong>${escapeHtml(status.approved)}</strong></div>
         <div><span>To Review</span><strong>${escapeHtml(status.needsReview)}</strong></div>
+        ${status.sent ? `<div><span>Sent</span><strong>${escapeHtml(status.sent)}</strong></div>` : ""}
         <div><span>Repair</span><strong>${escapeHtml(status.needsRepair)}</strong></div>
         <div><span>Technical</span><strong>${escapeHtml(status.blocked)}</strong></div>
       </div>
@@ -1211,6 +1309,8 @@ function renderReviewStatusDecisionPanel(status) {
   els.decisionCopy.textContent =
     status.mode === "complete"
       ? "Review queue complete. Approved recipes are now available from Recipe Database."
+      : status.mode === "sent"
+        ? "Decisions are sent to the manager. Recipe Pulse will import them into project truth."
       : status.mode === "work_remaining"
         ? "Review queue has no waiting recipes, but repair or technical checks remain."
         : "No recipes are currently in the review queue.";
@@ -1226,18 +1326,37 @@ function renderPendingImportStatus(recipe, decision) {
   const panel = document.querySelector(".decision-panel");
   if (!panel) return;
   panel.querySelector("[data-import-status]")?.remove();
-  if (!decision.decision) return;
+  const readyCount = readyDecisions().length;
+  const sentCount = basketCounts().sent_to_manager;
+  if (!decision.decision && !readyCount && !sentCount) return;
   const isPass = decision.decision === "pass";
+  const stateName = reviewDecisionState(recipe);
   const status = document.createElement("div");
-  status.className = `import-status ${isPass ? "pass" : "fail"}`;
+  status.className = `import-status ${stateName === "send_failed" ? "fail" : isPass ? "pass" : "basket"}`;
   status.dataset.importStatus = "true";
+  const title =
+    stateName === "sent_to_manager"
+      ? "Sent To Manager"
+      : stateName === "send_failed"
+        ? "Send Failed"
+        : readyCount
+          ? `${readyCount} Ready To Send`
+          : "Review Basket";
+  const body =
+    stateName === "sent_to_manager"
+      ? "This decision has already been sent. It is locked on this phone until Recipe Pulse imports it."
+      : stateName === "send_failed"
+        ? "The postbox did not accept this decision. Retry the basket send or use the fallback JSON."
+        : readyCount
+          ? "Selections are saved on this phone. Use the final send button when you are ready."
+          : "Choose Pass or Fail to add this recipe to the review basket.";
   status.innerHTML = `
-    <strong>${isPass ? "Pending Manager Import" : "Pending Repair Import"}</strong>
-    <p>${escapeHtml(isPass ? "This phone has prepared a Pass packet. The recipe is not approved in the project until Recipe Pulse imports it." : "This phone has prepared a Fail packet. The recipe does not move to Needs Repair until Recipe Pulse imports it.")}</p>
+    <strong>${escapeHtml(title)}</strong>
+    <p>${escapeHtml(body)}</p>
     <div class="import-status-steps">
-      <span>1. Decision selected</span>
-      <span>2. Copy and paste JSON</span>
-      <span>${escapeHtml(isPass ? "3. Moves to Recipe Database" : "3. Repair ticket created")}</span>
+      <span>${escapeHtml(`${basketCounts().needs_review} to review`)}</span>
+      <span>${escapeHtml(`${readyCount} ready`)}</span>
+      <span>${escapeHtml(`${sentCount} sent`)}</span>
     </div>
     <small>${escapeHtml(recipe.title)}</small>
   `;
@@ -1251,7 +1370,8 @@ function renderPendingImportStatus(recipe, decision) {
 
 function renderDecisionPanel(recipe) {
   const decision = recipe ? recipeDecision(recipe) : {};
-  document.querySelector(".decision-panel")?.classList.remove("completion-mode");
+  const panel = document.querySelector(".decision-panel");
+  panel?.classList.remove("completion-mode", "sent-mode", "failed-mode");
   document.querySelector(".decision-panel [data-copy-fallback]")?.remove();
   document.querySelector(".decision-panel [data-import-status]")?.remove();
   if (!recipe) {
@@ -1264,10 +1384,15 @@ function renderDecisionPanel(recipe) {
   if (els.reviewNotes) {
     els.reviewNotes.value = decision.notes || "";
   }
-  if (decision.decision === "pass") {
-    els.decisionCopy.textContent = "Pass selected on this phone. Send it to the recipe manager; JSON fallback is available if the postbox is offline.";
+  const localState = reviewDecisionState(recipe);
+  if (localState === "sent_to_manager") {
+    els.decisionCopy.textContent = "Sent to manager. This recipe is hidden from the normal review queue on this phone until Recipe Pulse imports it.";
+  } else if (localState === "send_failed") {
+    els.decisionCopy.textContent = decision.error_message || "Send failed. Retry the basket send or use the fallback JSON.";
+  } else if (decision.decision === "pass") {
+    els.decisionCopy.textContent = "Pass selected. It is saved in the review basket, not sent yet.";
   } else if (decision.decision === "fail") {
-    els.decisionCopy.textContent = "Fail selected on this phone. Add notes and send it to the recipe manager so it can create a repair ticket.";
+    els.decisionCopy.textContent = "Fail selected. Add notes, then send the basket when ready.";
   } else if (recipe.status === "needs_repair") {
     els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
   } else if (recipe.status === "needs_review") {
@@ -1280,12 +1405,23 @@ function renderDecisionPanel(recipe) {
   document.querySelector(".decision-panel")?.classList.toggle("decision-made", Boolean(decision.decision));
   document.querySelector(".decision-panel")?.classList.toggle("decision-pass", decision.decision === "pass");
   document.querySelector(".decision-panel")?.classList.toggle("decision-fail", decision.decision === "fail");
+  panel?.classList.toggle("sent-mode", localState === "sent_to_manager");
+  panel?.classList.toggle("failed-mode", localState === "send_failed");
+  const locked = localState === "sent_to_manager" || state.basketSending;
+  els.passButton.disabled = locked;
+  els.failButton.disabled = locked;
+  if (els.failReason) els.failReason.disabled = locked;
+  if (els.reviewNotes) els.reviewNotes.disabled = locked;
   els.passButton.textContent = decision.decision === "pass" ? "Pass selected" : "Pass";
   els.failButton.textContent = decision.decision === "fail" ? "Fail selected" : "Fail";
   if (els.copyReviewDecision) {
-    els.copyReviewDecision.disabled = !decision.decision;
-    els.copyReviewDecision.textContent =
-      decision.decision === "pass" ? "Send Pass" : decision.decision === "fail" ? "Send Fail" : "Choose Pass or Fail first";
+    const readyCount = readyDecisions().length;
+    els.copyReviewDecision.disabled = !readyCount || state.basketSending;
+    els.copyReviewDecision.textContent = state.basketSending
+      ? "Sending..."
+      : readyCount
+        ? `Send ${readyCount} Decision${readyCount === 1 ? "" : "s"} To Manager`
+        : "Choose Pass or Fail first";
   }
   renderPendingImportStatus(recipe, decision);
 }
@@ -1293,12 +1429,14 @@ function renderDecisionPanel(recipe) {
 function renderQueue() {
   const index = state.index;
   if (!index) return;
+  const counts = basketCounts();
   els.queueSummary.innerHTML = `
-    <span><strong>${(index.needs_review_count || 0) + (index.needs_repair_count || 0) + (index.blocked_count || 0)}</strong> review queue</span>
+    <span><strong>${counts.needs_review + counts.ready_to_send + counts.send_failed + counts.needs_repair + counts.blocked}</strong> active</span>
+    <span><strong>${counts.ready_to_send}</strong> ready</span>
+    <span><strong>${counts.sent_to_manager}</strong> sent</span>
     <span><strong>${index.approved_count || 0}</strong> database</span>
-    <span><strong>${index.needs_review_count || 0}</strong> to review</span>
-    <span><strong>${index.needs_repair_count || 0}</strong> repair</span>
-    <span><strong>${index.blocked_count || 0}</strong> technical</span>
+    <span><strong>${counts.needs_repair}</strong> repair</span>
+    <span><strong>${counts.blocked}</strong> technical</span>
   `;
   const recipes = filteredRecipes();
   if (!recipes.length) {
@@ -1309,7 +1447,7 @@ function renderQueue() {
     .map((recipe) => {
       const active = recipe.recipe_id === state.selectedId ? "active" : "";
       const decision = recipeDecision(recipe);
-      const local = decision.decision ? `${decision.decision} pending import` : statusLabel(recipe);
+      const local = reviewDecisionLabel(recipe);
       return `
         <button class="queue-recipe ${active}" type="button" data-recipe-id="${escapeHtml(recipe.recipe_id)}">
           <span>${escapeHtml(recipe.title)}</span>
@@ -2023,24 +2161,55 @@ function setDecision(value, autoSend = false) {
   if (!recipe) return;
   const reasonCode = value === "fail" ? (els.failReason?.value || "other_notes") : "accepted";
   const previous = state.decisions[recipe.recipe_id] || {};
+  const previousDecision = normaliseDecision(recipe.recipe_id, previous);
+  if (previousDecision.send_status === "sent") return;
   state.decisions[recipe.recipe_id] = {
     decision: value,
     reason_code: reasonCode,
     reason_label: value === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
     notes: els.reviewNotes?.value || "",
-    submission_id: previous.submission_id || makeSubmissionId(recipe, value),
+    submission_id: previousDecision.submission_id || makeSubmissionId(recipe, value),
+    send_status: "ready",
+    sent_at: "",
+    postbox_response: null,
+    error_message: "",
     updated_at: new Date().toISOString(),
+    recipe_id: recipe.recipe_id,
+    run_slug: recipe.run_slug,
+    title: recipe.title,
   };
   saveDecisions();
   renderAll();
   if (autoSend) submitOrCopyReviewDecision();
 }
 
+function updateCurrentDecisionMeta() {
+  const recipe = currentRecipe();
+  if (!recipe) return;
+  const current = normaliseDecision(recipe.recipe_id, state.decisions[recipe.recipe_id]);
+  if (!current.decision || current.send_status === "sent") return;
+  const reasonCode = current.decision === "fail" ? (els.failReason?.value || current.reason_code || "other_notes") : "accepted";
+  state.decisions[recipe.recipe_id] = {
+    ...current,
+    reason_code: reasonCode,
+    reason_label: current.decision === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
+    notes: els.reviewNotes?.value || "",
+    updated_at: new Date().toISOString(),
+  };
+  saveDecisions();
+  renderQueue();
+  if (els.copyReviewDecision) {
+    const readyCount = readyDecisions().length;
+    els.copyReviewDecision.disabled = !readyCount || state.basketSending;
+    els.copyReviewDecision.textContent = readyCount ? `Send ${readyCount} Decision${readyCount === 1 ? "" : "s"} To Manager` : "Choose Pass or Fail first";
+  }
+}
+
 function buildReviewDecisionPayload(recipe) {
   const decision = recipe ? recipeDecision(recipe) : {};
   const decisionValue = decision.decision || "";
   if (!recipe || !decisionValue) return null;
-  const reasonCode = decisionValue === "fail" ? (els.failReason?.value || decision.reason_code || "other_notes") : "accepted";
+  const reasonCode = decisionValue === "fail" ? (decision.reason_code || "other_notes") : "accepted";
   return {
     schema_version: "v3.recipe_review_decision.1",
     recipe_id: recipe.recipe_id,
@@ -2049,7 +2218,7 @@ function buildReviewDecisionPayload(recipe) {
     decision: decisionValue,
     reason_code: reasonCode,
     reason_label: decisionValue === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
-    notes: els.reviewNotes?.value || decision.notes || "",
+    notes: decision.notes || "",
     reviewed_by: "Luke",
     reviewed_at: new Date().toISOString(),
     source: postboxConfigured() ? "recipe_explorer_app_postbox" : "recipe_explorer_app_local_export",
@@ -2077,29 +2246,65 @@ async function copyReviewDecision() {
 }
 
 async function submitOrCopyReviewDecision() {
-  const recipe = currentRecipe();
-  const payload = buildReviewDecisionPayload(recipe);
-  if (!payload) return;
-  const label = payload.decision === "pass" ? "Pass" : "Fail";
-  if (payload.decision === "fail" && !payload.notes.trim()) {
+  const ready = readyDecisions();
+  if (!ready.length) return;
+  const missingNotes = ready.find(({ decision }) => decision.decision === "fail" && !String(decision.notes || "").trim());
+  if (missingNotes) {
+    state.selectedId = missingNotes.recipe.recipe_id;
+    renderAll();
     els.decisionCopy.textContent = "Fail needs notes so the repair worker knows what to fix.";
     return;
   }
+  state.basketSending = true;
+  renderAll();
+  const failedPayloads = [];
   try {
-    const result = await postboxSubmit(payload);
-    els.copyReviewDecision.textContent = `${label} sent`;
-    els.decisionCopy.textContent = `${label} sent to the recipe manager. Submission ${result.submission_id || payload.submission_id} is waiting for Recipe Pulse import.`;
-  } catch {
-    await copyReviewDecision();
+    for (const item of ready) {
+      const payload = buildReviewDecisionPayload(item.recipe);
+      if (!payload) continue;
+      try {
+        const result = await postboxSubmit(payload);
+        state.decisions[item.recipe.recipe_id] = {
+          ...normaliseDecision(item.recipe.recipe_id, state.decisions[item.recipe.recipe_id]),
+          send_status: "sent",
+          sent_at: new Date().toISOString(),
+          postbox_response: result,
+          error_message: "",
+        };
+      } catch (error) {
+        const current = normaliseDecision(item.recipe.recipe_id, state.decisions[item.recipe.recipe_id]);
+        state.decisions[item.recipe.recipe_id] = {
+          ...current,
+          send_status: "failed",
+          error_message: error?.message || "Postbox offline. Use fallback JSON.",
+          updated_at: new Date().toISOString(),
+        };
+        failedPayloads.push(payload);
+      }
+      saveDecisions();
+    }
+  } finally {
+    state.basketSending = false;
+  }
+  saveDecisions();
+  renderAll();
+  if (failedPayloads.length) {
+    const fallback = JSON.stringify({ schema_version: "v3.recipe_review_decision_bundle.1", decisions: failedPayloads }, null, 2);
+    showCopyFallback(document.querySelector(".decision-panel"), fallback);
+    els.decisionCopy.textContent = `Postbox offline for ${failedPayloads.length} decision${failedPayloads.length === 1 ? "" : "s"}. Copy the fallback JSON if needed.`;
+  } else {
+    els.decisionCopy.textContent = `${ready.length} decision${ready.length === 1 ? "" : "s"} sent to the recipe manager.`;
   }
 }
 
 function attachEvents() {
   els.nextButton.addEventListener("click", () => moveSelection(1));
   els.previousButton.addEventListener("click", () => moveSelection(-1));
-  els.passButton.addEventListener("click", () => setDecision("pass", true));
-  els.failButton.addEventListener("click", () => setDecision("fail", true));
+  els.passButton.addEventListener("click", () => setDecision("pass", false));
+  els.failButton.addEventListener("click", () => setDecision("fail", false));
   els.copyReviewDecision.addEventListener("click", submitOrCopyReviewDecision);
+  els.failReason.addEventListener("change", updateCurrentDecisionMeta);
+  els.reviewNotes.addEventListener("input", updateCurrentDecisionMeta);
 
   els.recipeList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-recipe-id]");
@@ -2273,6 +2478,7 @@ async function init() {
     if (postboxResponse && postboxResponse.ok) {
       state.postboxConfig = await postboxResponse.json();
     }
+    cleanImportedDecisions();
     const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
     const firstReviewWork = state.index.recipes.find((recipe) => ["needs_review", "needs_repair", "blocked"].includes(recipe.status));
     const firstApproved = approvedRecipes()[0];

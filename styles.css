@@ -1614,7 +1614,9 @@ button {
 
 .decision-panel.completion-mode .review-fields,
 .decision-panel.completion-mode .decision-actions,
-.decision-panel.completion-mode .copy-decision-button {
+.decision-panel.completion-mode .copy-decision-button,
+.decision-panel.sent-mode .review-fields,
+.decision-panel.sent-mode .decision-actions {
   display: none;
 }
 
@@ -1678,6 +1680,13 @@ button {
   outline: 4px solid var(--blue);
 }
 
+.decision-button:disabled,
+.review-fields select:disabled,
+.review-fields textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
 .copy-decision-button {
   width: 100%;
   min-height: 42px;
@@ -1708,6 +1717,11 @@ button {
 .import-status.fail {
   border-color: rgba(255, 93, 67, 0.32);
   background: var(--coral-soft);
+}
+
+.import-status.basket {
+  border-color: rgba(20, 122, 255, 0.28);
+  background: rgba(20, 122, 255, 0.08);
 }
 
 .import-status strong {
