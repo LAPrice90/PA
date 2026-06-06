@@ -18,9 +18,9 @@
         "status": "active",
         "request_path": "V3/recipe_factory/review_queue/public/creamy-garlic-chicken-and-broccoli.json",
         "title": "Creamy Garlic Chicken And Broccoli",
-        "source": "recipe_production_pulse",
+        "source": "recipe_production_bottleneck_repair",
         "created_at_utc": "2026-06-06T20:02:30+00:00",
-        "reason": "Manager Quality Check passed from the single Recipe Pulse."
+        "reason": "Cooked-batch portioning was repaired and the recipe is being returned to Luke review."
       }
     ],
     "approved_run_slugs": [
@@ -73,8 +73,8 @@
   },
   "recipe_count": 4,
   "approved_count": 3,
-  "needs_review_count": 0,
-  "needs_repair_count": 1,
+  "needs_review_count": 1,
+  "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
     "source": "V3 recipe factory output bundles and factory-runner reports",
@@ -4766,28 +4766,27 @@
       "recipe_id": "V3-CREAMY_GARLIC_CHICKEN_AND_BROCCOLI",
       "run_slug": "creamy-garlic-chicken-and-broccoli",
       "title": "Creamy Garlic Chicken And Broccoli",
-      "status": "needs_repair",
+      "status": "needs_review",
       "planner_ready": false,
       "algorithmic_planning_allowed": false,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": false,
+      "user_confirmation_required": true,
       "human_review": {
-        "status": "failed",
+        "status": "needs_user_confirmation",
         "confirmed": false,
-        "failed": true,
+        "failed": false,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "Luke",
-        "failed_at": "2026-06-06T19:18:18.768Z",
-        "decision": "fail",
-        "reason_code": "method_cooking_flow_wrong",
-        "reason_label": "Method or cooking flow wrong",
-        "repair_ticket": "V3/recipe_factory/review_queue/rejected/creamy-garlic-chicken-and-broccoli/repair_ticket.md",
-        "review_file": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli/human_review.json",
-        "notes": "Cooked ingredients weighed at raw grams once again, not sure how else to say it",
-        "required_for_planning": true,
-        "route_back_phase": "cookflow"
+        "failed_by": "",
+        "failed_at": "",
+        "decision": "",
+        "reason_code": "",
+        "reason_label": "",
+        "repair_ticket": "",
+        "review_file": "review_queue/rejected/creamy-garlic-chicken-and-broccoli/repair_resolution.json",
+        "notes": "Cooked-batch portioning was repaired and the recipe is being returned to Luke review.",
+        "required_for_planning": true
       },
       "meal_type": "dinner",
       "people": [
@@ -8586,7 +8585,7 @@
         "audit_status": "approved",
         "issue_count": 0,
         "warning_count": 0,
-        "route_back_phase": "cookflow",
+        "route_back_phase": "",
         "plain_english_summary": "The recipe passed source binding, all seven V3 factory artifacts, app-ready output bundle rendering, and human cookability preflight.",
         "first_issue": {}
       },
@@ -11570,31 +11569,28 @@
     }
   ],
   "hidden_reference_runs": [],
-  "user_review_queue": [],
-  "repair_queue": [
+  "user_review_queue": [
     {
       "recipe_id": "V3-CREAMY_GARLIC_CHICKEN_AND_BROCCOLI",
       "title": "Creamy Garlic Chicken And Broccoli",
       "run_slug": "creamy-garlic-chicken-and-broccoli",
-      "plain_english_summary": "Luke rejected this recipe. It must be repaired from the owning phase before review continues.",
+      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
       "human_review": {
-        "status": "failed",
+        "status": "needs_user_confirmation",
         "confirmed": false,
-        "failed": true,
+        "failed": false,
         "confirmed_by": "",
         "confirmed_at": "",
-        "failed_by": "Luke",
-        "failed_at": "2026-06-06T19:18:18.768Z",
-        "decision": "fail",
-        "reason_code": "method_cooking_flow_wrong",
-        "reason_label": "Method or cooking flow wrong",
-        "repair_ticket": "V3/recipe_factory/review_queue/rejected/creamy-garlic-chicken-and-broccoli/repair_ticket.md",
-        "review_file": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli/human_review.json",
-        "notes": "Cooked ingredients weighed at raw grams once again, not sure how else to say it",
-        "required_for_planning": true,
-        "route_back_phase": "cookflow"
+        "failed_by": "",
+        "failed_at": "",
+        "decision": "",
+        "reason_code": "",
+        "reason_label": "",
+        "repair_ticket": "",
+        "review_file": "review_queue/rejected/creamy-garlic-chicken-and-broccoli/repair_resolution.json",
+        "notes": "Cooked-batch portioning was repaired and the recipe is being returned to Luke review.",
+        "required_for_planning": true
       },
-      "route_back_phase": "cookflow",
       "paths": {
         "run_dir": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli",
         "output_bundle": "V3/recipe_factory/runs/creamy-garlic-chicken-and-broccoli/output_bundle",
@@ -11608,5 +11604,6 @@
       }
     }
   ],
+  "repair_queue": [],
   "blocked_queue": []
 }
