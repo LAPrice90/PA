@@ -1,7 +1,7 @@
 {
   "schema_version": "v3.review_postbox_public_config.1",
-  "status": "disabled_until_google_web_app_url_is_set",
-  "endpoint_url": "",
-  "shared_token": "",
+  "status": "active",
+  "endpoint_url": "https://script.google.com/macros/s/AKfycbw1_kuXveJBc5Rh8gcyJASp15PNYOu3_mfJkI--mBYqqSpwmmqSiya9pgkpSiWlpznsBA/exec",
+  "shared_token": "diet-v3-review-2026-fwqebfvurqewvbuqbwr",
   "submit_timeout_ms": 12000
 }
