@@ -516,6 +516,7 @@ function recipeDecision(recipe) {
     reason_code: raw.reason_code || (raw.decision === "fail" ? "other_notes" : "accepted"),
     reason_label: raw.reason_label || (raw.decision === "fail" ? FAIL_REASONS[raw.reason_code] || FAIL_REASONS.other_notes : "Accepted"),
     notes: raw.notes || "",
+    submission_id: raw.submission_id || "",
     updated_at: raw.updated_at || "",
   };
 }
