@@ -19311,7 +19311,43 @@
         }
       ],
       "shopping_total_used_cost_gbp": 2.42,
-      "review_visual": {},
+      "review_visual": {
+        "schema_version": "v3.review_visual.1",
+        "recipe_id": "V3-FACTORY-SCRAMBLED-EGGS-ON-TOAST-001",
+        "status": "approved_for_review_display",
+        "asset_path": "assets/scrambled-eggs-hero.png",
+        "generated_image_source": "V3/recipe_factory/runs/scrambled-eggs-on-toast-v1/image_candidates/scrambled-eggs-hero.png",
+        "prompt_summary": "Buttery scrambled eggs on thick white sourdough toast. No salad, tomatoes, avocado, herbs, sauce, beans, text, or logo.",
+        "truth_sources": [
+          "recipe_card.md",
+          "datasheet.json",
+          "recipe-data-invoice.csv"
+        ],
+        "allowed_visible_foods": [
+          "scrambled eggs",
+          "buttered white sourdough toast",
+          "black pepper"
+        ],
+        "blocked_visual_additions": [
+          "salad",
+          "tomatoes",
+          "avocado",
+          "herbs",
+          "sauce",
+          "beans",
+          "extra garnish",
+          "text",
+          "logo"
+        ],
+        "visual_truth_check": {
+          "status": "PASS",
+          "checked_by": "Codex visual inspection",
+          "checked_at": "2026-06-06",
+          "notes": "Restores the already-approved Scrambled Eggs hero asset to the public recipe index. The image is representative of the saved scrambled-egg-and-toast recipe and does not add extra foods."
+        },
+        "planner_handover_effect": "none",
+        "human_review_effect": "none"
+      },
       "review_quality": {},
       "technical_proof": {
         "verdict": "PASS",

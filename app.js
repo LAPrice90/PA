@@ -1486,6 +1486,11 @@ function renderAll() {
   renderProfile(recipe);
 }
 
+function scrollReviewToTop() {
+  const target = document.getElementById("recipes-view") || document.getElementById("app-main") || document.body;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderDatabaseFilters() {
   if (!els.databaseFilters) return;
   const mealTypes = databaseMealTypes();
@@ -2288,6 +2293,7 @@ async function submitOrCopyReviewDecision() {
   }
   saveDecisions();
   renderAll();
+  scrollReviewToTop();
   if (failedPayloads.length) {
     const fallback = JSON.stringify({ schema_version: "v3.recipe_review_decision_bundle.1", decisions: failedPayloads }, null, 2);
     showCopyFallback(document.querySelector(".decision-panel"), fallback);
