@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Diet Planner V3</title>
-    <link rel="stylesheet" href="./styles.css?v=20260605-mise-panel" />
+    <link rel="stylesheet" href="./styles.css?v=20260606-review-postbox" />
   </head>
   <body>
     <div class="page-shell">
@@ -67,7 +67,7 @@
             </article>
 
             <section class="decision-panel" aria-label="Recipe decision">
-              <p id="decision-copy">Review the recipe, then choose Pass or Fail. The app prepares a decision packet for Codex import.</p>
+              <p id="decision-copy">Review the recipe, then choose Pass or Fail. The app sends the decision to the recipe manager, with JSON fallback if the postbox is offline.</p>
               <div class="review-fields">
                 <label for="fail-reason">Fail reason</label>
                 <select id="fail-reason">
@@ -86,7 +86,7 @@
                 <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
                 <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
               </div>
-              <button id="copy-review-decision" class="copy-decision-button" type="button">Copy Review JSON</button>
+              <button id="copy-review-decision" class="copy-decision-button" type="button">Send Review Decision</button>
             </section>
           </section>
 
@@ -108,7 +108,7 @@
 
             <section class="drawer-section soft">
               <h2>What This Screen Does</h2>
-              <p>Shows the recipe like a food profile for Luke review. It does not approve recipes, write Google events, or hand anything to the planner.</p>
+              <p>Shows the recipe like a food profile for Luke review. The website sends review decisions to the manager postbox; it does not write recipe files, Google events, or planner handoff by itself.</p>
             </section>
           </aside>
         </section>
@@ -197,6 +197,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260605-mise-panel"></script>
+    <script src="./app.js?v=20260606-review-postbox"></script>
   </body>
 </html>

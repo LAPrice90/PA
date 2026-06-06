@@ -1,0 +1,7 @@
+{
+  "schema_version": "v3.review_postbox_public_config.1",
+  "status": "disabled_until_google_web_app_url_is_set",
+  "endpoint_url": "",
+  "shared_token": "",
+  "submit_timeout_ms": 12000
+}

@@ -1,6 +1,12 @@
 const REPO_URL = "https://github.com/LAPrice90/PA";
 const DECISION_KEY = "v3_recipe_review_decisions";
 const PROFILE_DRAFT_KEY = "v3_profile_draft_changes";
+const DEFAULT_POSTBOX_CONFIG = {
+  status: "disabled",
+  endpoint_url: "",
+  shared_token: "",
+  submit_timeout_ms: 12000,
+};
 
 const FAIL_REASONS = {
   taste_food_idea_wrong: "Taste or food idea wrong",
@@ -25,6 +31,7 @@ const state = {
   route: "home",
   decisions: loadDecisions(),
   profileDrafts: loadProfileDrafts(),
+  postboxConfig: DEFAULT_POSTBOX_CONFIG,
   activeProfileEdit: null,
   profileSkuQuery: "",
 };
@@ -109,6 +116,46 @@ function recipeUrl(recipe, route = "database") {
   const key = selectedRecipeKey(recipe);
   const path = key ? `#/${route}/${encodeURIComponent(key)}` : `#/${route}`;
   return `${window.location.origin}${window.location.pathname}${path}`;
+}
+
+function makeSubmissionId(recipe, decision) {
+  const base = selectedRecipeKey(recipe) || recipe?.recipe_id || "recipe";
+  const stamp = new Date().toISOString().replace(/[^0-9A-Za-z]/g, "");
+  const random = Math.random().toString(36).slice(2, 8);
+  return `pa-${base}-${decision}-${stamp}-${random}`;
+}
+
+function postboxConfigured() {
+  const config = state.postboxConfig || DEFAULT_POSTBOX_CONFIG;
+  return Boolean(config.endpoint_url && config.shared_token && !String(config.status || "").startsWith("disabled"));
+}
+
+async function postboxSubmit(payload) {
+  if (!postboxConfigured()) {
+    throw new Error("Review postbox is not configured yet.");
+  }
+  const config = state.postboxConfig;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), Number(config.submit_timeout_ms || 12000));
+  try {
+    const response = await fetch(config.endpoint_url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "submit_review",
+        token: config.shared_token,
+        payload,
+      }),
+      signal: controller.signal,
+    });
+    const result = await response.json();
+    if (!response.ok || result.ok !== true) {
+      throw new Error(result.error || `Postbox HTTP ${response.status}`);
+    }
+    return result;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 async function copyTextToClipboard(textValue, button, fallbackContainer) {
@@ -1184,8 +1231,8 @@ function renderPendingImportStatus(recipe, decision) {
   status.className = `import-status ${isPass ? "pass" : "fail"}`;
   status.dataset.importStatus = "true";
   status.innerHTML = `
-    <strong>${isPass ? "Pending Codex Import" : "Pending Repair Import"}</strong>
-    <p>${escapeHtml(isPass ? "This phone has prepared a Pass packet. The recipe is not approved in the project until Codex imports the JSON." : "This phone has prepared a Fail packet. The recipe does not move to Needs Repair until Codex imports the JSON.")}</p>
+    <strong>${isPass ? "Pending Manager Import" : "Pending Repair Import"}</strong>
+    <p>${escapeHtml(isPass ? "This phone has prepared a Pass packet. The recipe is not approved in the project until Recipe Pulse imports it." : "This phone has prepared a Fail packet. The recipe does not move to Needs Repair until Recipe Pulse imports it.")}</p>
     <div class="import-status-steps">
       <span>1. Decision selected</span>
       <span>2. Copy and paste JSON</span>
@@ -1217,13 +1264,13 @@ function renderDecisionPanel(recipe) {
     els.reviewNotes.value = decision.notes || "";
   }
   if (decision.decision === "pass") {
-    els.decisionCopy.textContent = "Pass selected on this phone. The recipe has not moved yet - paste the copied JSON into Codex to approve it properly.";
+    els.decisionCopy.textContent = "Pass selected on this phone. Send it to the recipe manager; JSON fallback is available if the postbox is offline.";
   } else if (decision.decision === "fail") {
-    els.decisionCopy.textContent = "Fail selected on this phone. The recipe has not moved yet - paste the copied JSON into Codex so it can create a repair ticket.";
+    els.decisionCopy.textContent = "Fail selected on this phone. Add notes and send it to the recipe manager so it can create a repair ticket.";
   } else if (recipe.status === "needs_repair") {
     els.decisionCopy.textContent = "This recipe is already in repair. Copy a new decision only after a repaired version is shown.";
   } else if (recipe.status === "needs_review") {
-    els.decisionCopy.textContent = "Choose Pass or Fail. The app will copy a decision packet, then Codex imports it into the real project.";
+    els.decisionCopy.textContent = "Choose Pass or Fail. The app sends a decision packet to the manager postbox, then Recipe Pulse imports it into the real project.";
   } else {
     els.decisionCopy.textContent = "Review this profile. Import is still required before project truth changes.";
   }
@@ -1237,7 +1284,7 @@ function renderDecisionPanel(recipe) {
   if (els.copyReviewDecision) {
     els.copyReviewDecision.disabled = !decision.decision;
     els.copyReviewDecision.textContent =
-      decision.decision === "pass" ? "Copy Pass JSON" : decision.decision === "fail" ? "Copy Fail JSON" : "Choose Pass or Fail first";
+      decision.decision === "pass" ? "Send Pass" : decision.decision === "fail" ? "Send Fail" : "Choose Pass or Fail first";
   }
   renderPendingImportStatus(recipe, decision);
 }
@@ -1321,9 +1368,9 @@ function renderSendBackPanel(recipe) {
     <section class="story-section send-back-panel">
       <div class="section-title-row">
         <h3>Send Back For Changes</h3>
-        <span>Import required</span>
+        <span>Manager import</span>
       </div>
-      <p>This creates a Fail-style JSON packet. Codex must import it before the recipe leaves the approved database.</p>
+      <p>This sends a Fail-style packet to the recipe manager. If the postbox is offline, the app will show the JSON fallback.</p>
       <div class="review-fields database-review-fields">
         <label for="database-fail-reason">Reason</label>
         <select id="database-fail-reason" data-send-back-reason>
@@ -1332,7 +1379,7 @@ function renderSendBackPanel(recipe) {
         <label for="database-review-notes">Notes</label>
         <textarea id="database-review-notes" data-send-back-notes rows="2" placeholder="What should be changed?"></textarea>
       </div>
-      <button class="copy-decision-button" type="button" data-copy-send-back="${escapeHtml(recipe.recipe_id)}">Copy Send-Back JSON</button>
+      <button class="copy-decision-button" type="button" data-copy-send-back="${escapeHtml(recipe.recipe_id)}">Send Back For Changes</button>
     </section>
   `;
 }
@@ -1349,23 +1396,49 @@ function buildSendBackPayload(recipe, reasonCode, notes) {
     notes: notes || "",
     reviewed_by: "Luke",
     reviewed_at: new Date().toISOString(),
-    source: "recipe_database_send_back_export",
+    source: postboxConfigured() ? "recipe_database_send_back_postbox" : "recipe_database_send_back_export",
     import_required: true,
+    submission_id: makeSubmissionId(recipe, "send-back"),
   };
 }
 
-async function copySendBackDecision(button) {
+async function copySendBackDecision(button, payloadOverride = null) {
   const recipe = currentDatabaseRecipe();
   if (!recipe || button.dataset.copySendBack !== recipe.recipe_id) return;
   const reason = els.databaseDetail.querySelector("[data-send-back-reason]")?.value || "other_notes";
   const notes = els.databaseDetail.querySelector("[data-send-back-notes]")?.value || "";
-  const jsonText = JSON.stringify(buildSendBackPayload(recipe, reason, notes), null, 2);
+  const jsonText = JSON.stringify(payloadOverride || buildSendBackPayload(recipe, reason, notes), null, 2);
   try {
     await navigator.clipboard.writeText(jsonText);
     button.textContent = "Copied for Codex";
   } catch {
     showCopyFallback(button.closest(".send-back-panel"), jsonText);
     button.textContent = "Select JSON below";
+  }
+}
+
+async function submitOrCopySendBackDecision(button) {
+  const recipe = currentDatabaseRecipe();
+  if (!recipe || button.dataset.copySendBack !== recipe.recipe_id) return;
+  const reason = els.databaseDetail.querySelector("[data-send-back-reason]")?.value || "other_notes";
+  const notes = els.databaseDetail.querySelector("[data-send-back-notes]")?.value || "";
+  const payload = buildSendBackPayload(recipe, reason, notes);
+  if (!notes.trim()) {
+    button.textContent = "Add notes first";
+    return;
+  }
+  try {
+    const result = await postboxSubmit(payload);
+    button.textContent = "Sent to manager";
+    const panel = button.closest(".send-back-panel");
+    if (panel) {
+      const status = document.createElement("p");
+      status.className = "friendly-empty";
+      status.textContent = `Sent. Submission ${result.submission_id || payload.submission_id} is waiting for Recipe Pulse import.`;
+      panel.appendChild(status);
+    }
+  } catch {
+    await copySendBackDecision(button, payload);
   }
 }
 
@@ -1944,20 +2017,22 @@ function moveSelection(direction) {
   renderAll();
 }
 
-function setDecision(value, autoCopy = false) {
+function setDecision(value, autoSend = false) {
   const recipe = currentRecipe();
   if (!recipe) return;
   const reasonCode = value === "fail" ? (els.failReason?.value || "other_notes") : "accepted";
+  const previous = state.decisions[recipe.recipe_id] || {};
   state.decisions[recipe.recipe_id] = {
     decision: value,
     reason_code: reasonCode,
     reason_label: value === "fail" ? (FAIL_REASONS[reasonCode] || FAIL_REASONS.other_notes) : "Accepted",
     notes: els.reviewNotes?.value || "",
+    submission_id: previous.submission_id || makeSubmissionId(recipe, value),
     updated_at: new Date().toISOString(),
   };
   saveDecisions();
   renderAll();
-  if (autoCopy) copyReviewDecision();
+  if (autoSend) submitOrCopyReviewDecision();
 }
 
 function buildReviewDecisionPayload(recipe) {
@@ -1976,8 +2051,9 @@ function buildReviewDecisionPayload(recipe) {
     notes: els.reviewNotes?.value || decision.notes || "",
     reviewed_by: "Luke",
     reviewed_at: new Date().toISOString(),
-    source: "recipe_explorer_app_local_export",
+    source: postboxConfigured() ? "recipe_explorer_app_postbox" : "recipe_explorer_app_local_export",
     import_required: true,
+    submission_id: decision.submission_id || makeSubmissionId(recipe, decisionValue),
   };
 }
 
@@ -1999,12 +2075,30 @@ async function copyReviewDecision() {
   }
 }
 
+async function submitOrCopyReviewDecision() {
+  const recipe = currentRecipe();
+  const payload = buildReviewDecisionPayload(recipe);
+  if (!payload) return;
+  const label = payload.decision === "pass" ? "Pass" : "Fail";
+  if (payload.decision === "fail" && !payload.notes.trim()) {
+    els.decisionCopy.textContent = "Fail needs notes so the repair worker knows what to fix.";
+    return;
+  }
+  try {
+    const result = await postboxSubmit(payload);
+    els.copyReviewDecision.textContent = `${label} sent`;
+    els.decisionCopy.textContent = `${label} sent to the recipe manager. Submission ${result.submission_id || payload.submission_id} is waiting for Recipe Pulse import.`;
+  } catch {
+    await copyReviewDecision();
+  }
+}
+
 function attachEvents() {
   els.nextButton.addEventListener("click", () => moveSelection(1));
   els.previousButton.addEventListener("click", () => moveSelection(-1));
   els.passButton.addEventListener("click", () => setDecision("pass", true));
   els.failButton.addEventListener("click", () => setDecision("fail", true));
-  els.copyReviewDecision.addEventListener("click", copyReviewDecision);
+  els.copyReviewDecision.addEventListener("click", submitOrCopyReviewDecision);
 
   els.recipeList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-recipe-id]");
@@ -2058,7 +2152,7 @@ function attachEvents() {
   els.databaseDetail.addEventListener("click", (event) => {
     const sendBackButton = event.target.closest("[data-copy-send-back]");
     if (sendBackButton) {
-      copySendBackDecision(sendBackButton);
+      submitOrCopySendBackDecision(sendBackButton);
       return;
     }
     const linkButton = event.target.closest("[data-copy-recipe-link]");
@@ -2166,14 +2260,18 @@ async function init() {
   attachEvents();
   showRoute(routeFromHash());
   try {
-    const [recipeResponse, profileResponse] = await Promise.all([
+    const [recipeResponse, profileResponse, postboxResponse] = await Promise.all([
       fetch("./data/recipe-index.json", { cache: "no-store" }),
       fetch("./data/profile-index.json", { cache: "no-store" }),
+      fetch("./data/review-postbox-config.json", { cache: "no-store" }).catch(() => null),
     ]);
     if (!recipeResponse.ok) throw new Error(`recipe-index HTTP ${recipeResponse.status}`);
     if (!profileResponse.ok) throw new Error(`profile-index HTTP ${profileResponse.status}`);
     state.index = await recipeResponse.json();
     state.profileIndex = await profileResponse.json();
+    if (postboxResponse && postboxResponse.ok) {
+      state.postboxConfig = await postboxResponse.json();
+    }
     const firstReview = state.index.recipes.find((recipe) => recipe.status === "needs_review");
     const firstReviewWork = state.index.recipes.find((recipe) => ["needs_review", "needs_repair", "blocked"].includes(recipe.status));
     const firstApproved = approvedRecipes()[0];
