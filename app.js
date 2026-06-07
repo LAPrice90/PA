@@ -63,6 +63,9 @@ const els = {
   profile: document.querySelector("#recipe-profile"),
   recipeList: document.querySelector("#recipe-list"),
   queueSummary: document.querySelector("#queue-summary"),
+  managerQueueTools: document.querySelector("#manager-queue-tools"),
+  copyVisibleQueue: document.querySelector("#copy-visible-queue"),
+  managerQueueStatus: document.querySelector("#manager-queue-status"),
   reviewCount: document.querySelector("#review-count"),
   decisionCopy: document.querySelector("#decision-copy"),
   failReason: document.querySelector("#fail-reason"),
@@ -199,6 +202,77 @@ function basketCounts() {
     },
     { needs_review: 0, ready_to_send: 0, sent_to_manager: 0, send_failed: 0, needs_repair: 0, blocked: 0 },
   );
+}
+
+function queueSnapshotRow(recipe) {
+  const decision = recipeDecision(recipe);
+  return {
+    recipe_id: recipe.recipe_id || "",
+    run_slug: recipe.run_slug || "",
+    title: recipe.title || "",
+    status: recipe.status || "",
+    local_review_state: reviewDecisionState(recipe),
+    meal_type: recipe.meal_type || "",
+    decision: decision.decision || "",
+    send_status: decision.send_status || "",
+    sent_at: decision.sent_at || "",
+    notes_present: Boolean(String(decision.notes || "").trim()),
+  };
+}
+
+function buildVisibleQueueSnapshot() {
+  const reviewStatuses = new Set(["needs_review", "needs_repair", "blocked"]);
+  const recipes = state.index?.recipes || [];
+  const reviewSurface = recipes.filter((recipe) => reviewStatuses.has(recipe.status));
+  const visibleToLuke = reviewSurface.filter((recipe) => reviewDecisionState(recipe) !== "sent_to_manager");
+  const hiddenSent = reviewSurface.filter((recipe) => reviewDecisionState(recipe) === "sent_to_manager");
+  const currentVisible = filteredRecipes();
+  return {
+    schema_version: "v3.recipe_explorer_visible_queue_snapshot.1",
+    created_at: new Date().toISOString(),
+    source: "recipe_explorer_app_browser_state",
+    page_url: window.location.href,
+    active_filter: state.filter,
+    selected_recipe_id: state.selectedId || "",
+    selected_run_slug: currentRecipe()?.run_slug || "",
+    raw_index_counts: {
+      recipe_count: Number(state.index?.recipe_count || recipes.length || 0),
+      approved_count: Number(state.index?.approved_count || 0),
+      needs_review_count: Number(state.index?.needs_review_count || 0),
+      needs_repair_count: Number(state.index?.needs_repair_count || 0),
+      blocked_count: Number(state.index?.blocked_count || 0),
+    },
+    browser_counts: basketCounts(),
+    current_filter_visible_count: currentVisible.length,
+    luke_visible_review_count: visibleToLuke.length,
+    hidden_sent_count: hiddenSent.length,
+    next_luke_visible_recipe: visibleToLuke[0] ? queueSnapshotRow(visibleToLuke[0]) : null,
+    current_filter_visible_queue: currentVisible.map(queueSnapshotRow),
+    luke_visible_review_queue: visibleToLuke.map(queueSnapshotRow),
+    hidden_sent_queue: hiddenSent.map(queueSnapshotRow),
+    local_decisions: Object.fromEntries(
+      Object.entries(state.decisions || {}).map(([recipeId, raw]) => [recipeId, normaliseDecision(recipeId, raw)]),
+    ),
+  };
+}
+
+async function copyVisibleQueueSnapshot() {
+  if (!state.index) return;
+  const payload = buildVisibleQueueSnapshot();
+  const jsonText = JSON.stringify(payload, null, 2);
+  try {
+    await navigator.clipboard.writeText(jsonText);
+    if (els.managerQueueStatus) {
+      els.managerQueueStatus.dataset.userMessage = "true";
+      els.managerQueueStatus.textContent = `Manager queue copied: ${payload.luke_visible_review_count} visible, ${payload.hidden_sent_count} hidden as sent.`;
+    }
+  } catch {
+    showCopyFallback(els.managerQueueTools, jsonText);
+    if (els.managerQueueStatus) {
+      els.managerQueueStatus.dataset.userMessage = "true";
+      els.managerQueueStatus.textContent = "Clipboard blocked. Select and copy the queue JSON shown below.";
+    }
+  }
 }
 
 function makeSubmissionId(recipe, decision) {
@@ -1430,14 +1504,21 @@ function renderQueue() {
   const index = state.index;
   if (!index) return;
   const counts = basketCounts();
+  const visibleToLukeCount = counts.needs_review + counts.ready_to_send + counts.send_failed + counts.needs_repair + counts.blocked;
   els.queueSummary.innerHTML = `
-    <span><strong>${counts.needs_review + counts.ready_to_send + counts.send_failed + counts.needs_repair + counts.blocked}</strong> active</span>
+    <span><strong>${visibleToLukeCount}</strong> active</span>
     <span><strong>${counts.ready_to_send}</strong> ready</span>
     <span><strong>${counts.sent_to_manager}</strong> sent</span>
     <span><strong>${index.approved_count || 0}</strong> database</span>
     <span><strong>${counts.needs_repair}</strong> repair</span>
     <span><strong>${counts.blocked}</strong> technical</span>
   `;
+  if (els.copyVisibleQueue) {
+    els.copyVisibleQueue.disabled = !state.index;
+  }
+  if (els.managerQueueStatus && !els.managerQueueStatus.dataset.userMessage) {
+    els.managerQueueStatus.textContent = `Manager queue: ${visibleToLukeCount} visible here, ${counts.sent_to_manager} hidden as sent.`;
+  }
   const recipes = filteredRecipes();
   if (!recipes.length) {
     els.recipeList.innerHTML = `<p class="friendly-empty">No recipes match this filter.</p>`;
@@ -2309,6 +2390,7 @@ function attachEvents() {
   els.passButton.addEventListener("click", () => setDecision("pass", false));
   els.failButton.addEventListener("click", () => setDecision("fail", false));
   els.copyReviewDecision.addEventListener("click", submitOrCopyReviewDecision);
+  els.copyVisibleQueue?.addEventListener("click", copyVisibleQueueSnapshot);
   els.failReason.addEventListener("change", updateCurrentDecisionMeta);
   els.reviewNotes.addEventListener("input", updateCurrentDecisionMeta);
 

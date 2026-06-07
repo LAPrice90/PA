@@ -1815,6 +1815,23 @@ button {
   color: var(--blue);
 }
 
+.manager-queue-tools {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 10px;
+  border: 1px solid rgba(17, 19, 24, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.manager-queue-tools p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
 .filter-pills {
   margin-bottom: 14px;
 }
