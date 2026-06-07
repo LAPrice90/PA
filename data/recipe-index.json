@@ -10,7 +10,6 @@
     "approved_dir": "V3/recipe_factory/review_queue/approved",
     "rejected_dir": "V3/recipe_factory/review_queue/rejected",
     "request_run_slugs": [
-      "beef-and-broccoli-noodle-stir-fry",
       "beef-taco-rice-salad-box",
       "cheddar-spinach-egg-bake-squares",
       "chicken-and-mushroom-stroganoff-rice",
@@ -30,15 +29,6 @@
       "sticky-beef-green-bean-rice-box"
     ],
     "request_records": [
-      {
-        "run_slug": "beef-and-broccoli-noodle-stir-fry",
-        "status": "active",
-        "request_path": "V3/recipe_factory/review_queue/public/beef-and-broccoli-noodle-stir-fry.json",
-        "title": "Beef and Broccoli Noodle Stir-Fry",
-        "source": "recipe_production_pulse",
-        "created_at_utc": "2026-06-07T06:32:22+00:00",
-        "reason": "Manager Quality Check passed from the single Recipe Pulse."
-      },
       {
         "run_slug": "beef-taco-rice-salad-box",
         "status": "active",
@@ -194,11 +184,22 @@
       }
     ],
     "approved_run_slugs": [
+      "beef-and-broccoli-noodle-stir-fry",
       "cauliflower-cheese-soup-v1",
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1"
     ],
     "approved_records": [
+      {
+        "run_slug": "beef-and-broccoli-noodle-stir-fry",
+        "status": "approved",
+        "request_path": "V3/recipe_factory/review_queue/approved/beef-and-broccoli-noodle-stir-fry.json",
+        "title": "Beef and Broccoli Noodle Stir-Fry",
+        "source": "recipe_production_pulse",
+        "created_at_utc": "2026-06-07T06:32:22+00:00",
+        "approved_at_utc": "2026-06-07T07:50:29.911Z",
+        "reason": "Luke review passed; recipe belongs in Recipe Database, not the active review queue."
+      },
       {
         "run_slug": "cauliflower-cheese-soup-v1",
         "status": "approved",
@@ -233,7 +234,6 @@
     "rejected_run_slugs": [],
     "rejected_records": [],
     "visible_run_slugs": [
-      "beef-and-broccoli-noodle-stir-fry",
       "beef-taco-rice-salad-box",
       "cheddar-spinach-egg-bake-squares",
       "chicken-and-mushroom-stroganoff-rice",
@@ -251,6 +251,7 @@
       "pork-souvlaki-with-greek-salad-and-rice",
       "soy-ginger-chicken-noodle-salad",
       "sticky-beef-green-bean-rice-box",
+      "beef-and-broccoli-noodle-stir-fry",
       "cauliflower-cheese-soup-v1",
       "poached-eggs-on-toast-v1",
       "scrambled-eggs-on-toast-v1"
@@ -259,8 +260,8 @@
     "expected_public_recipe_count": "auto"
   },
   "recipe_count": 21,
-  "approved_count": 3,
-  "needs_review_count": 18,
+  "approved_count": 4,
+  "needs_review_count": 17,
   "needs_repair_count": 0,
   "blocked_count": 0,
   "data_contract": {
@@ -278,26 +279,26 @@
       "recipe_id": "V3-BEEF_AND_BROCCOLI_NOODLE_STIR_FRY",
       "run_slug": "beef-and-broccoli-noodle-stir-fry",
       "title": "Beef and Broccoli Noodle Stir-Fry",
-      "status": "needs_review",
-      "planner_ready": false,
-      "algorithmic_planning_allowed": false,
+      "status": "approved",
+      "planner_ready": true,
+      "algorithmic_planning_allowed": true,
       "technical_planner_ready": true,
       "technical_algorithmic_planning_allowed": true,
-      "user_confirmation_required": true,
+      "user_confirmation_required": false,
       "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
+        "status": "confirmed",
+        "confirmed": true,
         "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
+        "confirmed_by": "Luke",
+        "confirmed_at": "2026-06-07T07:50:29.911Z",
         "failed_by": "",
         "failed_at": "",
-        "decision": "",
+        "decision": "pass",
         "reason_code": "",
         "reason_label": "",
         "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
+        "review_file": "human_review.json",
+        "notes": "Ginger soy glaze Showing in step 2 when not used again, repeat error",
         "required_for_planning": true
       },
       "meal_type": "dinner",
@@ -64290,39 +64291,6 @@
   ],
   "hidden_reference_runs": [],
   "user_review_queue": [
-    {
-      "recipe_id": "V3-BEEF_AND_BROCCOLI_NOODLE_STIR_FRY",
-      "title": "Beef and Broccoli Noodle Stir-Fry",
-      "run_slug": "beef-and-broccoli-noodle-stir-fry",
-      "plain_english_summary": "Technical proof passes, but Luke has not confirmed this recipe for the household shelf.",
-      "human_review": {
-        "status": "needs_user_confirmation",
-        "confirmed": false,
-        "failed": false,
-        "confirmed_by": "",
-        "confirmed_at": "",
-        "failed_by": "",
-        "failed_at": "",
-        "decision": "",
-        "reason_code": "",
-        "reason_label": "",
-        "repair_ticket": "",
-        "review_file": "",
-        "notes": "",
-        "required_for_planning": true
-      },
-      "paths": {
-        "run_dir": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry",
-        "output_bundle": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/output_bundle",
-        "finished_recipe_card": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/output_bundle/finished-recipe-card.md",
-        "recipe_data_invoice": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/output_bundle/recipe-data-invoice.csv",
-        "solver_recipe_card": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/output_bundle/solver-recipe-card.json",
-        "factory_runner_report": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/factory-runner-report.json",
-        "validation_summary": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/validation-summary.json",
-        "source_authority_report": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/source-authority-binding-report.json",
-        "human_cookability_preflight": "V3/recipe_factory/runs/beef-and-broccoli-noodle-stir-fry/human-cookability-preflight.json"
-      }
-    },
     {
       "recipe_id": "V3-BEEF_TACO_RICE_SALAD_BOX",
       "title": "Beef Taco Rice Salad Box",
