@@ -3885,9 +3885,11 @@ function shoppingPackFitReceiptPanel() {
   const receipt = state.weekPackFitReceipt;
   if (!receipt || !receipt.week_id) return "";
   const adjustments = Array.isArray(receipt.adjustments) ? receipt.adjustments : [];
+  const rejected = Array.isArray(receipt.rejected_adjustments) ? receipt.rejected_adjustments : [];
   const leftovers = Array.isArray(receipt.leftovers) ? receipt.leftovers.filter((item) => Number(item.leftover_amount || 0) > 0) : [];
   const useUp = Array.isArray(receipt.use_up_stock_created) ? receipt.use_up_stock_created : [];
   const packChoices = Array.isArray(receipt.pack_choices) ? receipt.pack_choices : [];
+  const audit = shoppingPackFitAuditModel(receipt);
   return `
     <div class="shopping-pack-fit-panel">
       <div class="shopping-pack-fit-heading">
@@ -3901,35 +3903,129 @@ function shoppingPackFitReceiptPanel() {
         ${shoppingSummaryMetric("Leftovers", leftovers.length)}
         ${shoppingSummaryMetric("Use-up stock", useUp.length)}
       </div>
-      ${adjustments.length ? `
-        <div class="shopping-pack-fit-list">
-          ${adjustments.slice(0, 4).map((item) => `
-            <span>
-              <strong>${escapeHtml(item.ingredient || item.family_id || "Ingredient")}</strong>
-              <em>${escapeHtml(formatPackFitChange(item))}</em>
-              <small>${escapeHtml(item.reason || "pack_fit")}</small>
-            </span>
+      ${shoppingPackFitAdjustmentAudit(audit)}
+    </div>
+  `;
+}
+
+function shoppingPackFitAuditModel(receipt) {
+  const adjustments = Array.isArray(receipt?.adjustments) ? receipt.adjustments : [];
+  const rejected = Array.isArray(receipt?.rejected_adjustments) ? receipt.rejected_adjustments : [];
+  const leftovers = Array.isArray(receipt?.leftovers) ? receipt.leftovers.filter((item) => Number(item.leftover_amount || 0) > 0) : [];
+  const packChoices = Array.isArray(receipt?.pack_choices) ? receipt.pack_choices : [];
+  const choiceByFamily = new Map(packChoices.map((choice) => [choice.family_id, choice]));
+  const leftoverByFamily = new Map(leftovers.map((leftover) => [leftover.family_id, leftover]));
+  const rows = adjustments.map((item) => {
+    const choice = choiceByFamily.get(item.family_id) || null;
+    const leftover = leftoverByFamily.get(item.family_id) || null;
+    return {
+      ...item,
+      pack_choice: choice,
+      leftover,
+      why: formatPackFitWhy(item, choice, leftover),
+      pack_result: formatPackFitAuditPackResult(choice, leftover),
+      policy: formatPackFitPolicy(item),
+    };
+  });
+  const upward = rows.filter((row) => Number(row.amount_delta || 0) > 0);
+  const downward = rows.filter((row) => Number(row.amount_delta || 0) < 0);
+  const totalUp = upward.reduce((sum, row) => sum + Number(row.amount_delta || 0), 0);
+  const totalDown = downward.reduce((sum, row) => sum + Math.abs(Number(row.amount_delta || 0)), 0);
+  const smallCleanups = rows.filter((row) => row.rounding_status === "small_remainder_cleanup").length;
+  const percentFlex = rows.filter((row) => String(row.reason || "").startsWith("default_fresh_")).length;
+  return {
+    rows,
+    rejected,
+    leftovers,
+    packChoices,
+    total_up: appPackFitRoundNumber(totalUp),
+    total_down: appPackFitRoundNumber(totalDown),
+    small_cleanup_count: smallCleanups,
+    percent_flex_count: percentFlex,
+  };
+}
+
+function shoppingPackFitAdjustmentAudit(audit) {
+  const rows = Array.isArray(audit?.rows) ? audit.rows : [];
+  const rejected = Array.isArray(audit?.rejected) ? audit.rejected : [];
+  if (!rows.length && !rejected.length) {
+    return `
+      <details class="shopping-adjustment-audit">
+        <summary>
+          <span>Adjustment audit</span>
+          <strong>No recipe quantity changes</strong>
+        </summary>
+        <p>No pack-fit recipe adjustments were needed for this draft.</p>
+      </details>
+    `;
+  }
+  return `
+    <details class="shopping-adjustment-audit">
+      <summary>
+        <span>Adjustment audit</span>
+        <strong>${escapeHtml(shoppingPackFitAuditSummaryLabel(audit))}</strong>
+      </summary>
+      <div class="shopping-adjustment-audit-grid">
+        ${shoppingSummaryMetric("Added", shoppingPackFitSignedAmount(audit.total_up || 0, "g", true))}
+        ${shoppingSummaryMetric("Reduced", shoppingPackFitSignedAmount(-Math.abs(Number(audit.total_down || 0)), "g"))}
+        ${shoppingSummaryMetric("Small cleanup", audit.small_cleanup_count || 0)}
+        ${shoppingSummaryMetric("Rejected", rejected.length)}
+      </div>
+      ${rows.length ? `
+        <div class="shopping-adjustment-table" role="table" aria-label="Recipe quantity adjustments">
+          <div class="shopping-adjustment-table-head" role="row">
+            <span role="columnheader">Ingredient</span>
+            <span role="columnheader">Change</span>
+            <span role="columnheader">Why</span>
+            <span role="columnheader">Result</span>
+          </div>
+          ${rows.map(shoppingPackFitAuditRow).join("")}
+        </div>
+      ` : ""}
+      ${rejected.length ? `
+        <div class="shopping-adjustment-rejections" aria-label="Rejected adjustments">
+          <strong>Rejected adjustments</strong>
+          ${rejected.map((item) => `
+            <span>${escapeHtml([item.family_id || "Family", item.reason || "No reason saved"].filter(Boolean).join(" - "))}</span>
           `).join("")}
         </div>
       ` : ""}
-      ${packChoices.length ? `
-        <div class="shopping-pack-fit-list">
-          ${packChoices.slice(0, 4).map((choice) => `
-            <span>
-              <strong>${escapeHtml(choice.family_label || choice.family_id || "Pack")}</strong>
-              <em>${escapeHtml(formatPackFitPicks(choice))}</em>
-              <small>${escapeHtml(formatPackFitLeftover(choice, leftovers))}</small>
-            </span>
-          `).join("")}
-        </div>
-      ` : ""}
+    </details>
+  `;
+}
+
+function shoppingPackFitAuditSummaryLabel(audit) {
+  const count = Number(audit?.rows?.length || 0);
+  const rejected = Number(audit?.rejected?.length || 0);
+  const bits = [`${count} change${count === 1 ? "" : "s"}`];
+  if (audit?.small_cleanup_count) bits.push(`${number(audit.small_cleanup_count)} cleanup`);
+  if (audit?.percent_flex_count) bits.push(`${number(audit.percent_flex_count)} percent-flex`);
+  if (rejected) bits.push(`${rejected} rejected`);
+  return bits.join(" - ");
+}
+
+function shoppingPackFitAuditRow(row) {
+  return `
+    <div class="shopping-adjustment-row" role="row">
+      <span role="cell">
+        <strong>${escapeHtml(row.ingredient || row.family_id || "Ingredient")}</strong>
+        <em>${escapeHtml(row.recipe_id || "")}</em>
+      </span>
+      <span role="cell">${escapeHtml(formatPackFitChange(row))}</span>
+      <span role="cell">
+        <strong>${escapeHtml(row.why)}</strong>
+        <em>${escapeHtml(row.policy)}</em>
+      </span>
+      <span role="cell">${escapeHtml(row.pack_result)}</span>
     </div>
   `;
 }
 
 function formatPackFitChange(item) {
   const unit = item.line_unit || item.unit || "";
-  return `${number(item.line_amount_before ?? item.amount_before)}${unit ? ` ${unit}` : ""} to ${number(item.line_amount_after ?? item.amount_after)}${unit ? ` ${unit}` : ""}`;
+  const delta = Number(item.line_amount_delta ?? item.amount_delta ?? 0);
+  const deltaLabel = delta ? ` (${shoppingPackFitSignedAmount(delta, unit)})` : "";
+  return `${number(item.line_amount_before ?? item.amount_before)}${unit ? ` ${unit}` : ""} to ${number(item.line_amount_after ?? item.amount_after)}${unit ? ` ${unit}` : ""}${deltaLabel}`;
 }
 
 function formatPackFitPicks(choice) {
@@ -3946,6 +4042,47 @@ function formatPackFitLeftover(choice, leftovers) {
   const leftover = leftovers.find((item) => item.family_id === choice.family_id);
   if (!leftover) return "No leftover carried forward";
   return `${number(leftover.leftover_amount)} ${leftover.unit || ""} leftover carried forward`.trim();
+}
+
+function shoppingPackFitSignedAmount(amount, unit = "", forcePositive = false) {
+  const value = Number(amount || 0);
+  const sign = value > 0 || forcePositive ? "+" : value < 0 ? "-" : "";
+  const absolute = Math.abs(value);
+  return `${sign}${number(absolute)}${unit ? ` ${unit}` : ""}`.trim();
+}
+
+function formatPackFitWhy(item, choice = null, leftover = null) {
+  const delta = Number(item?.amount_delta || 0);
+  const status = String(item?.rounding_status || "");
+  const reason = String(item?.reason || "");
+  if (status === "small_remainder_cleanup") return "absorbed a small pack remainder";
+  if (choice?.status === "no_purchase_after_flex") return "avoided opening a fresh pack";
+  if (reason === "default_fresh_percent_flex") return "used default fresh +/-20% flex";
+  if (reason === "default_fresh_protein_percent_flex") return "used default protein +/-10% flex";
+  if (reason === "default_fresh_starch_percent_flex") return "used default starch +/-15% flex";
+  if (delta > 0 && leftover) return "reduced carried-forward waste";
+  if (delta > 0) return "filled the selected pack";
+  if (delta < 0) return "stayed below the pack boundary";
+  return reason || "pack-fit balancing";
+}
+
+function formatPackFitPolicy(item) {
+  const status = String(item?.rounding_status || "");
+  const interval = Number(item?.rounding_interval || 0);
+  const source = Number(item?.source_flex_interval || 0);
+  if (status === "small_remainder_cleanup") return "small leftover cleanup, 5g step";
+  if (interval > 0 && source > 0 && interval !== source) return `${number(source)}g source step, rounded to ${number(interval)}g`;
+  if (interval > 0) return `${number(interval)}g step`;
+  return status || "no rounding needed";
+}
+
+function formatPackFitAuditPackResult(choice = null, leftover = null) {
+  if (!choice) return "No pack row saved";
+  const picks = formatPackFitPicks(choice);
+  const left = leftover && Number(leftover.leftover_amount || 0) > 0
+    ? `${number(leftover.leftover_amount)} ${leftover.unit || choice.unit || ""} left`
+    : "no leftover";
+  return `${picks}; ${left}`;
 }
 
 function shoppingMissingPricePreview(lines = []) {
