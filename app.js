@@ -12884,10 +12884,44 @@ function plannerCalendarDay(day) {
   )));
   return `
     <div class="planner-calendar-day ${escapeAttr(plannerDayTemporalState(day))}" data-planner-calendar-blank="${escapeAttr(day.day || "")}" aria-label="${escapeAttr(`${day.day || "Planner day"} ${plannerShortDateLabel(plannerDayDate(day))}`)}">
+      ${plannerCalendarOutsideWeekBlocks(day)}
       ${placements.map(({ slot, row, offset }) => plannerCalendarSlotCard(slot, day, row, offset)).join("")}
       ${day.trailing_shopping_horizon ? "" : plannerCalendarDayTotals(day)}
     </div>
   `;
+}
+
+function plannerCalendarOutsideWeekBlocks(day) {
+  return plannerCalendarOutsideWeekWindows(day).map((window) => {
+    const placement = plannerCalendarWindowPlacement(window.start, window.end);
+    if (!placement) return "";
+    return `
+      <div class="planner-calendar-blockout" aria-hidden="true" title="${escapeAttr(window.label)}" style="--blockout-top: ${placement.top}px; --blockout-height: ${placement.height}px;">
+        <span>${escapeHtml(window.label)}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function plannerCalendarOutsideWeekWindows(day) {
+  if (!day || day.trailing_shopping_horizon) return [];
+  if (String(day.day || "").toLowerCase() !== "sunday") return [];
+  return [{
+    start: "00:00",
+    end: "10:00",
+    label: "Previous week",
+  }];
+}
+
+function plannerCalendarWindowPlacement(start, end) {
+  const visibleStart = 7 * 60;
+  const visibleEnd = visibleStart + (plannerTimeLabels().length * 60);
+  const startMinutes = Math.max(visibleStart, plannerTimeToMinutes(start));
+  const endMinutes = Math.min(visibleEnd, plannerTimeToMinutes(end));
+  if (endMinutes <= startMinutes) return null;
+  const top = Math.round(((startMinutes - visibleStart) / 60) * plannerCalendarHourRowHeight());
+  const height = Math.round(((endMinutes - startMinutes) / 60) * plannerCalendarHourRowHeight());
+  return { top, height };
 }
 
 function plannerStockCountMarkerPlacement(day) {
