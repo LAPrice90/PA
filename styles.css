@@ -8064,6 +8064,23 @@ body[data-route="profiles"] .profile-section {
   cursor: default;
 }
 
+.planner-clean-calendar-panel .planner-calendar-slot.shopping-window-slot {
+  border-color: #b9d9cf;
+  background: repeating-linear-gradient(
+      -45deg,
+      rgba(39, 107, 86, 0.08) 0,
+      rgba(39, 107, 86, 0.08) 7px,
+      rgba(255, 255, 255, 0.7) 7px,
+      rgba(255, 255, 255, 0.7) 15px
+    ),
+    linear-gradient(90deg, #edf8f4, #ffffff 74%);
+  color: #29463d;
+}
+
+.planner-clean-calendar-panel .planner-calendar-slot.shopping-window-slot.not_required {
+  opacity: 0.46;
+}
+
 .planner-clean-calendar-panel .planner-calendar-slot.shopping-horizon-slot .planner-slot-rail {
   background: #1cb0f6;
 }
@@ -8415,8 +8432,8 @@ body[data-route="profiles"] .profile-section {
 }
 
 .planner-carry-forward-row {
-  min-height: 92px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 172px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid #d9ead2;
   border-left: 5px solid #d9ead2;
   border-radius: 12px;
@@ -8465,8 +8482,8 @@ body[data-route="profiles"] .profile-section {
 .planner-carry-forward-row strong {
   grid-column: 1 / -1;
   color: var(--ink);
-  font-size: 0.82rem;
-  line-height: 1.18;
+  font-size: 0.86rem;
+  line-height: 1.22;
   font-weight: 1000;
   overflow-wrap: anywhere;
 }
@@ -8514,6 +8531,18 @@ body[data-route="profiles"] .profile-section {
 
 .planner-carry-forward-row.used em i {
   color: var(--green-deep);
+}
+
+.planner-carry-forward-row .planner-carry-forward-value i {
+  color: var(--ink);
+}
+
+.planner-carry-forward-row .planner-carry-forward-waste i {
+  color: #44554b;
+}
+
+.planner-carry-forward-row.waste .planner-carry-forward-waste i {
+  color: #a02020;
 }
 
 .planner-carry-forward-more {

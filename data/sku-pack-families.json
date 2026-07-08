@@ -610,8 +610,8 @@
       "category": "Dairy and eggs",
       "primary_shop": "Aldi",
       "unit": "egg",
-      "freshness": "fridge_stock",
-      "optimizer_policy": "fresh_fridge_stock_low_waste_then_cost",
+      "freshness": "ambient_weekly_stock",
+      "optimizer_policy": "weekly_stock_then_cost",
       "options": [
         {
           "sku_code": "aldi-merevale-british-medium-free-range-eggs-6pk",
@@ -662,8 +662,8 @@
           "nutrition_binding_status": "source_verified",
           "nutrition_confidence_status": "source_verified",
           "nutrition_checked_at_uk": "2026-07-06T11:54:02+01:00",
-          "storage_class": "fridge_stock",
-          "leftover_policy": "fridge_stock_restock",
+          "storage_class": "weekly_stock",
+          "leftover_policy": "long_life_weekly_restock",
           "household_stock_status": "standing_stock_item",
           "pantry_default": true,
           "notes": "Low-waste 6-pack option for small egg restocks."
@@ -729,8 +729,8 @@
           "final_review_note": "Aldi page confirms Merevale British Free Range Mixed Weight Eggs 15 Pack, 15 each, GBP 2.85. Open Food Facts front image shows Merevale British Free Range 15 Mixed Size Eggs, matching the current Aldi 15-pack row.",
           "source_notes": "batch-076-aldi-eggs-exact-label-signoff: signed off using current Aldi product-page proof plus exact readable external packet-label nutrition.",
           "household_stock_status": "standing_stock_item",
-          "storage_class": "fridge_stock",
-          "leftover_policy": "fridge_stock_restock",
+          "storage_class": "weekly_stock",
+          "leftover_policy": "long_life_weekly_restock",
           "pantry_default": true
         }
       ],
@@ -743,19 +743,22 @@
           "note": "Calculator rows use beaten egg grams; shopping buys whole eggs. 55g is the mixed-weight egg planning anchor."
         }
       ],
-      "storage_class": "fridge_stock",
-      "leftover_policy": "fridge_stock_restock",
+      "storage_class": "weekly_stock",
+      "leftover_policy": "long_life_weekly_restock",
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
         "amount": 100,
         "unit": "count_x100"
       },
-      "pack_fit_policy": "exempt_fridge_stock_carryover",
+      "pack_fit_policy": "exempt_weekly_stock_carryover",
       "flex_policy": "not_flexible_carryover",
       "risk_priority": "low",
       "notes": "Eggs are household fridge stock; 6-pack is the low-waste option and 15-pack remains available for larger restocks.",
-      "source_notes": "Household stock rule confirmed by Luke on 2026-07-06. Eggs are household fridge stock; 6-pack is the low-waste option and 15-pack remains available for larger restocks."
+      "source_notes": "Household stock rule confirmed by Luke on 2026-07-06. Eggs are household fridge stock; 6-pack is the low-waste option and 15-pack remains available for larger restocks.",
+      "shelf_life_days": 21,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "UK household eggs are weekly ambient stock, not urgent fridge use-up."
     },
     {
       "family_id": "GARLIC1",
@@ -1044,7 +1047,7 @@
         }
       ],
       "storage_class": "fresh",
-      "leftover_policy": "assign_leftover_if_partial_unit",
+      "leftover_policy": "base_veg_carryover",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -1053,7 +1056,10 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "medium"
+      "risk_priority": "medium",
+      "base_veg": true,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Carrots are common base veg; carry leftovers without treating them as urgent bin waste."
     },
     {
       "family_id": "ING-CHERRY-TOMATOES",
@@ -1281,14 +1287,37 @@
     },
     {
       "family_id": "ING-GINGER",
-      "display_name": "Nature's Pick Ginger",
-      "shopping_name": "Nature's Pick Ginger",
+      "display_name": "Very Lazy Ginger",
+      "shopping_name": "Very Lazy Ginger",
       "category": "Fruit Veg",
-      "primary_shop": "Aldi",
+      "primary_shop": "Morrisons",
       "unit": "g",
-      "freshness": "fresh",
-      "optimizer_policy": "fresh_low_waste_then_cost",
+      "freshness": "pantry_stock",
+      "optimizer_policy": "stock_item_then_cost",
       "options": [
+        {
+          "sku_code": "morrisons-very-lazy-ginger-190g",
+          "pack_quantity": 190,
+          "pack_unit": "g",
+          "pack_label": "190g jar",
+          "shop": "Morrisons",
+          "pack_cost_gbp": 1.95,
+          "active": true,
+          "data_status": "confirmed_current_product",
+          "research_status": "confirmed_current_product",
+          "source_type": "official_retailer_product_page",
+          "source_url": "https://groceries.morrisons.com/products/very-lazy-ginger/100405401",
+          "source_title": "Very Lazy Ginger",
+          "image_url": "https://groceries.morrisons.com/images-v3/4b85987b-1398-4173-a0c1-3546047c9d74/69bcb7ac-b6a7-4ea0-83ea-1b859b622cc4/500x500.jpg",
+          "image_source_url": "https://groceries.morrisons.com/products/very-lazy-ginger/100405401",
+          "image_checked_at_uk": "2026-07-08T20:55:00+01:00",
+          "checked_at_uk": "2026-07-08T20:55:00+01:00",
+          "signed_off_at_uk": "2026-07-08T20:55:00+01:00",
+          "price_checked_at_uk": "2026-07-08T20:55:00+01:00",
+          "pack_size_checked_at_uk": "2026-07-08T20:55:00+01:00",
+          "storage_class": "pantry",
+          "leftover_policy": "opened_fridge_sauce_stock"
+        },
         {
           "sku_code": "aldi-natures-pick-ginger-125g",
           "pack_quantity": 125,
@@ -1299,7 +1328,7 @@
           "source_note": "Official Aldi page shows Nature's Pick Ginger, displayed as 0.13 KG, GBP 0.99. Unit price implies the saved 125g pack size.",
           "checked_at": "2026-06-26",
           "previous_active": true,
-          "active": true,
+          "active": false,
           "data_status": "confirmed_current_product",
           "research_status": "confirmed_current_product",
           "research_pending_at_uk": "2026-07-03T22:52:55+01:00",
@@ -1347,20 +1376,29 @@
           "previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup": "Current Aldi page proves product, pack, price, and image, but does not publish the full nutrition panel. Exact current packet-label nutrition is still required before sign-off.",
           "live_blocker_cleared_at_uk": "2026-07-06T17:28:00+01:00",
           "live_blocker_cleared_by": "codex-v4-sku-full-repair",
-          "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup."
+          "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup.",
+          "backup_only": true,
+          "replacement_sku_code": "morrisons-very-lazy-ginger-190g",
+          "replacement_reason": "Household prefers jar ginger to avoid fresh ginger waste."
         }
       ],
-      "storage_class": "fresh",
-      "leftover_policy": "carry_forward_or_component_split",
+      "storage_class": "pantry",
+      "leftover_policy": "opened_fridge_sauce_stock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
         "amount": 25,
         "unit": "g"
       },
-      "pack_fit_policy": "fresh_moderate_flex",
+      "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "medium"
+      "risk_priority": "medium",
+      "awkward_pack_exempt": true,
+      "opened_shelf_life_days": 42,
+      "stock_rule_note": "Use the jar shortcut for normal planning; fresh Aldi ginger remains a backup only.",
+      "mapped_sku_codes": [
+        "morrisons-very-lazy-ginger-190g"
+      ]
     },
     {
       "family_id": "ING-HONEY",
@@ -1670,6 +1708,23 @@
       "portion_interval": {
         "amount": 60,
         "unit": "g"
+      },
+      "pack_clean_policy": {
+        "mode": "common_cluster",
+        "reason_label": "Brown onions should be opened only when the week has enough normal onion uses.",
+        "preferred_consumption_targets": [
+          300,
+          500,
+          750,
+          1000
+        ],
+        "clean_leftover_amounts": [
+          0
+        ],
+        "clean_remainder_max_amount": 0,
+        "awkward_remainder_min_amount": 500,
+        "minimum_use_if_purchased": 240,
+        "score_weight": 1.2
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
@@ -2251,9 +2306,28 @@
         "amount": 40,
         "unit": "g"
       },
+      "pack_clean_policy": {
+        "mode": "leafy_clean_remainder_strict",
+        "reason_label": "Baby spinach should be used while fresh or left only as a small top-up amount.",
+        "preferred_consumption_targets": [
+          200,
+          240,
+          440,
+          480
+        ],
+        "clean_leftover_amounts": [
+          0,
+          40
+        ],
+        "clean_remainder_max_amount": 40,
+        "awkward_remainder_min_amount": 60,
+        "minimum_use_if_purchased": 120,
+        "score_weight": 2.0
+      },
       "pack_fit_policy": "leafy_fresh_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "stock_rule_note": "A 300g need from 240g bags is a bad shape unless the 180g remainder has a dated use-up meal."
     },
     {
       "family_id": "ING-V1-BAKED-BEANS",
@@ -3897,7 +3971,29 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "medium"
+      "risk_priority": "medium",
+      "pack_clean_policy": {
+        "mode": "mushroom_half_or_full_pack",
+        "reason_label": "Mushrooms should use practical 100g, 200g, or 400g blocks.",
+        "preferred_consumption_targets": [
+          100,
+          200,
+          400,
+          500,
+          600,
+          800
+        ],
+        "clean_leftover_amounts": [
+          0,
+          200,
+          300
+        ],
+        "clean_remainder_max_amount": 0,
+        "awkward_remainder_min_amount": 80,
+        "minimum_use_if_purchased": 100,
+        "score_weight": 1.9
+      },
+      "stock_rule_note": "Avoid opening mushrooms for 80g unless paired quickly."
     },
     {
       "family_id": "ING-V1-COCONUT-FLOUR",
@@ -4646,11 +4742,11 @@
       "options": [
         {
           "sku_code": "aldi-chicken-drum-fillets-600g",
-          "pack_quantity": 900,
+          "pack_quantity": 600,
           "pack_unit": "g",
-          "pack_label": "900g",
+          "pack_label": "600g",
           "shop": "Aldi",
-          "pack_cost_gbp": 2.99,
+          "pack_cost_gbp": 2.95,
           "checked_at": "2026-06-04",
           "previous_active": true,
           "active": true,
@@ -4683,11 +4779,11 @@
           },
           "nutrition_checked_at_uk": "2026-07-04T05:28:00+01:00",
           "nutrition_missing_fields": [],
-          "price_gbp": 2.99,
-          "price_correction_at_uk": "2026-07-04T01:04:00+01:00",
-          "price_correction_batch": "batch-059-pack-family-cost-sync",
-          "price_correction_source_note": "Synced shopping option cost to corrected V4 profile pack_cost from saved retailer evidence.",
-          "source_notes": "batch-059-pack-family-cost-sync: synced pack_cost_gbp from 3.32 to GBP 2.99. batch-079-simple-ingredient-controlled-generic-signoff: signed off using current Aldi raw chicken drum fillets product proof plus complete CoFID raw chicken dark meat nutrition. Nutrition is controlled food-table/source-verified ingredient data because the retailer page does not publish a full nutrition table. This is deliberately not marked as packet-label verified.",
+          "price_gbp": 2.95,
+          "price_correction_at_uk": "2026-07-08T14:31:00+01:00",
+          "price_correction_batch": "batch-090-user-verified-chicken-drum-fillets-pack",
+          "price_correction_source_note": "User-verified Aldi pack correction: Ashfields Chicken Drumstick Fillets are 600g at GBP 2.95. Aldi website evidence has been unreliable for this item.",
+          "source_notes": "batch-090-user-verified-chicken-drum-fillets-pack: corrected pack_quantity from 900g to 600g and pack_cost_gbp from GBP 2.99 to GBP 2.95 from Luke's live Aldi shop check. batch-059-pack-family-cost-sync: synced pack_cost_gbp from 3.32 to GBP 2.99. batch-079-simple-ingredient-controlled-generic-signoff: signed off using current Aldi raw chicken drum fillets product proof plus complete CoFID raw chicken dark meat nutrition. Nutrition is controlled food-table/source-verified ingredient data because the retailer page does not publish a full nutrition table. This is deliberately not marked as packet-label verified.",
           "nutrition_source_item_code": "NIT-COFID-2021-18-289",
           "nutrition_source_name": "Chicken, dark meat, raw",
           "nutrition_source_type": "controlled_generic_nutrition_source_current_product_no_label",
@@ -4701,7 +4797,7 @@
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
-        "amount": 900,
+        "amount": 600,
         "unit": "g"
       },
       "pack_fit_policy": "protein_small_flex",
@@ -4806,9 +4902,9 @@
       "options": [
         {
           "sku_code": "aldi-four-seasons-chickpeas-in-water-400g",
-          "pack_quantity": 400,
+          "pack_quantity": 240,
           "pack_unit": "g",
-          "pack_label": "400g",
+          "pack_label": "400g tin, about 240g drained",
           "shop": "Aldi",
           "pack_cost_gbp": 0.49,
           "checked_at": "2026-05-05",
@@ -4853,11 +4949,13 @@
           "previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup": "Sign-off retracted: data_status is controlled_unavailable_product_with_replacement_needed; research_status is controlled_unavailable_product_with_replacement_needed; nutrition label not verified; status is not safe for green sign-off",
           "live_blocker_cleared_at_uk": "2026-07-06T17:28:00+01:00",
           "live_blocker_cleared_by": "codex-v4-sku-full-repair",
-          "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup."
+          "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup.",
+          "gross_pack_quantity": 400,
+          "gross_pack_unit": "g"
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "assign_opened_pack_leftover",
+      "leftover_policy": "pantry_tin_drained_leftover",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -4866,7 +4964,12 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "pack_basis": "drained_weight",
+      "pack_gross_quantity": 400,
+      "pack_edible_quantity": 240,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Recipe demand is drained chickpea weight; the 400g tin is not 400g edible drained chickpeas."
     },
     {
       "family_id": "ING-V1-CHILLI-FLAKES",
@@ -5906,9 +6009,28 @@
         "amount": 10,
         "unit": "g"
       },
+      "pack_clean_policy": {
+        "mode": "half_or_full_pack_strict",
+        "reason_label": "Feta should land on 100g or 200g blocks.",
+        "preferred_consumption_targets": [
+          100,
+          200,
+          300,
+          400
+        ],
+        "clean_leftover_amounts": [
+          0,
+          100
+        ],
+        "clean_remainder_max_amount": 0,
+        "awkward_remainder_min_amount": 50,
+        "minimum_use_if_purchased": 100,
+        "score_weight": 2.4
+      },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "stock_rule_note": "Do not plan 50g/70g feta buys unless a dated use-up meal is already selected."
     },
     {
       "family_id": "ING-V1-FRESH-BASIL",
@@ -7332,7 +7454,7 @@
       "category": "Dairy",
       "primary_shop": "Aldi",
       "unit": "g",
-      "freshness": "fresh",
+      "freshness": "chilled_stock",
       "optimizer_policy": "fresh_low_waste_then_cost",
       "options": [
         {
@@ -7388,8 +7510,8 @@
           "final_review_note": "Aldi page confirms Emporium Grated Mozzarella, 250g, GBP 1.89. Open Food Facts front image matches Emporium Mozzarella Grated 250g."
         }
       ],
-      "storage_class": "short_fresh",
-      "leftover_policy": "carry_forward_or_component_split",
+      "storage_class": "chilled_stock",
+      "leftover_policy": "weekly_stock_restock",
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
@@ -7398,7 +7520,10 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "awkward_pack_exempt": true,
+      "opened_shelf_life_days": 10,
+      "stock_rule_note": "Grated mozzarella is not urgent same-week waste, but planning should avoid opening it for tiny one-off use."
     },
     {
       "family_id": "ING-V1-GREEK-FLATBREADS",
@@ -9185,7 +9310,31 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "pack_clean_policy": {
+        "mode": "cottage_cheese_clean_blocks",
+        "reason_label": "Cottage cheese should land on 100g, 150g, 200g, or 300g blocks.",
+        "preferred_consumption_targets": [
+          100,
+          150,
+          200,
+          300,
+          400,
+          450,
+          600
+        ],
+        "clean_leftover_amounts": [
+          0,
+          100,
+          150,
+          200
+        ],
+        "clean_remainder_max_amount": 0,
+        "awkward_remainder_min_amount": 75,
+        "minimum_use_if_purchased": 100,
+        "score_weight": 1.8
+      },
+      "stock_rule_note": "Avoid 125g/175g style cottage cheese leftovers."
     },
     {
       "family_id": "ING-V1-MANGETOUT",
@@ -10182,7 +10331,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "use_whole_edible_units",
+      "leftover_policy": "long_life_weekly_restock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -10200,7 +10349,11 @@
           "rounding": "ceil",
           "note": "Protein tortilla wrap rows may store grams; the Aldi pack is 6 x 61g wraps."
         }
-      ]
+      ],
+      "household_default": true,
+      "default_for_wrap_recipes": true,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Use protein wraps as the default wrap family to avoid split white/protein wrap packs."
     },
     {
       "family_id": "ING-V1-PURE-MAPLE-SYRUP",
@@ -11443,7 +11596,7 @@
         }
       ],
       "storage_class": "fresh",
-      "leftover_policy": "assign_leftover_if_partial_unit",
+      "leftover_policy": "accepted_small_waste_if_unpaired",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -11452,7 +11605,14 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "medium"
+      "risk_priority": "medium",
+      "accepted_waste_policy": {
+        "mode": "accepted_small_fresh_waste",
+        "max_accepted_leftover_amount": 70,
+        "unit": "g",
+        "reason": "Spring onions often do not pair cleanly; avoid distorting the week to chase small amounts."
+      },
+      "stock_rule_note": "Use if convenient, but do not let spring onion leftovers distort the week."
     },
     {
       "family_id": "ING-V1-SRIRACHA-SAUCE",
@@ -12077,7 +12237,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "easy_carryover",
+      "leftover_policy": "opened_fridge_sauce_stock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -12086,7 +12246,9 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true,
+      "opened_shelf_life_days": 28
     },
     {
       "family_id": "ING-V1-TUNA-CHUNKS-IN-SPRING-WATER",
@@ -12172,7 +12334,7 @@
       "category": "Dairy",
       "primary_shop": "Aldi",
       "unit": "g",
-      "freshness": "pantry",
+      "freshness": "chilled_stock",
       "optimizer_policy": "standard_low_cost_then_waste",
       "options": [
         {
@@ -12227,8 +12389,8 @@
           "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup."
         }
       ],
-      "storage_class": "pantry",
-      "leftover_policy": "pantry_carryover",
+      "storage_class": "chilled_stock",
+      "leftover_policy": "weekly_stock_restock",
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
@@ -12237,7 +12399,8 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true
     },
     {
       "family_id": "ING-V1-VANILLA-EXTRACT",
@@ -12875,7 +13038,8 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true
     },
     {
       "family_id": "ING-V4-GARLIC-HERB-CROUTONS",
@@ -13301,7 +13465,11 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "default_blocked": true,
+      "backup_only": true,
+      "replacement_family_id": "ING-V1-PROTEIN-TORTILLA-WRAPS",
+      "stock_rule_note": "White wraps are backup only; default planning should group onto protein wraps."
     },
     {
       "family_id": "NOODLE1",
@@ -13763,7 +13931,11 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "standard_slice_weight_g": 40,
+      "wide_slice_backup_only": true,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Sourdough is long-life bread stock for planning; slice weight is explicit to avoid wide/narrow drift."
     },
     {
       "family_id": "TORCHONHAM1",
@@ -13997,7 +14169,11 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "default_blocked": true,
+      "backup_only": true,
+      "replacement_family_id": "ING-V1-PROTEIN-TORTILLA-WRAPS",
+      "stock_rule_note": "White wraps are backup only; default planning should group onto protein wraps."
     },
     {
       "family_id": "WHOLEMEALPITTA1",
@@ -15275,5 +15451,9 @@
   "last_sku_image_repair_at_uk": "2026-07-06T17:01:00+01:00",
   "last_sku_image_repair_count": 14,
   "last_sku_image_repair_unresolved": [],
-  "last_homemade_fajita_seasoning_repair_at_uk": "2026-07-06T18:06:08+01:00"
+  "last_homemade_fajita_seasoning_repair_at_uk": "2026-07-06T18:06:08+01:00",
+  "meta": {
+    "sku_recipe_pack_shape_repair_at_uk": "2026-07-08T21:04:12+01:00",
+    "sku_recipe_pack_shape_repair_change_count": 17
+  }
 }

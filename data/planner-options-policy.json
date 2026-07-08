@@ -42,7 +42,7 @@
     "beef_mince_family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
     "beef_mince_pack_size_g": 750,
     "max_beef_mince_dinners_per_week": 2,
-    "block_stranded_beef_mince_pack": true
+    "block_stranded_beef_mince_pack": false
   },
   "external_meal_policy": "reserve_budget",
   "build_trigger": "manual_button",

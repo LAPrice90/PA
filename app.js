@@ -24,6 +24,24 @@ const RECIPE_INVOICE_PREVIEW_ENDPOINT = "/api/v4/recipe-invoice-preview";
 const RECIPE_INVOICE_SAVE_ENDPOINT = "/api/v4/recipe-invoice-save";
 const RECIPE_INVOICE_RESTORE_ENDPOINT = "/api/v4/recipe-invoice-restore";
 const PACK_FIT_ADJUSTABLE_STORAGE_CLASSES = new Set(["fresh", "short_fresh"]);
+const SHOPPING_AWKWARD_EXEMPT_STORAGE_CLASSES = new Set([
+  "pantry",
+  "shelf_stable",
+  "freezer",
+  "fridge_stock",
+  "weekly_stock",
+  "ambient_weekly_stock",
+  "chilled_stock",
+  "fridge_sauce_stock",
+]);
+const SHOPPING_AWKWARD_EXEMPT_LEFTOVER_POLICIES = new Set([
+  "pantry_micro",
+  "pantry_carryover",
+  "opened_fridge_sauce_stock",
+  "long_life_weekly_restock",
+  "weekly_stock_restock",
+  "base_veg_carryover",
+]);
 const PACK_FIT_ROUNDABLE_UNITS = new Set(["g", "gram", "grams", "ml", "millilitre", "millilitres"]);
 const PACK_FIT_MIN_ROUND_FLEX_INTERVAL = 25;
 const PACK_FIT_SMALL_FRESH_AMOUNT_LIMITS = { g: 25, ml: 25 };
@@ -4168,7 +4186,7 @@ function shoppingWeekSavingsWasteSummary(weekStartValue, model = null) {
 }
 
 function shoppingAwkwardPackRiskValue(line) {
-  if (!line || line.trip_key === "pantry" || line.is_carryover_check || line.is_inventory_use_up) return 0;
+  if (shoppingLineIsAwkwardPackExempt(line)) return 0;
   const amount = shoppingPackNeedAmount(line.amount_total, line.amount_unit);
   const plan = shoppingLinePackCoverage(line);
   if (!amount || !plan?.totalQuantity) return 0;
@@ -4259,8 +4277,8 @@ function shoppingWeekChecklist(model) {
       <div class="shopping-list-heading">
         <div>
           <span class="status-pill">${escapeHtml(model.status_label)}</span>
-          <h2>${escapeHtml(shoppingTripTitle(model.active_trip))}</h2>
-          <p>${escapeHtml(model.item_count ? shoppingTripDescription(model.active_trip) : "Pick or lock recipes on the planner week before this can build a shopping checklist.")}</p>
+          <h2>${escapeHtml(shoppingTripTitle(model.active_trip, model))}</h2>
+          <p>${escapeHtml(model.item_count ? shoppingTripDescription(model.active_trip, model) : "Pick or lock recipes on the planner week before this can build a shopping checklist.")}</p>
         </div>
         <div class="shopping-progress" aria-label="Shopping progress">
           <strong>${escapeHtml(viewCount ? `${Math.round((viewChecked / viewCount) * 100)}%` : "0%")}</strong>
@@ -4275,11 +4293,12 @@ function shoppingWeekChecklist(model) {
 }
 
 function shoppingTripTabs(model) {
+  const labels = model.shopping_window_labels || {};
   const tabs = [
-    ["pantry", "Pantry check"],
-    ["sunday", "Sunday shop"],
-    ["wednesday", "Wednesday check"],
-    ["all", "All week"],
+    ["pantry", labels.pantry || "Pantry check"],
+    ["sunday", labels.sunday || "Sunday shop"],
+    ["wednesday", labels.wednesday || "Wednesday top-up"],
+    ["all", labels.all || "All week"],
   ];
   return `
     <div class="shopping-trip-tabs" aria-label="Shopping trip view">
@@ -4293,21 +4312,28 @@ function shoppingTripTabs(model) {
   `;
 }
 
-function shoppingTripTitle(tripKey) {
+function shoppingTripTitle(tripKey, model = null) {
+  const labels = model?.shopping_window_labels || {};
   const titles = {
     pantry: "Pantry check",
-    sunday: "Sunday main shop",
-    wednesday: "Wednesday check",
+    sunday: labels.sunday || "Sunday main shop",
+    wednesday: labels.wednesday || "Wednesday top-up",
     all: "All week",
   };
   return titles[tripKey] || "Weekly shop";
 }
 
-function shoppingTripDescription(tripKey) {
+function shoppingTripDescription(tripKey, model = null) {
+  const window = tripKey === "sunday"
+    ? shoppingWindowForTrip(model?.shopping_window_plan, "sunday")
+    : tripKey === "wednesday"
+      ? shoppingWindowForTrip(model?.shopping_window_plan, "wednesday")
+      : null;
+  if (window?.status === "catch_up") return "Buy only what is needed from now until the next active shop window.";
   const descriptions = {
     pantry: "Check cupboard, fridge and freezer stock before buying anything.",
     sunday: "Main shop for pantry top-ups, long-life items and fresh food that safely carries through the week.",
-    wednesday: "Check Sunday carryover first, then pick up late fresh top-ups only where needed.",
+    wednesday: "Pick up late fresh top-ups and items first used after the midweek shop.",
     all: "Full audit view across pantry, Sunday shop and Wednesday check.",
   };
   return descriptions[tripKey] || "Grouped by where to look first, then by food category.";
@@ -4750,16 +4776,17 @@ function shoppingPackDisplayParts(packLabel) {
 function buildShoppingWeekModel(weekStartValue, options = {}) {
   const weekStart = plannerNormalizeWeekStartKey(weekStartValue);
   const source = shoppingPlannerSourceForWeek(weekStart);
+  const shoppingWindowPlan = plannerShoppingWindowPlan(weekStart, shoppingWindowAnchorSlotRecordsForWeek(weekStart, source.slot_records || []));
   if (!options.skipTicks) ensureWeekPackFitReceiptForShoppingSource(weekStart, source, "shopping_view");
   const usageRows = shoppingRecipeUsageRows(source.slot_records || [], source.selected_recipe_ids || []);
-  const rawBaseLines = shoppingAggregateLines(weekStart, usageRows);
-  const rawTripModel = shoppingTripModel(weekStart, rawBaseLines, true);
+  const rawBaseLines = shoppingAggregateLines(weekStart, usageRows, shoppingWindowPlan);
+  const rawTripModel = shoppingTripModel(weekStart, rawBaseLines, true, shoppingWindowPlan);
   const rawCostLines = rawTripModel.lines
     .filter((line) => line.trip_key !== "pantry" && !line.is_carryover_check && !line.is_inventory_use_up);
   const rawShopSpend = rawCostLines
     .reduce((sum, line) => sum + Number(line.cost_gbp || 0), 0);
   const baseLines = shoppingApplyInventoryUseUp(weekStart, rawBaseLines);
-  const tripModel = shoppingTripModel(weekStart, baseLines, Boolean(options.skipTicks));
+  const tripModel = shoppingTripModel(weekStart, baseLines, Boolean(options.skipTicks), shoppingWindowPlan);
   const groups = shoppingGroupLines(tripModel.visible_lines);
   const checkedCount = tripModel.lines.filter((line) => line.checked).length;
   const costLines = tripModel.lines
@@ -4778,6 +4805,7 @@ function buildShoppingWeekModel(weekStartValue, options = {}) {
     status_label: shoppingStatusLabel(source, tripModel.lines),
     empty_reason: source.empty_reason,
     recipe_usages: usageRows,
+    shopping_window_plan: shoppingWindowPlan,
     raw_base_lines: rawBaseLines,
     base_lines: baseLines,
     recipe_count: usageRows.length,
@@ -4877,7 +4905,8 @@ function refreshPlannerWeekPackFitReceipt(weekStartValue = plannerActiveWeekStar
 function refreshWeekPackFitReceiptFromShoppingSource(weekStartValue, source, reason = "planner_update") {
   const weekStart = plannerNormalizeWeekStartKey(weekStartValue);
   const usageRows = shoppingRecipeUsageRows(source?.slot_records || [], source?.selected_recipe_ids || []);
-  const slots = weekPackFitDemandSlotsForUsageRows(weekStart, usageRows);
+  const shoppingWindowPlan = plannerShoppingWindowPlan(weekStart, shoppingWindowAnchorSlotRecordsForWeek(weekStart, source?.slot_records || []));
+  const slots = weekPackFitDemandSlotsForUsageRows(weekStart, usageRows, shoppingWindowPlan);
   if (!slots.length) {
     clearWeekPackFitReceiptForWeek(weekStart);
     return null;
@@ -4890,6 +4919,7 @@ function refreshWeekPackFitReceiptFromShoppingSource(weekStartValue, source, rea
     source_calendar_id: "v4_app_planner_draft",
     local_only: true,
     slots,
+    shopping_window_plan: shoppingWindowPlan,
   };
   const receipt = buildAppWeekPackFitReceipt(week, state.recipeIndex);
   receipt.week_start = week.week_start;
@@ -4912,17 +4942,25 @@ function refreshWeekPackFitReceiptFromShoppingSource(weekStartValue, source, rea
   return receipt;
 }
 
-function weekPackFitDemandSlotsForUsageRows(weekStart, usageRows = []) {
+function weekPackFitDemandSlotsForUsageRows(weekStart, usageRows = [], shoppingWindowPlan = null) {
+  const windowPlan = shoppingWindowPlan || plannerShoppingWindowPlan(weekStart, (usageRows || []).flatMap((usage) => usage?.slots || []));
   return (usageRows || []).flatMap((usage) => {
-    const units = Math.max(1, Number(usage?.cooking_units || 1));
-    const slots = Array.isArray(usage?.slots) && usage.slots.length ? usage.slots : [{
+    const cookingUnits = shoppingCookingUnitPurchasePlans(usage, weekStart, windowPlan);
+    const fallbackSlots = Array.isArray(usage?.slots) && usage.slots.length ? usage.slots : [{
       slot_id: `${usage?.recipe_id || "recipe"}-slot`,
       day: "",
       date: weekStart,
       time: "",
     }];
-    return Array.from({ length: units }, (_, index) => {
-      const sourceSlot = slots[Math.min(index, slots.length - 1)] || slots[0] || {};
+    const units = cookingUnits.length ? cookingUnits : [{
+      unit_index: 1,
+      source_slot: fallbackSlots[0],
+      purchase_window: shoppingWindowPlanActiveWindows(windowPlan)[0] || null,
+      first_use_at: plannerLocalDateTimeText(shoppingSlotDateTime(fallbackSlots[0]) || plannerDateTimeForDateAndTime(weekStart, "10:00")),
+    }];
+    return units.map((unit, index) => {
+      const sourceSlot = unit.source_slot || fallbackSlots[Math.min(index, fallbackSlots.length - 1)] || fallbackSlots[0] || {};
+      const purchaseWindow = unit.purchase_window || shoppingWindowForUseAt(shoppingSlotDateTime(sourceSlot), windowPlan);
       return {
         slot_id: `${sourceSlot.slot_id || usage.recipe_id || "recipe"}-unit-${index + 1}`,
         source_slot_id: sourceSlot.slot_id || "",
@@ -4931,6 +4969,10 @@ function weekPackFitDemandSlotsForUsageRows(weekStart, usageRows = []) {
         time: sourceSlot.time || "",
         recipe_id: usage.recipe_id,
         cooking_unit_index: index + 1,
+        purchase_window_id: purchaseWindow?.window_id || "",
+        purchase_at: purchaseWindow?.scheduled_at || "",
+        first_use_at: unit.first_use_at || plannerLocalDateTimeText(shoppingSlotDateTime(sourceSlot)),
+        purchase_timing_source: shoppingPurchaseTimingSource(purchaseWindow),
       };
     });
   }).filter((slot) => slot.recipe_id);
@@ -4938,6 +4980,7 @@ function weekPackFitDemandSlotsForUsageRows(weekStart, usageRows = []) {
 
 function weekPackFitSourceSignature(weekStartValue, source) {
   const weekStart = plannerNormalizeWeekStartKey(weekStartValue);
+  const shoppingWindowPlan = plannerShoppingWindowPlan(weekStart, shoppingWindowAnchorSlotRecordsForWeek(weekStart, source?.slot_records || []));
   const rows = (source?.slot_records || [])
     .map((slot) => ({
       slot_id: slot.slot_id || "",
@@ -4951,6 +4994,13 @@ function weekPackFitSourceSignature(weekStartValue, source) {
   return hashString(JSON.stringify({
     week_start: weekStart,
     source_status: source?.source_status || "",
+    shopping_window_plan: (shoppingWindowPlan.windows || []).map((window) => ({
+      window_id: window.window_id || "",
+      status: window.status || "",
+      scheduled_at: window.scheduled_at || "",
+      covers_from_at: window.covers_from_at || "",
+      covers_until_at: window.covers_until_at || "",
+    })),
     slot_records: rows,
     selected_recipe_ids: [...new Set(source?.selected_recipe_ids || [])].sort(),
   }));
@@ -5003,6 +5053,7 @@ function buildAppWeekPackFitReceipt(week, recipeIndex = state.recipeIndex) {
     source_calendar_id: week?.source_calendar_id || "",
     generated_at_uk: generatedAt,
     status: blockers.length ? "blocked" : "passed",
+    shopping_window_plan: week?.shopping_window_plan || null,
     blockers,
     adjustment_guardrails: PACK_FIT_ADJUSTMENT_GUARDRAILS,
     demand_before: appPackFitDemandSummary(groups, "amount_before"),
@@ -5096,6 +5147,7 @@ function appPackFitDemandRowForLine(slot, recipe, line) {
     source_slot_id: slot?.source_slot_id || "",
     day: slot?.day || "",
     date: slot?.date || "",
+    time: slot?.time || "",
     recipe_id: recipeKey(recipe),
     title: recipe.short_title || recipe.title || recipeKey(recipe),
     line_id: line.line_id || line.invoice_line_id || "",
@@ -5122,6 +5174,10 @@ function appPackFitDemandRowForLine(slot, recipe, line) {
     pack_fit_eligible: line.pack_fit_eligible === true,
     pack_fit_exempt_reason: line.pack_fit_exempt_reason || "",
     flex_reason: line.flex_reason || defaultFlexPolicy?.reason || "",
+    purchase_window_id: slot?.purchase_window_id || "",
+    purchase_at: slot?.purchase_at || "",
+    first_use_at: slot?.first_use_at || "",
+    purchase_timing_source: slot?.purchase_timing_source || "",
     family,
   };
 }
@@ -5262,7 +5318,7 @@ function appPackFitAdjustmentRoundingStatus(row, familyDelta) {
 function appPackFitGroupDemandRows(rows) {
   const groups = {};
   (rows || []).forEach((row) => {
-    const key = `${row.family_id}|${row.unit}`;
+    const key = appPackFitGroupDemandKey(row);
     if (!groups[key]) {
       groups[key] = {
         family_id: row.family_id,
@@ -5270,6 +5326,9 @@ function appPackFitGroupDemandRows(rows) {
         unit: row.unit,
         storage_class: row.storage_class,
         leftover_policy: row.leftover_policy,
+        purchase_window_id: row.purchase_window_id || "",
+        purchase_at: row.purchase_at || "",
+        purchase_timing_source: row.purchase_timing_source || "",
         family: row.family,
         rows: [],
       };
@@ -5282,8 +5341,18 @@ function appPackFitGroupDemandRows(rows) {
     const plannedDates = group.rows.map((row) => String(row.date || "").trim()).filter(Boolean).sort();
     group.first_planned_date = plannedDates[0] || "";
     group.last_planned_date = plannedDates[plannedDates.length - 1] || "";
+    const firstUseValues = group.rows.map((row) => String(row.first_use_at || "").trim()).filter(Boolean).sort();
+    group.first_use_at = firstUseValues[0] || "";
+    group.opened_on_date = plannerDateKey(plannerDateTimeFromValue(group.first_use_at)) || group.first_planned_date || "";
   });
   return groups;
+}
+
+function appPackFitGroupDemandKey(row) {
+  const storage = String(row?.storage_class || "").trim().toLowerCase();
+  const freshGroup = PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(storage);
+  const purchaseKey = freshGroup ? (row?.purchase_window_id || row?.purchase_at || "unknown_purchase") : "weekly";
+  return `${row.family_id}|${row.unit}|${purchaseKey}`;
 }
 
 function appPackFitFitGroupToPack(group) {
@@ -5360,6 +5429,8 @@ function appPackFitConsumptionTargetForPlan(group, demand, minTotal, maxTotal, p
   const eligible = (group.rows || []).filter(appPackFitRowCanFlex);
   if (!eligible.length) return appPackFitRoundNumber(demand);
   if (packTotal <= maxTotal + 1e-9) return appPackFitRoundNumber(packTotal);
+  const cleanTarget = appPackFitPreferredConsumptionTargetForPlan(group, demand, minTotal, maxTotal, packTotal);
+  if (cleanTarget !== null) return appPackFitRoundNumber(cleanTarget);
   let target = Math.max(minTotal, Math.min(maxTotal, demand));
   const interval = appPackFitSmallestFlexInterval(eligible);
   if (interval > 0) {
@@ -5367,6 +5438,63 @@ function appPackFitConsumptionTargetForPlan(group, demand, minTotal, maxTotal, p
     target = Math.max(minTotal, Math.min(maxTotal, target));
   }
   return appPackFitRoundNumber(target);
+}
+
+function appPackFitPreferredConsumptionTargetForPlan(group, demand, minTotal, maxTotal, packTotal) {
+  const policy = appPackFitPackCleanPolicy(group?.family || {});
+  if (!policy.preferred_consumption_targets.length) return null;
+  const targets = policy.preferred_consumption_targets
+    .map(appPackFitNumber)
+    .filter((target) => (
+      target > 0
+      && target <= appPackFitNumber(packTotal) + 1e-9
+      && target >= appPackFitNumber(minTotal) - 1e-9
+      && target <= appPackFitNumber(maxTotal) + 1e-9
+    ));
+  if (!targets.length) return null;
+  const demandValue = appPackFitNumber(demand);
+  const packValue = appPackFitNumber(packTotal);
+  return targets.sort((a, b) => (
+    appPackFitPackCleanRemainderPenalty(policy, packValue - a, packValue, a)
+    - appPackFitPackCleanRemainderPenalty(policy, packValue - b, packValue, b)
+    || Math.abs(a - demandValue) - Math.abs(b - demandValue)
+    || b - a
+  ))[0];
+}
+
+function appPackFitPackCleanPolicy(family = {}) {
+  const raw = family?.pack_clean_policy && typeof family.pack_clean_policy === "object"
+    ? family.pack_clean_policy
+    : {};
+  const preferredTargets = Array.isArray(raw.preferred_consumption_targets)
+    ? raw.preferred_consumption_targets
+    : [];
+  const cleanLeftovers = Array.isArray(raw.clean_leftover_amounts)
+    ? raw.clean_leftover_amounts
+    : [];
+  return {
+    mode: String(raw.mode || "").trim(),
+    reason_label: String(raw.reason_label || "").trim(),
+    preferred_consumption_targets: preferredTargets.map(appPackFitNumber).filter((value) => value > 0),
+    clean_leftover_amounts: cleanLeftovers.map(appPackFitNumber).filter((value) => value >= 0),
+    clean_remainder_max_amount: appPackFitNumber(raw.clean_remainder_max_amount),
+    awkward_remainder_min_amount: appPackFitNumber(raw.awkward_remainder_min_amount),
+    minimum_use_if_purchased: appPackFitNumber(raw.minimum_use_if_purchased),
+    score_weight: Math.max(1, appPackFitNumber(raw.score_weight || 1)),
+  };
+}
+
+function appPackFitPackCleanRemainderPenalty(policy, leftover, packTotal = 0, usedAmount = 0) {
+  const amount = Math.max(0, appPackFitNumber(leftover));
+  if (amount <= 0.02) return 0;
+  if ((policy.clean_leftover_amounts || []).some((clean) => Math.abs(clean - amount) <= 0.02)) return 0;
+  if (policy.clean_remainder_max_amount > 0 && amount <= policy.clean_remainder_max_amount + 0.02) return 0;
+  const pack = Math.max(1, appPackFitNumber(packTotal));
+  const used = appPackFitNumber(usedAmount);
+  let penalty = 40 + (amount / pack) * 160;
+  if (policy.awkward_remainder_min_amount > 0 && amount >= policy.awkward_remainder_min_amount - 0.02) penalty += 80;
+  if (policy.minimum_use_if_purchased > 0 && used > 0 && used < policy.minimum_use_if_purchased - 0.02) penalty += 180;
+  return penalty * Math.max(1, policy.score_weight || 1);
 }
 
 function appPackFitSmallestFlexInterval(rows) {
@@ -5470,6 +5598,10 @@ function appPackFitDistributeDelta(rows, delta) {
       source_flex_interval: appPackFitRoundNumber(row.source_flex_interval),
       rounding_status: roundingInfo.rounding_status,
       reason: row.flex_reason || "pack_fit",
+      purchase_window_id: row.purchase_window_id || "",
+      purchase_at: row.purchase_at || "",
+      first_use_at: row.first_use_at || "",
+      purchase_timing_source: row.purchase_timing_source || "",
     });
     remaining -= take;
   });
@@ -5505,6 +5637,9 @@ function appPackFitPackChoiceRow(group, before, after, picks, status, plan = nul
     family_label: group.family_label,
     unit: group.unit,
     storage_class: group.storage_class,
+    purchase_window_id: group.purchase_window_id || "",
+    purchase_at: group.purchase_at || "",
+    purchase_timing_source: group.purchase_timing_source || "",
     amount_before: appPackFitRoundNumber(before),
     amount_after: appPackFitRoundNumber(after),
     pack_total_quantity: appPackFitRoundNumber(packTotal),
@@ -5533,6 +5668,12 @@ function appPackFitLeftoverForGroup(group, before, after, leftover) {
     family_label: group.family_label,
     storage_class: group.storage_class,
     leftover_policy: group.leftover_policy,
+    purchase_window_id: group.purchase_window_id || "",
+    purchase_at: group.purchase_at || "",
+    purchased_at: group.purchase_at || "",
+    purchase_timing_source: group.purchase_timing_source || "",
+    first_use_at: group.first_use_at || "",
+    opened_on_date: group.opened_on_date || "",
     first_planned_date: group.first_planned_date || "",
     last_planned_date: group.last_planned_date || "",
     amount_before: appPackFitRoundNumber(before),
@@ -5543,6 +5684,9 @@ function appPackFitLeftoverForGroup(group, before, after, leftover) {
 }
 
 function appPackFitShouldCreateUseUp(leftover) {
+  const policy = String(leftover?.leftover_policy || "").trim().toLowerCase();
+  if (SHOPPING_AWKWARD_EXEMPT_LEFTOVER_POLICIES.has(policy)) return false;
+  if (/(accepted.*waste|pantry|weekly_stock|stock|sauce)/.test(policy)) return false;
   return appPackFitNumber(leftover?.leftover_amount) > 0 && PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(String(leftover?.storage_class || "").trim().toLowerCase());
 }
 
@@ -5563,6 +5707,9 @@ function appPackFitUseUpEntryFromLeftover(weekId, leftover, week = {}) {
     storage_class: leftover?.storage_class || "",
     location: PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(String(leftover?.storage_class || "").trim().toLowerCase()) ? "Fridge use-up" : "Pantry check",
     source_week_id: weekId,
+    purchase_window_id: leftover?.purchase_window_id || "",
+    purchased_at: leftover?.purchased_at || leftover?.purchase_at || "",
+    purchase_timing_source: leftover?.purchase_timing_source || "",
     opened_on_date: openedOnKey,
     available_from_date: plannerDateKey(availableFrom),
     use_by_date: plannerDateKey(useBy),
@@ -5574,7 +5721,9 @@ function appPackFitUseUpEntryFromLeftover(weekId, leftover, week = {}) {
 }
 
 function appPackFitLeftoverOpenedOn(leftover, week = {}) {
-  return plannerNormalizeDateKey(leftover?.first_planned_date)
+  return plannerNormalizeDateKey(leftover?.opened_on_date)
+    || plannerDateKey(plannerDateTimeFromValue(leftover?.first_use_at || ""))
+    || plannerNormalizeDateKey(leftover?.first_planned_date)
     || plannerNormalizeDateKey(leftover?.last_planned_date)
     || plannerNormalizeDateKey(week?.week_start)
     || plannerTodayKey();
@@ -5670,6 +5819,9 @@ function weekPackFitAdjustmentMap(weekStartValue) {
 }
 
 function appPackFitAdjustmentTrip(adjustment, weekStart) {
+  const windowId = String(adjustment?.purchase_window_id || "").toLowerCase();
+  if (windowId.includes("_2") || windowId.includes("shop_2") || windowId.includes("catch_up_2")) return "wednesday";
+  if (windowId.includes("_1") || windowId.includes("shop_1") || windowId.includes("catch_up_1")) return "sunday";
   const weekDate = plannerDateFromKey(weekStart) || plannerStartOfWeekDate(new Date());
   const dayIndex = shoppingSlotDayIndex({ date: adjustment?.date || "", day: adjustment?.day || "" }, weekDate);
   return dayIndex >= 4 ? "wednesday" : "sunday";
@@ -5833,6 +5985,50 @@ function shoppingSlotRecordsFromPlannerStores(template, draft, cache, review, we
   ];
 }
 
+function shoppingTemplateWindowAnchorRecordsForWeek(weekStartValue = plannerActiveWeekStartKey()) {
+  const weekStart = plannerNormalizeWeekStartKey(weekStartValue);
+  const template = currentPlannerTemplate();
+  if (!template) return [];
+  const storedDraft = state.plannerDraftStore?.weeks?.[weekStart]
+    || (plannerNormalizeWeekStartKey(state.plannerActiveWeekStart) === weekStart ? state.plannerDraft : null);
+  const draft = normalizePlannerDraft(storedDraft, template);
+  const weekDate = plannerDateFromKey(weekStart);
+  return (template.days || []).flatMap((day, dayIndex) => {
+    const date = plannerDateKey(plannerAddDays(weekDate, dayIndex));
+    return (plannerPlanningDay(day).slots || [])
+      .filter((slot) => slot.slot_type === "meal")
+      .map((slot) => {
+        const slotState = shoppingSlotState(slot, draft);
+        return {
+          slot_id: slot.slot_id,
+          day: day.day || "",
+          date,
+          time: slot.time || "",
+          title: slot.title || slot.role || slot.slot_id,
+          meal_category: slotState.meal_category || "",
+          target_meal_slots: plannerTargetMealSlotsForSlot(slot, slotState),
+          slot_status: slotState.slot_status || "planner_recipe",
+          required: Boolean(slotState.required),
+          people: Array.isArray(slotState.people) ? slotState.people : [],
+          recipe_id: "",
+          shopping_window_anchor_only: true,
+        };
+      });
+  });
+}
+
+function shoppingWindowAnchorSlotRecordsForWeek(weekStartValue, slotRecords = []) {
+  const records = (Array.isArray(slotRecords) ? slotRecords : []).slice();
+  const seen = new Set(records.map((slot) => String(slot?.slot_id || "")).filter(Boolean));
+  shoppingTemplateWindowAnchorRecordsForWeek(weekStartValue).forEach((anchor) => {
+    const slotId = String(anchor?.slot_id || "");
+    if (!slotId || seen.has(slotId)) return;
+    seen.add(slotId);
+    records.push(anchor);
+  });
+  return records;
+}
+
 function shoppingSelectedOptionForDay(dayName, cache, review) {
   const result = cache?.day_options?.[dayName] || null;
   const selectedId = review?.selected_option_by_day?.[dayName] || result?.selected_option_id || "";
@@ -5988,15 +6184,285 @@ function normalizePlannerShoppingHorizon(horizon) {
   };
 }
 
+function plannerLocalDateTimeText(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  return `${plannerDateKey(date)}T${plannerPad2(date.getHours())}:${plannerPad2(date.getMinutes())}:00`;
+}
+
+function plannerDateTimeAddMinutes(date, minutes) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  const next = new Date(date.getTime());
+  next.setMinutes(next.getMinutes() + Number(minutes || 0));
+  return next;
+}
+
+function shoppingSlotDateTime(slot) {
+  const explicit = plannerDateTimeForDateAndTime(slot?.date || "", slot?.time || "");
+  return explicit || plannerSlotDateTime(slot);
+}
+
+function shoppingSlotCreatesPurchaseDemand(slot) {
+  if (!slot || !slot.recipe_id) return false;
+  const status = String(slot.slot_status || "planner_recipe").trim();
+  if (status !== "planner_recipe") return false;
+  if (slot.required === false) return false;
+  return true;
+}
+
+function shoppingSlotIsActiveMealWindowAnchor(slot) {
+  if (!slot) return false;
+  if (isFinisherSlot(slot)) return false;
+  const status = String(slot.slot_status || "planner_recipe").trim();
+  if (status !== "planner_recipe") return false;
+  if (slot.required === false) return false;
+  return Boolean(slot.date || slot.day || slot.time || slot.slot_id);
+}
+
+function shoppingActiveFutureSlotRecords(slotRecords = [], now = plannerNow()) {
+  return (Array.isArray(slotRecords) ? slotRecords : [])
+    .filter(shoppingSlotIsActiveMealWindowAnchor)
+    .filter((slot) => {
+      const dateTime = shoppingSlotDateTime(slot);
+      return dateTime && dateTime.getTime() >= now.getTime();
+    })
+    .sort((a, b) => (
+      (shoppingSlotDateTime(a)?.getTime() || 0) - (shoppingSlotDateTime(b)?.getTime() || 0)
+      || String(a.slot_id || "").localeCompare(String(b.slot_id || ""))
+    ));
+}
+
+function plannerShoppingTemplateSlot(slotId, fallback = {}) {
+  const slots = (currentPlannerTemplate()?.days || []).flatMap((day, dayIndex) => (
+    (Array.isArray(day?.slots) ? day.slots : []).map((slot) => ({ day, dayIndex, slot }))
+  ));
+  const match = slots.find((entry) => entry.slot?.slot_id === slotId)
+    || slots.find((entry) => entry.slot?.slot_type === "shopping" && String(entry.slot?.title || "").toLowerCase().includes(String(fallback.title || "").toLowerCase()));
+  if (!match) return fallback;
+  return {
+    source_slot_id: match.slot.slot_id || slotId,
+    title: match.slot.title || fallback.title || "",
+    time: plannerCleanSlotTime(match.slot.time) || fallback.time || "10:00",
+    day_index: Number(match.dayIndex || 0),
+  };
+}
+
+function plannerShoppingWindowPlan(weekStartValue = plannerActiveWeekStartKey(), slotRecords = []) {
+  const weekStart = plannerNormalizeWeekStartKey(weekStartValue);
+  const weekDate = plannerDateFromKey(weekStart) || plannerStartOfWeekDate(plannerNow());
+  const shop1Slot = plannerShoppingTemplateSlot("sun-food-shop", {
+    source_slot_id: "sun-food-shop",
+    title: "Sunday Food Shop",
+    time: "10:00",
+    day_index: 0,
+  });
+  const shop2Slot = plannerShoppingTemplateSlot("wed-top-up", {
+    source_slot_id: "wed-top-up",
+    title: "Wednesday Fresh Top-Up Shop",
+    time: "17:00",
+    day_index: 3,
+  });
+  const shop1At = plannerDateTimeForDateAndTime(plannerDateKey(plannerAddDays(weekDate, shop1Slot.day_index || 0)), shop1Slot.time || "10:00");
+  const shop2At = plannerDateTimeForDateAndTime(plannerDateKey(plannerAddDays(weekDate, shop2Slot.day_index ?? 3)), shop2Slot.time || "17:00");
+  const horizonEnd = plannerDateTimeForDateAndTime(plannerDateKey(plannerAddDays(weekDate, 7)), "10:00");
+  const now = plannerNow();
+  const activeFuture = shoppingActiveFutureSlotRecords(slotRecords, now);
+  const nextFutureMeal = activeFuture[0] || null;
+  const nextBeforeShop2 = activeFuture.find((slot) => {
+    const dateTime = shoppingSlotDateTime(slot);
+    return dateTime && shop2At && dateTime.getTime() < shop2At.getTime();
+  }) || null;
+
+  function makeWindow({ windowId, role, label, scheduledAt, sourceSlotId, status, coversFromAt, coversUntilAt, reason }) {
+    return {
+      window_id: windowId,
+      role,
+      trip_key: role === "shop_2" ? "wednesday" : "sunday",
+      label,
+      scheduled_at: plannerLocalDateTimeText(scheduledAt),
+      source_slot_id: sourceSlotId || "",
+      status,
+      covers_from_at: plannerLocalDateTimeText(coversFromAt || scheduledAt),
+      covers_until_at: plannerLocalDateTimeText(coversUntilAt || horizonEnd),
+      reason: reason || "",
+    };
+  }
+
+  function catchUpAtFor(slot) {
+    const mealAt = shoppingSlotDateTime(slot);
+    if (!mealAt) return now;
+    const planned = plannerDateTimeAddMinutes(mealAt, -60) || now;
+    return planned.getTime() < now.getTime() ? now : planned;
+  }
+
+  const windows = [];
+  if (shop1At && now.getTime() <= shop1At.getTime()) {
+    windows.push(makeWindow({
+      windowId: "shop_1",
+      role: "shop_1",
+      label: "Sunday shop",
+      scheduledAt: shop1At,
+      sourceSlotId: shop1Slot.source_slot_id,
+      status: "planned",
+      coversFromAt: shop1At,
+      coversUntilAt: shop2At || horizonEnd,
+    }));
+    windows.push(makeWindow({
+      windowId: "shop_2",
+      role: "shop_2",
+      label: "Wednesday top-up",
+      scheduledAt: shop2At,
+      sourceSlotId: shop2Slot.source_slot_id,
+      status: "planned",
+      coversFromAt: shop2At,
+      coversUntilAt: horizonEnd,
+    }));
+  } else if (shop2At && now.getTime() <= shop2At.getTime()) {
+    if (nextBeforeShop2) {
+      const catchUpAt = catchUpAtFor(nextBeforeShop2);
+      windows.push(makeWindow({
+        windowId: "catch_up_1",
+        role: "shop_1",
+        label: "Catch-up shop",
+        scheduledAt: catchUpAt,
+        sourceSlotId: shop1Slot.source_slot_id,
+        status: "catch_up",
+        coversFromAt: catchUpAt,
+        coversUntilAt: shop2At,
+        reason: "Sunday shop passed",
+      }));
+    } else {
+      windows.push(makeWindow({
+        windowId: "shop_1",
+        role: "shop_1",
+        label: "Sunday shop",
+        scheduledAt: shop1At,
+        sourceSlotId: shop1Slot.source_slot_id,
+        status: "skipped",
+        coversFromAt: shop1At,
+        coversUntilAt: shop2At,
+        reason: "Sunday shop passed and no active meal before the next shop",
+      }));
+    }
+    windows.push(makeWindow({
+      windowId: "shop_2",
+      role: "shop_2",
+      label: "Wednesday top-up",
+      scheduledAt: shop2At,
+      sourceSlotId: shop2Slot.source_slot_id,
+      status: "planned",
+      coversFromAt: shop2At,
+      coversUntilAt: horizonEnd,
+    }));
+  } else {
+    windows.push(makeWindow({
+      windowId: "shop_1",
+      role: "shop_1",
+      label: "Sunday shop",
+      scheduledAt: shop1At,
+      sourceSlotId: shop1Slot.source_slot_id,
+      status: "skipped",
+      coversFromAt: shop1At,
+      coversUntilAt: shop2At,
+      reason: "Sunday and Wednesday shop windows passed",
+    }));
+    if (nextFutureMeal) {
+      const catchUpAt = catchUpAtFor(nextFutureMeal);
+      windows.push(makeWindow({
+        windowId: "catch_up_2",
+        role: "shop_2",
+        label: "Catch-up shop",
+        scheduledAt: catchUpAt,
+        sourceSlotId: shop2Slot.source_slot_id,
+        status: "catch_up",
+        coversFromAt: catchUpAt,
+        coversUntilAt: horizonEnd,
+        reason: "Wednesday shop passed",
+      }));
+    } else {
+      windows.push(makeWindow({
+        windowId: "shop_2",
+        role: "shop_2",
+        label: "Wednesday top-up",
+        scheduledAt: shop2At,
+        sourceSlotId: shop2Slot.source_slot_id,
+        status: "skipped",
+        coversFromAt: shop2At,
+        coversUntilAt: horizonEnd,
+        reason: "No active future meals to shop for",
+      }));
+    }
+  }
+
+  return {
+    schema_version: "v4.shopping_window_plan.1",
+    week_start: weekStart,
+    generated_at: plannerLocalDateTimeText(now),
+    now_at: plannerLocalDateTimeText(now),
+    windows,
+  };
+}
+
+function shoppingWindowPlanActiveWindows(plan) {
+  return (Array.isArray(plan?.windows) ? plan.windows : [])
+    .filter((window) => ["planned", "catch_up"].includes(window.status))
+    .sort((a, b) => String(a.scheduled_at || "").localeCompare(String(b.scheduled_at || "")));
+}
+
+function shoppingWindowForTrip(plan, tripKey) {
+  const role = tripKey === "wednesday" ? "shop_2" : "shop_1";
+  return shoppingWindowPlanActiveWindows(plan).find((window) => window.role === role)
+    || (Array.isArray(plan?.windows) ? plan.windows : []).find((window) => window.role === role)
+    || null;
+}
+
+function shoppingWindowTripKey(window) {
+  return window?.role === "shop_2" || window?.trip_key === "wednesday" ? "wednesday" : "sunday";
+}
+
+function shoppingPurchaseTimingSource(window) {
+  if (!window) return "";
+  if (window.status === "catch_up") return "catch_up_shop";
+  if (window.status === "planned") return "template_shop";
+  return window.status || "";
+}
+
+function shoppingWindowForUseAt(useAt, plan) {
+  const active = shoppingWindowPlanActiveWindows(plan);
+  if (!active.length) return null;
+  const date = useAt instanceof Date && !Number.isNaN(useAt.getTime()) ? useAt : null;
+  if (!date) return active[0];
+  const matched = active.find((window) => {
+    const from = plannerDateTimeFromValue(window.covers_from_at || window.scheduled_at);
+    const until = plannerDateTimeFromValue(window.covers_until_at || "");
+    return (!from || date.getTime() >= from.getTime()) && (!until || date.getTime() < until.getTime());
+  });
+  if (matched) return matched;
+  return [...active].reverse().find((window) => {
+    const scheduled = plannerDateTimeFromValue(window.scheduled_at || "");
+    return scheduled && scheduled.getTime() <= date.getTime();
+  }) || active[0];
+}
+
+function shoppingTripLabelsForWindowPlan(plan) {
+  const sunday = shoppingWindowForTrip(plan, "sunday");
+  const wednesday = shoppingWindowForTrip(plan, "wednesday");
+  return {
+    pantry: "Pantry check",
+    sunday: sunday?.label || "Sunday shop",
+    wednesday: wednesday?.label || "Wednesday top-up",
+    all: "All week",
+  };
+}
+
 function shoppingRecipeUsageRows(slotRecords, selectedRecipeIds = []) {
   const counts = {};
-  (slotRecords || []).forEach((slot) => {
-    if (slot.slot_status !== "planner_recipe" || !slot.recipe_id) return;
+  const allSlotRecipeIds = new Set((slotRecords || []).map((slot) => String(slot?.recipe_id || "")).filter(Boolean));
+  shoppingActiveFutureSlotRecords(slotRecords || []).forEach((slot) => {
     counts[slot.recipe_id] = counts[slot.recipe_id] || { recipe_id: slot.recipe_id, slots: [] };
     counts[slot.recipe_id].slots.push(slot);
   });
   (selectedRecipeIds || []).forEach((recipeId) => {
-    if (!recipeId || counts[recipeId]) return;
+    if (!recipeId || counts[recipeId] || allSlotRecipeIds.has(String(recipeId))) return;
     counts[recipeId] = { recipe_id: recipeId, slots: [] };
   });
   return Object.values(counts)
@@ -6020,11 +6486,12 @@ function shoppingRecipeUsageRows(slotRecords, selectedRecipeIds = []) {
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
-function shoppingAggregateLines(weekStart, recipeUsages) {
+function shoppingAggregateLines(weekStart, recipeUsages, shoppingWindowPlan = null) {
   const lines = new Map();
   const packFitAdjustments = weekPackFitAdjustmentMap(weekStart);
+  const windowPlan = shoppingWindowPlan || plannerShoppingWindowPlan(weekStart, (recipeUsages || []).flatMap((usage) => usage?.slots || []));
   recipeUsages.forEach((usage) => {
-    const usageUnitsByTrip = shoppingUsageUnitsByTrip(usage, weekStart);
+    const usageUnitsByTrip = shoppingUsageUnitsByTrip(usage, weekStart, windowPlan);
     shoppingRowsForRecipe(usage.recipe).forEach((row) => {
       const item = shoppingCanonicalShoppingItem(row);
       const itemName = item.name;
@@ -6032,6 +6499,8 @@ function shoppingAggregateLines(weekStart, recipeUsages) {
       const category = shoppingItemCategory(row, item.family);
       const sku = String(row.sku_code || "").trim();
       const key = hashString(item.key);
+      const checkNote = shoppingCheckNoteForRow(row);
+      const lineStorage = shoppingStorageClassForItemParts(itemName, category, item.family, place, checkNote ? [checkNote] : []);
       if (!lines.has(key)) {
         lines.set(key, {
           key,
@@ -6057,6 +6526,9 @@ function shoppingAggregateLines(weekStart, recipeUsages) {
           slot_count: 0,
           trip_amounts: { sunday: 0, wednesday: 0 },
           trip_costs: { sunday: 0, wednesday: 0 },
+          purchase_windows_by_trip: {},
+          first_use_at_by_trip: {},
+          shopping_window_plan: windowPlan,
           first_day_index: 99,
           last_day_index: -1,
           checked: false,
@@ -6070,7 +6542,11 @@ function shoppingAggregateLines(weekStart, recipeUsages) {
       const packFitAdjustment = shoppingPackFitAdjustmentForRow(packFitAdjustments, usage, row);
       const parsedAmount = shoppingRowAmount(row);
       const familyAmount = shoppingFamilyAmountForRow(row, parsedAmount, item.family);
-      const adjustedTotals = shoppingPackFitAdjustedTotalsForRow(familyAmount, usage, usageUnitsByTrip, packFitAdjustment);
+      const adjustedTotals = shoppingPurchaseWindowAdjustedTotals(
+        shoppingPackFitAdjustedTotalsForRow(familyAmount, usage, usageUnitsByTrip, packFitAdjustment),
+        usageUnitsByTrip,
+        lineStorage
+      );
       const amount = familyAmount.amount;
       const unit = familyAmount.unit;
       if (Number.isFinite(amount) && amount > 0 && (!line.amount_unit || line.amount_unit === unit)) {
@@ -6078,22 +6554,23 @@ function shoppingAggregateLines(weekStart, recipeUsages) {
         line.trip_amounts.sunday += adjustedTotals.sunday;
         line.trip_amounts.wednesday += adjustedTotals.wednesday;
         line.amount_unit = unit;
+        shoppingMergePurchaseWindowMeta(line, adjustedTotals);
       } else if (row.recipe_uses || row.recipe_amount) {
         line.amount_exact = false;
       }
       const cost = Number(row.used_cost_gbp || row.cost_count_used || 0);
       if (Number.isFinite(cost) && cost > 0) {
         const costRatio = Number.isFinite(adjustedTotals.cost_ratio) ? adjustedTotals.cost_ratio : 1;
-        line.cost_gbp += cost * usage.cooking_units * costRatio;
-        line.trip_costs.sunday += cost * usageUnitsByTrip.sunday * costRatio;
-        line.trip_costs.wednesday += cost * usageUnitsByTrip.wednesday * costRatio;
+        const rowUnitCost = Number.isFinite(amount) && amount > 0 ? cost / amount : 0;
+        line.cost_gbp += rowUnitCost > 0 ? rowUnitCost * adjustedTotals.total : cost * usage.cooking_units * costRatio;
+        line.trip_costs.sunday += rowUnitCost > 0 ? rowUnitCost * adjustedTotals.sunday : cost * usageUnitsByTrip.sunday * costRatio;
+        line.trip_costs.wednesday += rowUnitCost > 0 ? rowUnitCost * adjustedTotals.wednesday : cost * usageUnitsByTrip.wednesday * costRatio;
       }
       const pack = shoppingSkuPackHint(row) || String(row.purchase_display || row.pack_label || row.recipe_uses || row.recipe_amount || "Saved amount").trim();
       if (pack) {
         line.packs.add(pack);
         line.pack_counts.set(pack, (line.pack_counts.get(pack) || 0) + usage.cooking_units);
       }
-      const checkNote = shoppingCheckNoteForRow(row);
       if (checkNote) line.check_notes.add(checkNote);
       shoppingUseContextsForRow(row).forEach((context) => line.use_contexts.add(context));
       if (packFitAdjustment?.adjustment_count) {
@@ -6194,16 +6671,14 @@ function shoppingInventoryAllowedTripsForLine(item, line, weekStart) {
   if (availableFrom && availableFrom > weekEndKey) return [];
   if (useBy && useBy < sundayKey) return [];
   const trips = [];
-  if (Number(line?.trip_amounts?.sunday || 0) > 0) {
-    const availableForSundayShop = !availableFrom || availableFrom <= sundayKey;
-    const aliveForSundayWindow = !useBy || useBy >= sundayKey;
-    if (availableForSundayShop && aliveForSundayWindow) trips.push("sunday");
-  }
-  if (Number(line?.trip_amounts?.wednesday || 0) > 0) {
-    const availableForPartTwo = !availableFrom || availableFrom <= weekEndKey;
-    const aliveForPartTwo = !useBy || useBy >= thursdayKey;
-    if (availableForPartTwo && aliveForPartTwo) trips.push("wednesday");
-  }
+  ["sunday", "wednesday"].forEach((tripKey) => {
+    if (Number(line?.trip_amounts?.[tripKey] || 0) <= 0) return;
+    const firstUseAt = plannerDateTimeFromValue(line?.first_use_at_by_trip?.[tripKey] || "");
+    const firstUseKey = plannerDateKey(firstUseAt) || (tripKey === "wednesday" ? thursdayKey : sundayKey);
+    const availableForUse = !availableFrom || availableFrom <= firstUseKey;
+    const aliveForUse = !useBy || useBy >= firstUseKey;
+    if (availableForUse && aliveForUse) trips.push(tripKey);
+  });
   return trips;
 }
 
@@ -6256,33 +6731,135 @@ function shoppingLineWithInventoryUse(line, usedTotal, usedItems) {
   return next;
 }
 
-function shoppingUsageUnitsByTrip(usage, weekStart) {
+function shoppingStorageClassForItemParts(itemName, category, family, place, checkNotes = []) {
+  return shoppingLineStorageClass({
+    item_name: itemName,
+    category,
+    family,
+    place,
+    check_notes: checkNotes,
+  });
+}
+
+function shoppingStorageClassGroupsAcrossPurchaseWindows(storage) {
+  return ["pantry", "freezer", "fridge_stock", "shelf_stable"].includes(String(storage || "").trim());
+}
+
+function shoppingEarliestFirstUseAt(values = []) {
+  return values
+    .map((value) => plannerDateTimeFromValue(value || ""))
+    .filter(Boolean)
+    .sort((a, b) => a.getTime() - b.getTime())
+    .map(plannerLocalDateTimeText)[0] || "";
+}
+
+function shoppingMergePurchaseWindowMeta(line, totals = {}) {
+  line.purchase_windows_by_trip = line.purchase_windows_by_trip || {};
+  line.first_use_at_by_trip = line.first_use_at_by_trip || {};
+  ["sunday", "wednesday"].forEach((tripKey) => {
+    if (Number(totals?.[tripKey] || 0) <= 0) return;
+    const window = totals.purchase_windows_by_trip?.[tripKey];
+    if (window) line.purchase_windows_by_trip[tripKey] = window;
+    const firstUse = totals.first_use_at_by_trip?.[tripKey] || "";
+    if (firstUse) {
+      line.first_use_at_by_trip[tripKey] = shoppingEarliestFirstUseAt([
+        line.first_use_at_by_trip[tripKey],
+        firstUse,
+      ]);
+    }
+  });
+}
+
+function shoppingPurchaseWindowAdjustedTotals(totals, usageUnitsByTrip, storage) {
+  const next = {
+    ...totals,
+    purchase_windows_by_trip: { ...(usageUnitsByTrip?.purchase_windows_by_trip || {}) },
+    first_use_at_by_trip: { ...(usageUnitsByTrip?.first_use_at_by_trip || {}) },
+  };
+  if (
+    shoppingStorageClassGroupsAcrossPurchaseWindows(storage)
+    && Number(next.sunday || 0) > 0
+    && Number(next.wednesday || 0) > 0
+  ) {
+    next.sunday = appPackFitRoundNumber(Number(next.sunday || 0) + Number(next.wednesday || 0));
+    next.wednesday = 0;
+    next.first_use_at_by_trip.sunday = shoppingEarliestFirstUseAt([
+      next.first_use_at_by_trip.sunday,
+      next.first_use_at_by_trip.wednesday,
+    ]);
+    delete next.purchase_windows_by_trip.wednesday;
+    delete next.first_use_at_by_trip.wednesday;
+  }
+  return next;
+}
+
+function shoppingCookingUnitPurchasePlans(usage, weekStart, shoppingWindowPlan = null) {
   const batchSize = Math.max(1, Number(usage?.batch_size || usage?.recipe?.batch_count || usage?.recipe?.planner_block_size || 1));
   const slots = Array.isArray(usage?.slots) ? usage.slots.slice() : [];
+  const windowPlan = shoppingWindowPlan || plannerShoppingWindowPlan(weekStart, slots);
   if (!slots.length) {
-    return {
-      sunday: Math.max(1, Number(usage?.cooking_units || 1)),
-      wednesday: 0,
-      first_day_index: 0,
-      last_day_index: 0,
-    };
+    const purchaseWindow = shoppingWindowPlanActiveWindows(windowPlan)[0] || null;
+    return Array.from({ length: Math.max(1, Number(usage?.cooking_units || 1)) }, (_, index) => ({
+      unit_index: index + 1,
+      source_slot: null,
+      purchase_window: purchaseWindow,
+      trip_key: shoppingWindowTripKey(purchaseWindow),
+      first_use_at: "",
+      day_index: 0,
+    }));
   }
   const weekDate = plannerDateFromKey(weekStart) || plannerStartOfWeekDate(new Date());
   const sortedSlots = slots
-    .map((slot) => ({ ...slot, day_index: shoppingSlotDayIndex(slot, weekDate) }))
-    .sort((a, b) => a.day_index - b.day_index || String(a.time || "").localeCompare(String(b.time || "")));
-  const units = { sunday: 0, wednesday: 0 };
+    .map((slot) => ({
+      ...slot,
+      day_index: shoppingSlotDayIndex(slot, weekDate),
+      _date_time: shoppingSlotDateTime(slot),
+    }))
+    .sort((a, b) => (
+      a.day_index - b.day_index
+      || String(a.time || "").localeCompare(String(b.time || ""))
+      || String(a.slot_id || "").localeCompare(String(b.slot_id || ""))
+    ));
+  const units = [];
   for (let index = 0; index < sortedSlots.length; index += batchSize) {
     const chunk = sortedSlots.slice(index, index + batchSize);
     const first = chunk[0] || sortedSlots[index];
-    const tripKey = first.day_index >= 4 ? "wednesday" : "sunday";
-    units[tripKey] += 1;
+    const firstUseAtDate = first?._date_time || shoppingSlotDateTime(first);
+    const purchaseWindow = shoppingWindowForUseAt(firstUseAtDate, windowPlan);
+    units.push({
+      unit_index: units.length + 1,
+      source_slot: first,
+      purchase_window: purchaseWindow,
+      trip_key: shoppingWindowTripKey(purchaseWindow),
+      first_use_at: plannerLocalDateTimeText(firstUseAtDate),
+      day_index: Number(first?.day_index || 0),
+      covered_slot_ids: chunk.map((slot) => slot.slot_id).filter(Boolean),
+    });
   }
+  return units;
+}
+
+function shoppingUsageUnitsByTrip(usage, weekStart, shoppingWindowPlan = null) {
+  const cookingUnits = shoppingCookingUnitPurchasePlans(usage, weekStart, shoppingWindowPlan);
+  const units = { sunday: 0, wednesday: 0 };
+  const purchaseWindowsByTrip = {};
+  const firstUseAtByTrip = {};
+  cookingUnits.forEach((unit) => {
+    const tripKey = unit.trip_key === "wednesday" ? "wednesday" : "sunday";
+    units[tripKey] += 1;
+    if (unit.purchase_window) purchaseWindowsByTrip[tripKey] = unit.purchase_window;
+    if (unit.first_use_at) {
+      firstUseAtByTrip[tripKey] = shoppingEarliestFirstUseAt([firstUseAtByTrip[tripKey], unit.first_use_at]);
+    }
+  });
   return {
     sunday: units.sunday,
     wednesday: units.wednesday,
-    first_day_index: Math.min(...sortedSlots.map((slot) => slot.day_index)),
-    last_day_index: Math.max(...sortedSlots.map((slot) => slot.day_index)),
+    first_day_index: cookingUnits.length ? Math.min(...cookingUnits.map((unit) => unit.day_index)) : 0,
+    last_day_index: cookingUnits.length ? Math.max(...cookingUnits.map((unit) => unit.day_index)) : 0,
+    purchase_windows_by_trip: purchaseWindowsByTrip,
+    first_use_at_by_trip: firstUseAtByTrip,
+    cooking_unit_windows: cookingUnits,
   };
 }
 
@@ -6294,7 +6871,8 @@ function shoppingSlotDayIndex(slot, weekDate) {
   return index >= 0 ? index : 0;
 }
 
-function shoppingTripModel(weekStart, baseLines, skipTicks = false) {
+function shoppingTripModel(weekStart, baseLines, skipTicks = false, shoppingWindowPlan = null) {
+  const windowPlan = shoppingWindowPlan || baseLines.find((line) => line?.shopping_window_plan)?.shopping_window_plan || plannerShoppingWindowPlan(weekStart, []);
   const checked = skipTicks ? {} : shoppingWeekTickMap(weekStart);
   const stock = skipTicks ? {} : shoppingWeekStockMap(weekStart);
   const lines = [];
@@ -6310,13 +6888,15 @@ function shoppingTripModel(weekStart, baseLines, skipTicks = false) {
     wednesday: lines.filter((line) => line.trip_key === "wednesday").length,
     all: lines.length,
   };
-  const activeTrip = shoppingActiveTripKey(weekStart, tripCounts, lines);
+  const activeTrip = shoppingActiveTripKey(weekStart, tripCounts, lines, windowPlan);
   const visibleLines = activeTrip === "all" ? lines : lines.filter((line) => line.trip_key === activeTrip);
   return {
     lines: lines.sort(shoppingTripLineSort),
     visible_lines: visibleLines.sort(shoppingTripLineSort),
     active_trip: activeTrip,
     trip_counts: tripCounts,
+    shopping_window_plan: windowPlan,
+    shopping_window_labels: shoppingTripLabelsForWindowPlan(windowPlan),
   };
 }
 
@@ -6328,12 +6908,15 @@ function shoppingLineCheckedState(line, checkedMap = {}) {
   return Boolean(checkedMap?.[line?.key]);
 }
 
-function shoppingActiveTripKey(weekStart, tripCounts, lines) {
+function shoppingActiveTripKey(weekStart, tripCounts, lines, shoppingWindowPlan = null) {
   const selected = String(state.shoppingTripView || "").trim();
   if (["pantry", "sunday", "wednesday", "all"].includes(selected)) return selected;
   if (tripCounts.pantry) return "pantry";
   const weekDate = plannerDateFromKey(weekStart) || plannerStartOfWeekDate(new Date());
-  const todayIndex = Math.round((plannerStartOfDayDate(new Date()) - weekDate) / 86400000);
+  const todayIndex = Math.round((plannerStartOfDayDate(plannerNow()) - weekDate) / 86400000);
+  const activeWindow = shoppingWindowPlanActiveWindows(shoppingWindowPlan || {})
+    .find((window) => Number(tripCounts?.[shoppingWindowTripKey(window)] || 0) > 0);
+  if (activeWindow) return shoppingWindowTripKey(activeWindow);
   if (todayIndex >= 4 && tripCounts.wednesday) return "wednesday";
   if (tripCounts.sunday) return "sunday";
   if (tripCounts.wednesday) return "wednesday";
@@ -6345,7 +6928,8 @@ function shoppingTripLinesForBaseLine(line, stockEntry = {}) {
   const stockState = shoppingNormalizeStockState(stockEntry.state);
   const result = [];
   if (Number(line.amount_total || 0) <= 0 && Number(line.inventory_used_amount || 0) > 0) {
-    return [shoppingCloneTripLine(line, "sunday", line.inventory_used_amount, {
+    const useTrip = Number(line.trip_amounts?.wednesday || 0) > 0 && Number(line.trip_amounts?.sunday || 0) <= 0 ? "wednesday" : "sunday";
+    return [shoppingCloneTripLine(line, useTrip, line.inventory_used_amount, {
       storage: "inventory_use_up",
       tripNote: "Use-up stock",
       cost: 0,
@@ -6375,7 +6959,7 @@ function shoppingTripLinesForBaseLine(line, stockEntry = {}) {
       result.push(shoppingCloneTripLine(line, buyTrip, remaining, {
         stockEntry,
         storage,
-        tripNote: buyTrip === "wednesday" ? `${stockMeta.lowNote} - pick up Wednesday` : `${stockMeta.lowNote} - buy Sunday`,
+        tripNote: buyTrip === "wednesday" ? `${stockMeta.lowNote} - pick up later` : `${stockMeta.lowNote} - buy in first shop`,
         cost: line.cost_gbp,
       }));
     }
@@ -6465,6 +7049,14 @@ function shoppingTripLinesForBaseLine(line, stockEntry = {}) {
     }));
     return result;
   }
+  if (wednesdayAmount > 0 && sundayAmount <= 0) {
+    result.push(shoppingCloneTripLine(line, "wednesday", line.amount_total, {
+      storage,
+      tripNote: "Later shop",
+      cost: line.cost_gbp,
+    }));
+    return result;
+  }
   result.push(shoppingCloneTripLine(line, "sunday", line.amount_total, {
     storage,
     tripNote: freshTopUp ? "Use early week" : "Main shop",
@@ -6529,12 +7121,19 @@ function shoppingLeafyFreshFlexAllowed(line) {
 }
 
 function shoppingCloneTripLine(line, tripKey, amountTotal, options = {}) {
+  const purchaseWindow = options.purchaseWindow || line.purchase_windows_by_trip?.[tripKey] || shoppingWindowForTrip(line.shopping_window_plan, tripKey) || null;
   const next = {
     ...line,
-    key: hashString(`${line.key}:${tripKey}:${options.tripNote || ""}`),
+    key: hashString(`${line.key}:${tripKey}:${purchaseWindow?.window_id || ""}:${options.tripNote || ""}`),
     stock_key: options.stockKey || line.key,
     trip_key: tripKey,
     trip_note: options.tripNote || "",
+    purchase_window_id: purchaseWindow?.window_id || "",
+    purchase_at: purchaseWindow?.scheduled_at || "",
+    first_use_at: options.firstUseAt || line.first_use_at_by_trip?.[tripKey] || "",
+    purchase_timing_source: shoppingPurchaseTimingSource(purchaseWindow),
+    shopping_window_status: purchaseWindow?.status || "",
+    shopping_window_reason: purchaseWindow?.reason || "",
     storage_class: options.storage || shoppingLineStorageClass(line),
     is_carryover_check: Boolean(options.carryoverCheck),
     is_backup_buy: Boolean(options.backupBuy),
@@ -6617,7 +7216,7 @@ function shoppingLineLeftoverLabel(line) {
 }
 
 function shoppingFreshPackWarning(line) {
-  if (!line || line.trip_key === "pantry" || line.is_carryover_check) return "";
+  if (shoppingLineIsAwkwardPackExempt(line)) return "";
   if (!["short_fresh", "sturdy_fresh"].includes(line.storage_class)) return "";
   const amount = shoppingPackNeedAmount(line.amount_total, line.amount_unit);
   const plan = shoppingLinePackCoverage(line);
@@ -6628,6 +7227,32 @@ function shoppingFreshPackWarning(line) {
   const leftoverVsNeed = left / amount;
   if (leftoverShare < 0.5 && leftoverVsNeed < 1.5) return "";
   return `Awkward pack: ${shoppingAmountLabel(left, plan.unit)} left - swap recipe or plan use-up`;
+}
+
+function shoppingLineIsAwkwardPackExempt(line) {
+  if (!line || line.trip_key === "pantry" || line.is_carryover_check || line.is_inventory_use_up) return true;
+  const family = line.family || {};
+  const storage = String(line.storage_class || family.storage_class || shoppingLineStorageClass(line) || "").trim().toLowerCase();
+  const freshness = String(family.freshness || "").trim().toLowerCase();
+  const policy = String(family.leftover_policy || line.leftover_policy || "").trim().toLowerCase();
+  if (SHOPPING_AWKWARD_EXEMPT_STORAGE_CLASSES.has(storage)) return true;
+  if (SHOPPING_AWKWARD_EXEMPT_STORAGE_CLASSES.has(freshness)) return true;
+  if (family.awkward_pack_exempt === true) return true;
+  if (SHOPPING_AWKWARD_EXEMPT_LEFTOVER_POLICIES.has(policy)) return true;
+  const acceptedWaste = family.accepted_waste_policy && typeof family.accepted_waste_policy === "object"
+    ? family.accepted_waste_policy
+    : null;
+  if (acceptedWaste) {
+    const amount = shoppingPackNeedAmount(line.amount_total, line.amount_unit);
+    const plan = shoppingLinePackCoverage(line);
+    const left = Math.max(0, Number(plan?.totalQuantity || 0) - amount);
+    const maxAccepted = Number(acceptedWaste.max_accepted_leftover_amount || 0);
+    const unit = shoppingNormalizeAmountUnit(acceptedWaste.unit || line.amount_unit || "");
+    if (maxAccepted > 0 && left <= maxAccepted + 1e-9 && (!unit || unit === shoppingNormalizeAmountUnit(plan?.unit || line.amount_unit || ""))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function shoppingLinePackCoverage(line) {
@@ -6780,6 +7405,8 @@ function shoppingRemainingAfterStock(line, stockEntry = {}) {
 
 function shoppingPreferredBuyTrip(line, storage) {
   if (storage === "freezer") return "sunday";
+  if (Number(line?.trip_amounts?.sunday || 0) > 0) return "sunday";
+  if (Number(line?.trip_amounts?.wednesday || 0) > 0) return "wednesday";
   return Number(line.first_day_index || 0) >= 4 ? "wednesday" : "sunday";
 }
 
@@ -6793,6 +7420,8 @@ function shoppingLineBuyPlace(line) {
 
 function shoppingLineStorageClass(line) {
   const familyFreshness = String(line.family?.freshness || "").toLowerCase();
+  const familyStorage = String(line.family?.storage_class || "").trim().toLowerCase();
+  const familyLeftoverPolicy = String(line.family?.leftover_policy || "").trim().toLowerCase();
   const itemText = [
     line.item_name,
     line.category,
@@ -6802,19 +7431,24 @@ function shoppingLineStorageClass(line) {
   ].filter(Boolean).join(" ").toLowerCase();
   const routeText = `${itemText} ${line.place || ""}`.toLowerCase();
   if (/no buy/.test(routeText)) return "pantry";
+  if (familyStorage && !["fresh", "short_fresh", "pantry"].includes(familyStorage)) return familyStorage;
+  if (["opened_fridge_sauce_stock", "long_life_weekly_restock", "weekly_stock_restock", "pantry_micro", "pantry_carryover"].includes(familyLeftoverPolicy)) return "pantry";
   if (/^(fridge_stock|stock_fridge|refrigerated_stock|chilled_stock)$/.test(familyFreshness)) return "fridge_stock";
+  if (/^(weekly_stock|ambient_weekly_stock)$/.test(familyFreshness)) return "weekly_stock";
+  if (/^(fridge_sauce_stock|chilled_stock)$/.test(familyFreshness)) return familyFreshness;
   if (familyFreshness === "frozen" || /\bfrozen\b|\bfreezer\b/.test(routeText)) return "freezer";
   if (shoppingLineIsStockPantry(itemText, familyFreshness)) return "pantry";
-  if (shoppingLineIsRecipeSpecificShelfItem(itemText)) return "sturdy_fresh";
+  if (shoppingLineIsRecipeSpecificShelfItem(itemText)) return "shelf_stable";
   if (/\bfresh ginger\b|\bginger\b/.test(itemText)) return "sturdy_fresh";
   if (/\bmeat\b|\bfish\b|\bham\b|\bchicken\b|\bbeef\b|\bmince\b|\bmushrooms?\b|\bsalad\b|\bspinach\b|\blettuce\b|\bherb\b|\bbasil\b|\bcoriander\b|\bstrawberries\b|\bavocado\b/.test(itemText)) return "short_fresh";
   return "sturdy_fresh";
 }
 
 function shoppingLineIsStockPantry(text, familyFreshness = "") {
-  const explicitStock = /^(pantry_stock|stock_pantry|household_stock|storecupboard_stock)$/.test(String(familyFreshness || "").toLowerCase());
+  const explicitStock = /^(pantry_stock|stock_pantry|household_stock|storecupboard_stock|weekly_stock|ambient_weekly_stock|fridge_sauce_stock|chilled_stock)$/.test(String(familyFreshness || "").toLowerCase());
   if (explicitStock) return true;
-  if (/\bfresh ginger\b|\bginger paste\b/.test(text)) return false;
+  if (/\bfresh ginger\b/.test(text)) return false;
+  if (/\b(very lazy ginger|lazy ginger|ginger paste|crushed ginger paste|chopped ginger)\b/.test(text)) return true;
   if (shoppingLineIsRecipeSpecificShelfItem(text)) return false;
   return /\b(oils?|olive oil|vegetable oil|sunflower oil|spray oil|seasonings?|spices?|salt|black pepper|peppercorns?|paprika|cumin|turmeric|cinnamon|garam masala|curry powder|chilli flakes|dried oregano|dried thyme|mixed herbs|garlic granules|onion granules|ground ginger|cornflour|flour|sugar|vinegar|honey|stock cubes?|stock pots?|rice|basmati|long grain|pasta|spaghetti|penne|fusilli|macaroni|oats?|porridge oats?)\b/.test(text);
 }
@@ -7789,6 +8423,9 @@ function plannerNormalizeInventoryItem(item = {}) {
     status_updated_at: plannerNormalizeDateTimeText(item.status_updated_at) || "",
     status_note: String(item.status_note || "").trim(),
     priority: String(item.priority || "").trim(),
+    purchase_window_id: String(item.purchase_window_id || "").trim(),
+    purchased_at: plannerNormalizeDateTimeText(item.purchased_at || item.purchase_at || "") || "",
+    purchase_timing_source: String(item.purchase_timing_source || "").trim(),
     source_type: sourceType,
     source_receipt_week_id: plannerInventorySourceKeepsTrace(sourceType) ? String(item.source_receipt_week_id || item.source_week_id || "").trim() : "",
     source_inventory_id: plannerInventorySourceKeepsTrace(sourceType) ? String(item.source_inventory_id || "").trim() : "",
@@ -8027,6 +8664,9 @@ function plannerNormalizeReceiptUseUpSuggestion(item = {}, weekStart = plannerAc
     unit,
     storage_class: String(item.storage_class || "").trim(),
     location: plannerReceiptUseUpLocation(item.location || item.storage_class),
+    purchase_window_id: String(item.purchase_window_id || "").trim(),
+    purchased_at: plannerNormalizeDateTimeText(item.purchased_at || item.purchase_at || "") || "",
+    purchase_timing_source: String(item.purchase_timing_source || "").trim(),
     available_from_date: plannerNormalizeDateKey(item.available_from_date) || "",
     opened_on_date: plannerNormalizeDateKey(item.opened_on_date) || "",
     use_by_date: plannerNormalizeDateKey(item.use_by_date) || plannerDateKey(plannerActiveWeekEndDate()),
@@ -8061,6 +8701,9 @@ function plannerInventoryItemFromReceiptUseUp(suggestion, weekStart = plannerAct
     amount: suggestion.amount,
     unit: suggestion.unit,
     storage_class: suggestion.storage_class,
+    purchase_window_id: suggestion.purchase_window_id,
+    purchased_at: suggestion.purchased_at || suggestion.purchase_at,
+    purchase_timing_source: suggestion.purchase_timing_source,
     available_from_date: availableFromDate,
     available_from_at: assumed ? (availableFromDate ? `${availableFromDate}T00:00:00` : "") : stockCount.available_from_at,
     opened_on_date: suggestion.opened_on_date,
@@ -8513,6 +9156,15 @@ function plannerInventoryUseUpScore(uses = []) {
   return uses.reduce((sum, use) => sum + plannerInventoryUseWeight(use.used_amount, use.unit), 0);
 }
 
+function plannerRecipeInventoryUseScoresForSlot(recipe, day, slot, inventoryContext = null, targetMap = null) {
+  const uses = plannerInventoryUseForSelection(day, [{ slot_id: slot?.slot_id || "", recipe }], inventoryContext);
+  return {
+    uses,
+    inventory_use_up_score: plannerInventoryUseUpScore(uses),
+    ingredient_target_score: plannerIngredientTargetUseScore(uses, targetMap),
+  };
+}
+
 function plannerInventoryUseWeight(amount, unit) {
   const normalizedUnit = shoppingNormalizeAmountUnit(unit);
   const value = Number(amount || 0);
@@ -8630,7 +9282,7 @@ function plannerIngredientTargetUseValue(use = {}, target = {}) {
   const usedAmount = Number(use.used_amount || 0);
   const targetAmount = Number(target.amount || 0);
   if (!Number.isFinite(usedAmount) || usedAmount <= 0) return 0;
-  const priorityBase = { hard: 800, strong: 420, soft: 140 }[target.priority] || 0;
+  const priorityBase = { hard: 1200, strong: 760, soft: 240 }[target.priority] || 0;
   const share = targetAmount > 0 ? Math.min(1, usedAmount / targetAmount) : 0.25;
   const amountScore = plannerInventoryUseWeight(usedAmount, use.unit) * Math.max(1, Number(target.priority_rank || 1));
   return priorityBase * share + amountScore;
@@ -9987,6 +10639,8 @@ function plannerWeekScoreInsightCard(cache = normalizePlannerOptionsCache(state.
 
 function plannerSavingsWasteInsightCard() {
   let summary = null;
+  const selectedOptions = plannerWeekSelectedOptions(normalizePlannerOptionsCache(state.plannerOptionsCache).day_options);
+  const packClean = plannerPackCleanWasteSummary(selectedOptions);
   try {
     summary = shoppingWeekSavingsWasteSummary(plannerActiveWeekStartKey(), buildShoppingWeekModel(plannerActiveWeekStartKey(), { skipTicks: true }));
   } catch (error) {
@@ -10009,6 +10663,10 @@ function plannerSavingsWasteInsightCard() {
     : summary.awkward_pack_count
       ? `${number(summary.awkward_pack_count)} awkward pack line${summary.awkward_pack_count === 1 ? "" : "s"} still need review.`
       : "Shopping cost and use-up lines are built from the selected recipes.";
+  const cleanNotes = (packClean.warnings || []).slice(0, 4).map((warning) => {
+    const label = warning.family_label || warning.family_id || "Fresh item";
+    return `${label}: ${shoppingAmountLabel(warning.leftover_amount, warning.unit)} left after ${shoppingAmountLabel(warning.amount_after, warning.unit)} used. ${warning.reason}`;
+  });
   return `
     <article class="planner-insight-card ${escapeAttr(trusted ? "ready" : "warning")}" aria-label="Low-waste shopping check">
       <div class="planner-insight-heading">
@@ -10021,7 +10679,7 @@ function plannerSavingsWasteInsightCard() {
         ${shoppingSummaryMetric("Awkward packs", summary.awkward_pack_count)}
         ${shoppingSummaryMetric("Use-up created", summary.use_up_created_count)}
       </div>
-      ${plannerCollapsedDetail("Shopping details", [note])}
+      ${plannerCollapsedDetail("Shopping details", [note, ...cleanNotes])}
     </article>
   `;
 }
@@ -10665,6 +11323,8 @@ function plannerCarryForwardRows(weekStart = plannerActiveWeekStartKey()) {
     const sourceType = plannerNormalizeInventorySourceType(item.source_type);
     const sourceTone = plannerCarryForwardSourceTone(sourceType, item.status);
     const waste = plannerCarryForwardWasteForItem(item, remaining, weekStart);
+    const remainingValue = waste.unit_cost_gbp > 0 ? roundMoney(remaining * waste.unit_cost_gbp) : 0;
+    const planResult = plannerCarryForwardPlanResultForItem(item, record, weekStart);
     return {
       item,
       suggestion,
@@ -10675,9 +11335,11 @@ function plannerCarryForwardRows(weekStart = plannerActiveWeekStartKey()) {
       remaining_amount: remaining,
       waste_gbp: waste.waste_gbp,
       unit_cost_gbp: waste.unit_cost_gbp,
+      remaining_value_gbp: remainingValue,
       expected_waste: waste.expected_waste,
       status: plannerCarryForwardRowStatus(item, used, remaining, waste.expected_waste, sourceTone),
-      title: plannerCarryForwardRowTitle(item, used, remaining, waste),
+      plan_result: planResult,
+      title: plannerCarryForwardRowTitle(item, used, remaining, waste, remainingValue, planResult),
     };
   }).sort(plannerSortCarryForwardRows);
 }
@@ -10699,6 +11361,9 @@ function plannerCarryForwardItemForSuggestion(suggestion, weekStart = plannerAct
     amount: review?.amount || suggestion.amount,
     unit: review?.unit || suggestion.unit,
     storage_class: suggestion.storage_class,
+    purchase_window_id: suggestion.purchase_window_id,
+    purchased_at: suggestion.purchased_at || suggestion.purchase_at,
+    purchase_timing_source: suggestion.purchase_timing_source,
     available_from_date: suggestion.available_from_date || plannerNormalizeWeekStartKey(weekStart),
     available_from_at: suggestion.available_from_date ? `${suggestion.available_from_date}T00:00:00` : "",
     opened_on_date: suggestion.opened_on_date,
@@ -10758,24 +11423,64 @@ function plannerCarryForwardRowStatus(item, used, remaining, expectedWaste, sour
   return { id: "carry", label: used > 0 ? "Left" : "Brought in" };
 }
 
-function plannerCarryForwardWasteForItem(item, remaining, weekStart = plannerActiveWeekStartKey()) {
+function plannerInventoryItemWasteRisk(item, remaining, weekStart = plannerActiveWeekStartKey()) {
   const normalizedRemaining = Number(remaining || 0);
   const useBy = plannerNormalizeDateKey(item?.use_by_date);
-  const weekEnd = plannerDateKey(plannerAddDays(plannerDateFromKey(weekStart), 6));
+  const weekStartKey = plannerNormalizeWeekStartKey(weekStart);
+  const weekEnd = plannerDateKey(plannerAddDays(plannerDateFromKey(weekStartKey), 6));
   const itemStatus = plannerNormalizeInventoryStatus(item?.status);
   const statusWaste = ["gone", "spilled"].includes(itemStatus);
+  const cupboard = plannerNormalizeInventoryLocation(item?.location) === "cupboard";
+  const shortLife = plannerInventoryItemIsShortLifeWasteRisk(item);
   const dateWaste = normalizedRemaining > 0
+    && !cupboard
+    && shortLife
     && useBy
     && weekEnd
-    && useBy <= weekEnd
-    && plannerNormalizeInventoryLocation(item?.location) !== "cupboard";
+    && useBy <= weekEnd;
+  const expiredBeforeWeek = Boolean(useBy && weekStartKey && useBy < weekStartKey);
   const expectedWaste = statusWaste || dateWaste;
-  const unitCost = plannerInventoryUnitCost(item);
-  const wasteAmount = statusWaste ? Number(item?.amount || 0) : normalizedRemaining;
   return {
     expected_waste: expectedWaste,
+    status_waste: statusWaste,
+    date_waste: dateWaste,
+    short_life: shortLife,
+    expired_before_week: expiredBeforeWeek,
+    reason_label: statusWaste
+      ? "marked gone/off"
+      : dateWaste
+        ? (expiredBeforeWeek ? "use-by already passed" : "short-life item expires this week")
+        : shortLife
+          ? "short-life item still usable this week"
+          : "longer-life item should be checked, not auto-binned",
+  };
+}
+
+function plannerInventoryItemIsShortLifeWasteRisk(item = {}) {
+  const text = [
+    item.storage_class,
+    item.shelf_life_basis,
+    item.leftover_policy,
+    item.item_name,
+    item.family_id,
+    item.sku_code,
+  ].filter(Boolean).join(" ").toLowerCase();
+  if (plannerNormalizeInventoryLocation(item.location) === "cupboard") return false;
+  if (/\b(onions?|carrots?|ginger|garlic|potatoes|potato|baby potatoes?|baby potato|sweet potatoes?|sweet potato|sturdy_veg|longer-life|longer_life)\b/.test(text)) return false;
+  return /\b(short_fresh|fresh_short|raw_meat|raw_fish|meat|chicken|beef|pork|lamb|turkey|fish|salmon|cod|prawn|seafood|leafy|salad|lettuce|spinach|rocket|herb|basil|coriander|parsley|mushroom|avocado|strawberry|berries|berry|yogurt|yoghurt|skyr|quark|cheese|cheddar|mozzarella|feta|halloumi)\b/.test(text);
+}
+
+function plannerCarryForwardWasteForItem(item, remaining, weekStart = plannerActiveWeekStartKey()) {
+  const normalizedRemaining = Number(remaining || 0);
+  const risk = plannerInventoryItemWasteRisk(item, normalizedRemaining, weekStart);
+  const unitCost = plannerInventoryUnitCost(item);
+  const wasteAmount = risk.status_waste ? Number(item?.amount || 0) : normalizedRemaining;
+  return {
+    expected_waste: risk.expected_waste,
+    waste_reason: risk.reason_label,
+    short_life: risk.short_life,
     unit_cost_gbp: unitCost,
-    waste_gbp: expectedWaste && unitCost > 0 ? roundMoney(wasteAmount * unitCost) : 0,
+    waste_gbp: risk.expected_waste && unitCost > 0 ? roundMoney(wasteAmount * unitCost) : 0,
   };
 }
 
@@ -10799,18 +11504,84 @@ function plannerCarryForwardWasteSummary(weekStart = plannerActiveWeekStartKey()
   };
 }
 
-function plannerCarryForwardRowTitle(item, used, remaining, waste) {
+function plannerCarryForwardWasteAvoidanceMetrics(selectedOptions = [], weekStart = plannerActiveWeekStartKey()) {
+  const suggestions = plannerCarryForwardPreviousWeekSuggestions(weekStart);
+  if (!suggestions.length) {
+    return {
+      carry_forward_waste_count: 0,
+      carry_forward_waste_gbp: 0,
+      carry_forward_waste_score: 0,
+      carry_forward_waste_labels: [],
+    };
+  }
+  const ledger = plannerSequentialInventoryUseLedger(selectedOptions, weekStart);
+  const reviews = plannerStockCountReviewMap(weekStart);
+  const seen = new Set();
+  const labels = [];
+  let wasteCount = 0;
+  let wasteGbp = 0;
+  let wasteScore = 0;
+  suggestions.forEach((suggestion) => {
+    const review = reviews[suggestion.suggestion_id] || null;
+    const item = plannerCarryForwardItemForSuggestion(suggestion, weekStart, review);
+    if (!item?.inventory_id || seen.has(item.inventory_id)) return;
+    seen.add(item.inventory_id);
+    const itemStatus = plannerNormalizeInventoryStatus(item.status);
+    if (["gone", "spilled", "used_elsewhere", "ignore_week"].includes(itemStatus)) return;
+    const amount = Number(item.amount || 0);
+    const record = ledger.by_inventory_id?.[item.inventory_id] || null;
+    const remaining = Math.max(0, Number(record ? record.remaining_amount : amount) || 0);
+    if (remaining <= 0) return;
+    const risk = plannerInventoryItemWasteRisk(item, remaining, weekStart);
+    if (!risk.expected_waste) return;
+    const unitCost = plannerInventoryUnitCost(item);
+    const value = unitCost > 0 ? roundMoney(remaining * unitCost) : 0;
+    const priority = plannerIngredientTargetPriority(item, weekStart);
+    const priorityRank = Math.max(1, Number(priority?.rank || (risk.short_life ? 3 : 1)));
+    const amountScore = plannerInventoryUseWeight(remaining, item.unit) * priorityRank;
+    const valueScore = value > 0 ? value * 260 : 120;
+    const urgencyScore = risk.expired_before_week ? 1800 : risk.short_life ? 1200 : 420;
+    wasteCount += 1;
+    wasteGbp += value;
+    wasteScore += urgencyScore + amountScore + valueScore;
+    if (labels.length < 6) labels.push(item.item_name || item.family_id || "Leftover");
+  });
+  return {
+    carry_forward_waste_count: wasteCount,
+    carry_forward_waste_gbp: roundMoney(wasteGbp),
+    carry_forward_waste_score: Math.round(wasteScore * 10) / 10,
+    carry_forward_waste_labels: labels,
+  };
+}
+
+function plannerCarryForwardPlanResultForItem(item, record = null, weekStart = plannerActiveWeekStartKey()) {
+  const obligation = plannerCarryForwardObligationForItem(item, weekStart);
+  const used = Number(record?.used_amount || 0);
+  const remaining = Math.max(0, Number(record ? record.remaining_amount : item?.amount || 0) || 0);
+  if (used > 0 && remaining <= 0) return { id: "used", label: "Used this week" };
+  if (used > 0) return { id: "part_used", label: "Part-used; carry/check rest" };
+  if (!obligation || obligation.level === "carry_safe") return { id: "carry_safe", label: "Carry/check" };
+  if (obligation.level === "soft") return { id: "soft_target", label: "Use if it fits" };
+  return { id: "needs_route", label: "Needs early recipe" };
+}
+
+function plannerCarryForwardRowTitle(item, used, remaining, waste, remainingValue = 0, planResult = null) {
   const knownAt = plannerCarryForwardKnownAtLabel(item);
   const useBy = plannerNormalizeDateKey(item?.use_by_date) ? `Use by ${plannerDateDisplayLabel(item.use_by_date)}` : "No use-by date";
   const source = plannerCarryForwardSourceLabel(item);
   const amountText = `Started ${shoppingAmountLabel(item.amount, item.unit)}, used ${shoppingAmountLabel(used, item.unit)}, left ${shoppingAmountLabel(remaining, item.unit)}`;
+  const valueText = waste.unit_cost_gbp > 0 ? `Remaining value ${money(remainingValue)}` : "Remaining value - no saved price";
+  const planText = planResult?.label ? `Plan result ${planResult.label}` : "";
   const wasteText = waste.expected_waste
-    ? `Expected waste${waste.waste_gbp ? ` ${money(waste.waste_gbp)}` : " - no saved price"}`
+    ? `Expected waste${waste.waste_gbp ? ` ${money(waste.waste_gbp)}` : " - no saved price"} - ${waste.waste_reason || "date risk"}`
     : "No expected bin cost this week";
-  return [source, knownAt, useBy, amountText, wasteText].filter(Boolean).join(" | ");
+  return [source, knownAt, useBy, amountText, valueText, planText, wasteText].filter(Boolean).join(" | ");
 }
 
 function plannerCarryForwardKnownAtLabel(item) {
+  if (plannerNormalizeInventorySourceType(item?.source_type) === "assumed_receipt_use_up" && !item?.purchased_at && !item?.counted_at) {
+    return "Purchase date unknown";
+  }
   const dateTime = plannerOptionalDateTimeDisplayLabel(item?.counted_at || item?.available_from_at || item?.imported_at);
   if (dateTime) return `Known from ${dateTime}`;
   const date = plannerNormalizeDateKey(item?.counted_on_date || item?.available_from_date || item?.opened_on_date);
@@ -10819,9 +11590,248 @@ function plannerCarryForwardKnownAtLabel(item) {
 
 function plannerCarryForwardSourceLabel(item) {
   const sourceType = plannerNormalizeInventorySourceType(item?.source_type);
+  const purchaseSource = plannerInventoryPurchaseSourceLabel(item);
   if (sourceType === "assumed_receipt_use_up") return "Left from previous week - needs checking";
-  if (sourceType === "receipt_use_up") return "Checked previous-week leftover";
+  if (sourceType === "receipt_use_up") return ["Checked previous-week leftover", purchaseSource].filter(Boolean).join(" - ");
   return "Previous-week leftover";
+}
+
+function plannerInventoryPurchaseSourceLabel(item) {
+  const source = String(item?.purchase_timing_source || "").trim();
+  const windowId = String(item?.purchase_window_id || "").trim();
+  if (!source && !windowId) return "";
+  if (source === "catch_up_shop" || windowId.startsWith("catch_up")) return "from catch-up shop";
+  if (windowId === "shop_1") return "from shop 1";
+  if (windowId === "shop_2") return "from shop 2";
+  return "";
+}
+
+function plannerCarryForwardObligationForItem(item, weekStart = plannerActiveWeekStartKey()) {
+  const amount = Number(item?.amount || 0);
+  if (!item?.inventory_id || amount <= 0) return null;
+  const sourceType = plannerNormalizeInventorySourceType(item.source_type);
+  if (!["receipt_use_up", "assumed_receipt_use_up", "split_week_part_1", "manual_stock_count"].includes(sourceType)) return null;
+  const status = plannerNormalizeInventoryStatus(item.status);
+  if (["gone", "spilled", "used_elsewhere", "ignore_week", "uncertain"].includes(status)) return null;
+  if (plannerInventoryItemIsShelfStableTarget(item)) return null;
+  const text = [
+    item.storage_class,
+    item.shelf_life_basis,
+    item.leftover_policy,
+    item.item_name,
+    item.family_id,
+    item.sku_code,
+  ].filter(Boolean).join(" ").toLowerCase();
+  const useByDate = plannerNormalizeDateKey(item.use_by_date);
+  const weekStartKey = plannerNormalizeWeekStartKey(weekStart);
+  const weekStartDate = plannerDateFromKey(weekStartKey) || plannerActiveWeekStartDate();
+  const part2StartKey = plannerDateKey(plannerAddDays(weekStartDate, 4));
+  const weekEndKey = plannerDateKey(plannerAddDays(weekStartDate, 6));
+  const sturdyCarry = /\b(onions?|ginger|garlic|carrots?|potatoes|potato|baby potatoes?|sweet potatoes?|sweet potato|sturdy_veg|longer-life|longer_life)\b/.test(text);
+  if (sturdyCarry) {
+    const carrySafe = !useByDate || useByDate > weekEndKey;
+    return {
+      inventory_id: item.inventory_id,
+      item_name: item.item_name || item.family_id || "Carry-forward food",
+      level: carrySafe ? "carry_safe" : "soft",
+      rank: carrySafe ? 0 : 1,
+      blocking: false,
+      reason: carrySafe ? "longer-life carry item" : "longer-life fresh target",
+      amount,
+      unit: shoppingNormalizeAmountUnit(item.unit || "g") || "g",
+    };
+  }
+  const hardByDate = Boolean(useByDate && useByDate <= part2StartKey);
+  const hardByType = /\b(short_fresh|fresh_short|raw_meat|raw_fish|meat|chicken|beef|pork|lamb|turkey|fish|salmon|cod|prawn|seafood|leafy|salad|lettuce|spinach|rocket|berries|berry|strawberry|herb)\b/.test(text);
+  const strongByType = /\b(fresh|chilled|fridge|ham|mushroom|courgette|spring onion|yogurt|yoghurt|skyr|quark|cheese|feta|mozzarella|cottage cheese|egg|fruit|veg|vegetable)\b/.test(text);
+  if (hardByDate || hardByType) {
+    return {
+      inventory_id: item.inventory_id,
+      item_name: item.item_name || item.family_id || "Carry-forward food",
+      level: "hard",
+      rank: 3,
+      blocking: true,
+      reason: hardByDate ? "short use-by" : "short fresh carry-forward",
+      amount,
+      unit: shoppingNormalizeAmountUnit(item.unit || "g") || "g",
+    };
+  }
+  if (strongByType || sourceType === "receipt_use_up" || sourceType === "assumed_receipt_use_up") {
+    return {
+      inventory_id: item.inventory_id,
+      item_name: item.item_name || item.family_id || "Carry-forward food",
+      level: sturdyCarry ? "soft" : "strong",
+      rank: sturdyCarry ? 1 : 2,
+      blocking: !sturdyCarry,
+      reason: sturdyCarry ? "longer-life fresh target" : "fresh carry-forward",
+      amount,
+      unit: shoppingNormalizeAmountUnit(item.unit || "g") || "g",
+    };
+  }
+  return null;
+}
+
+function plannerCarryForwardObligationDeadlineIndex(item, days = currentPlannerTemplate()?.days || [], weekStart = plannerActiveWeekStartKey(), obligation = null) {
+  const dayList = days || [];
+  if (!dayList.length) return -1;
+  const useByDate = plannerNormalizeDateKey(item?.use_by_date);
+  if (useByDate) {
+    const dateIndex = dayList.findIndex((day) => plannerDayDateKey(day) === useByDate);
+    if (dateIndex >= 0) return dateIndex;
+  }
+  const level = obligation?.level || plannerCarryForwardObligationForItem(item, weekStart)?.level || "";
+  if (level === "hard") return Math.min(2, dayList.length - 1);
+  if (level === "strong") return Math.min(3, dayList.length - 1);
+  if (level === "soft") return dayList.length - 1;
+  return -1;
+}
+
+function plannerCarryForwardOptionUsesItem(option, item) {
+  if (!option || !item) return false;
+  const inventoryId = String(item.inventory_id || "");
+  const familyId = String(item.family_id || "");
+  const skuCode = String(item.sku_code || "");
+  return (option.inventory_use_up || []).some((use) => (
+    (inventoryId && use.inventory_id === inventoryId)
+    || (familyId && use.family_id === familyId)
+    || (skuCode && use.sku_code === skuCode)
+  ));
+}
+
+function plannerCarryForwardMatchingRouteExists(item, dayOptions = {}, days = currentPlannerTemplate()?.days || [], deadlineIndex = -1) {
+  const dayList = days || [];
+  return dayList.some((day, index) => {
+    if (deadlineIndex >= 0 && index > deadlineIndex) return false;
+    const options = dayOptions?.[day.day]?.options || [];
+    return options.some((option) => plannerCarryForwardOptionUsesItem(option, item));
+  });
+}
+
+function plannerCarryForwardRecipeCoverageForItem(item) {
+  if (!item) return { recipe_count: 0, min_recipe_amount: 0, has_small_enough_recipe: false };
+  const familyId = String(item.family_id || "");
+  const skuCode = String(item.sku_code || "");
+  const unit = shoppingNormalizeAmountUnit(item.unit || "g") || "g";
+  const amount = Number(item.amount || 0);
+  const rows = [];
+  recipes().forEach((recipe) => {
+    plannerInventoryRecipeRowInfos(recipe).forEach((rowInfo) => {
+      const rowUnit = shoppingNormalizeAmountUnit(rowInfo.unit || "");
+      const matches = (familyId && rowInfo.family_id === familyId) || (skuCode && rowInfo.sku_code === skuCode);
+      if (matches && rowUnit === unit && Number(rowInfo.amount || 0) > 0) {
+        rows.push({ recipe_id: recipeKey(recipe), amount: Number(rowInfo.amount || 0) });
+      }
+    });
+  });
+  const minAmount = rows.length ? Math.min(...rows.map((row) => row.amount)) : 0;
+  return {
+    recipe_count: new Set(rows.map((row) => row.recipe_id)).size,
+    min_recipe_amount: minAmount,
+    has_small_enough_recipe: rows.some((row) => Number(row.amount || 0) <= amount * 1.25),
+  };
+}
+
+function plannerCarryForwardObligationBlockerReason(item, routeExists, coverage) {
+  if (routeExists) return "recipe_exists_but_not_selected";
+  if (!coverage?.recipe_count) return "blocked_no_recipe";
+  if (Number(coverage.min_recipe_amount || 0) > Number(item?.amount || 0) * 1.5) return "blocked_amount_too_small";
+  return "blocked_wrong_slot_or_macro";
+}
+
+function plannerCarryForwardObligationReasonLabel(reason) {
+  const labels = {
+    used_early: "used early",
+    part_used_with_remaining_carried: "part-used with remainder carried",
+    carried_safely: "longer-life carry",
+    soft_target_unused: "soft target not used",
+    recipe_exists_but_not_selected: "recipe exists but was not selected",
+    blocked_no_recipe: "no recipe exists",
+    blocked_wrong_slot_or_macro: "recipe exists but no valid slot/macro route",
+    blocked_amount_too_small: "amount too small for saved recipes",
+    blocked_stock_unconfirmed: "stock must be checked",
+  };
+  return labels[reason] || String(reason || "unknown");
+}
+
+function plannerCarryForwardObligationMetrics(selectedOptions = [], weekStart = plannerActiveWeekStartKey(), dayOptions = {}, days = currentPlannerTemplate()?.days || []) {
+  const suggestions = plannerCarryForwardPreviousWeekSuggestions(weekStart);
+  if (!suggestions.length) {
+    return {
+      carry_forward_obligation_count: 0,
+      carry_forward_obligation_unmet_count: 0,
+      carry_forward_silent_ignore_count: 0,
+      carry_forward_obligation_blocked_count: 0,
+      carry_forward_obligation_score: 0,
+      carry_forward_obligation_labels: [],
+      carry_forward_obligation_outcomes: [],
+    };
+  }
+  const ledger = plannerSequentialInventoryUseLedger(selectedOptions, weekStart);
+  const reviews = plannerStockCountReviewMap(weekStart);
+  const dayOrder = new Map((days || []).map((day, index) => [day.day, index]));
+  const seen = new Set();
+  const outcomes = [];
+  suggestions.forEach((suggestion) => {
+    const review = reviews[suggestion.suggestion_id] || null;
+    const item = plannerCarryForwardItemForSuggestion(suggestion, weekStart, review);
+    if (!item?.inventory_id || seen.has(item.inventory_id)) return;
+    seen.add(item.inventory_id);
+    const obligation = plannerCarryForwardObligationForItem(item, weekStart);
+    if (!obligation || obligation.level === "carry_safe") return;
+    const record = ledger.by_inventory_id?.[item.inventory_id] || null;
+    const usedAmount = Number(record?.used_amount || 0);
+    const remainingAmount = Math.max(0, Number(record ? record.remaining_amount : item.amount || 0) || 0);
+    const deadlineIndex = plannerCarryForwardObligationDeadlineIndex(item, days, weekStart, obligation);
+    const usedEarly = (record?.uses || []).some((use) => {
+      const useIndex = dayOrder.has(use.day_name) ? dayOrder.get(use.day_name) : 999;
+      return deadlineIndex < 0 || useIndex <= deadlineIndex;
+    });
+    const routeExists = plannerCarryForwardMatchingRouteExists(item, dayOptions, days, deadlineIndex);
+    const coverage = plannerCarryForwardRecipeCoverageForItem(item);
+    const reason = usedEarly
+      ? (remainingAmount > 0 ? "part_used_with_remaining_carried" : "used_early")
+      : obligation.level === "soft"
+        ? (usedAmount > 0 ? "part_used_with_remaining_carried" : plannerCarryForwardObligationBlockerReason(item, routeExists, coverage) === "blocked_no_recipe" ? "blocked_no_recipe" : "soft_target_unused")
+        : plannerCarryForwardObligationBlockerReason(item, routeExists, coverage);
+    const silentIgnore = ["hard", "strong"].includes(obligation.level) && !usedEarly && routeExists;
+    const unmet = ["hard", "strong"].includes(obligation.level) && !usedEarly && routeExists;
+    const blocked = ["hard", "strong"].includes(obligation.level) && !usedEarly && !routeExists;
+    const unitCost = plannerInventoryUnitCost(item);
+    const valueGbp = unitCost > 0 ? roundMoney(remainingAmount * unitCost) : 0;
+    outcomes.push({
+      inventory_id: item.inventory_id,
+      item_name: item.item_name || item.family_id || "Carry-forward food",
+      level: obligation.level,
+      reason,
+      reason_label: plannerCarryForwardObligationReasonLabel(reason),
+      route_exists: routeExists,
+      recipe_count: Number(coverage.recipe_count || 0),
+      used_amount: usedAmount,
+      remaining_amount: remainingAmount,
+      value_gbp: valueGbp,
+      silent_ignore: silentIgnore,
+      unmet,
+      blocked,
+    });
+  });
+  const obligationCount = outcomes.filter((item) => ["hard", "strong"].includes(item.level)).length;
+  const unmetCount = outcomes.filter((item) => item.unmet).length;
+  const silentIgnoreCount = outcomes.filter((item) => item.silent_ignore).length;
+  const blockedCount = outcomes.filter((item) => item.blocked).length;
+  const score = outcomes.reduce((sum, item) => {
+    if (item.silent_ignore) return sum + (item.level === "hard" ? 2600 : 1800) + (Number(item.value_gbp || 0) * 260);
+    if (item.blocked) return sum + (item.level === "hard" ? 420 : 260);
+    return sum;
+  }, 0);
+  return {
+    carry_forward_obligation_count: obligationCount,
+    carry_forward_obligation_unmet_count: unmetCount,
+    carry_forward_silent_ignore_count: silentIgnoreCount,
+    carry_forward_obligation_blocked_count: blockedCount,
+    carry_forward_obligation_score: Math.round(score * 10) / 10,
+    carry_forward_obligation_labels: outcomes.filter((item) => item.silent_ignore || item.blocked).map((item) => item.item_name).slice(0, 6),
+    carry_forward_obligation_outcomes: outcomes,
+  };
 }
 
 function plannerCarryForwardPanel() {
@@ -10867,15 +11877,19 @@ function plannerCarryForwardPanel() {
 
 function plannerCarryForwardRow(row) {
   const item = row.item;
-  const result = row.expected_waste && row.waste_gbp
-    ? money(row.waste_gbp)
-    : row.status.label;
+  const value = row.unit_cost_gbp > 0 ? money(row.remaining_value_gbp || 0) : "No price";
+  const waste = row.expected_waste
+    ? (row.waste_gbp ? money(row.waste_gbp) : "No price")
+    : money(0);
   return `
     <div class="planner-carry-forward-row ${escapeAttr(row.status.id)} ${escapeAttr(row.source_tone)}" role="listitem" title="${escapeAttr(row.title)}">
       <strong>${escapeHtml(item.item_name || "Fresh item")}</strong>
-      <span><b>Brought</b><i>${escapeHtml(shoppingAmountLabel(row.amount, item.unit))}</i></span>
+      <span><b>Carried in</b><i>${escapeHtml(shoppingAmountLabel(row.amount, item.unit))}</i></span>
       <span><b>Used</b><i>${escapeHtml(shoppingAmountLabel(row.used_amount, item.unit))}</i></span>
-      <em><b>Result</b><i>${escapeHtml(result)}</i></em>
+      <span><b>Left</b><i>${escapeHtml(shoppingAmountLabel(row.remaining_amount, item.unit))}</i></span>
+      <span class="planner-carry-forward-value"><b>Value</b><i>${escapeHtml(value)}</i></span>
+      <em><b>Status</b><i>${escapeHtml(row.status.label)}</i></em>
+      <span class="planner-carry-forward-waste"><b>Waste</b><i>${escapeHtml(waste)}</i></span>
     </div>
   `;
 }
@@ -12879,9 +13893,13 @@ function plannerActiveWeekShoppingCostSummary() {
 }
 
 function plannerCalendarDay(day) {
-  const placements = plannerSlotPlacements(plannerSlotsForDay(day).filter((slot) => (
+  const mealSlots = plannerSlotsForDay(day).filter((slot) => (
     slot.slot_type === "meal" && (plannerFinishersIncludedInCalculator() || !isFinisherSlot(slot))
-  )));
+  ));
+  const placements = plannerSlotPlacements([
+    ...plannerCalendarShoppingWindowSlots(day),
+    ...mealSlots,
+  ]);
   return `
     <div class="planner-calendar-day ${escapeAttr(plannerDayTemporalState(day))}" data-planner-calendar-blank="${escapeAttr(day.day || "")}" aria-label="${escapeAttr(`${day.day || "Planner day"} ${plannerShortDateLabel(plannerDayDate(day))}`)}">
       ${plannerCalendarOutsideWeekBlocks(day)}
@@ -12889,6 +13907,40 @@ function plannerCalendarDay(day) {
       ${day.trailing_shopping_horizon ? "" : plannerCalendarDayTotals(day)}
     </div>
   `;
+}
+
+function plannerCalendarShoppingWindowSlots(day) {
+  const dateKey = plannerDayDateKey(day);
+  if (!dateKey || day?.trailing_shopping_horizon) return [];
+  const source = shoppingPlannerSourceForWeek(plannerActiveWeekStartKey());
+  const plan = plannerShoppingWindowPlan(plannerActiveWeekStartKey(), shoppingWindowAnchorSlotRecordsForWeek(plannerActiveWeekStartKey(), source.slot_records || []));
+  return (Array.isArray(plan.windows) ? plan.windows : [])
+    .map((window) => {
+      const scheduledAt = plannerDateTimeFromValue(window.scheduled_at || "");
+      if (!scheduledAt || plannerDateKey(scheduledAt) !== dateKey) return null;
+      const skipped = window.status === "skipped" || window.status === "passed";
+      return {
+        slot_id: `shopping-window-${window.window_id}`,
+        source_slot_id: window.source_slot_id || "",
+        day: day.day || "",
+        date: dateKey,
+        time: `${plannerPad2(scheduledAt.getHours())}:${plannerPad2(scheduledAt.getMinutes())}`,
+        duration_minutes: 45,
+        slot_type: "shopping",
+        role: window.status === "catch_up" ? "Catch-up shop" : skipped ? "Skipped shop" : "Food shop",
+        title: skipped ? `${window.label || "Shop"} skipped` : window.label || "Food shop",
+        people: ["Luke"],
+        required: !skipped,
+        chips: [],
+        target_meal_slots: [],
+        default_slot_status: skipped ? "not_required" : "planner_recipe",
+        generated_shopping_window: true,
+        shopping_window_id: window.window_id,
+        shopping_window_status: window.status,
+        shopping_window_reason: window.reason || "",
+      };
+    })
+    .filter(Boolean);
 }
 
 function plannerCalendarOutsideWeekBlocks(day) {
@@ -13045,8 +14097,9 @@ function plannerPersonIconSvg(person) {
 
 function plannerCalendarSlotCard(slot, day, row, offset = 0) {
   const slotState = plannerSlotState(slot);
-  const inventoryCheckSlot = slot.slot_type === "shopping";
-  const shoppingHorizonSlot = Boolean(slot.hidden_shopping_slot || day?.trailing_shopping_horizon);
+  const generatedShoppingWindow = Boolean(slot.generated_shopping_window);
+  const inventoryCheckSlot = slot.slot_type === "shopping" && !generatedShoppingWindow;
+  const shoppingHorizonSlot = Boolean(slot.hidden_shopping_slot || day?.trailing_shopping_horizon || generatedShoppingWindow);
   const selected = state.selectedPlannerSlotId === slot.slot_id;
   const displayRecipe = plannerManualRecipeForSlot(slot.slot_id) || plannerSelectedRecipeForSlot(slot.slot_id);
   const peopleStyle = plannerPeopleGradient(slotState.people);
@@ -13066,7 +14119,7 @@ function plannerCalendarSlotCard(slot, day, row, offset = 0) {
   const frozen = plannerSlotFrozen(slot);
   const batchBlockLabel = displayRecipe ? plannerSelectedBatchBlockLabel(slot.slot_id, displayRecipe) : "";
   const actionAttr = shoppingHorizonSlot
-    ? `aria-disabled="true" title="Planned with this week's shop, shown at the end of the shopping window"`
+    ? `aria-disabled="true" title="${escapeAttr(generatedShoppingWindow ? (slot.shopping_window_reason || "Generated shopping window") : "Planned with this week's shop, shown at the end of the shopping window")}"`
     : inventoryCheckSlot
     ? `data-planner-open-inventory-slot="${escapeAttr(slot.slot_id)}"`
     : `data-planner-select-slot="${escapeAttr(slot.slot_id)}"`;
@@ -13074,7 +14127,7 @@ function plannerCalendarSlotCard(slot, day, row, offset = 0) {
     ? `<span class="planner-use-up-marker" title="Uses fresh food from use-up check" aria-label="Uses fresh food from use-up check"></span>`
     : "";
   return `
-    <button class="planner-calendar-slot ${slotState.required ? "" : "optional"} ${selected && !inventoryCheckSlot ? "selected" : ""} ${displayRecipe ? "has-recipe" : ""} ${batchBlockLabel ? "batch-block" : ""} ${inventoryCheckSlot ? "inventory-check-slot" : ""} ${shoppingHorizonSlot ? "shopping-horizon-slot" : ""} ${escapeAttr(slotState.slot_status)} ${escapeAttr(temporal)} ${frozen ? "frozen" : ""}" type="button" ${actionAttr}${recipeAttr} aria-pressed="${selected && !inventoryCheckSlot ? "true" : "false"}" aria-label="${escapeAttr([ariaLabel, batchBlockLabel ? `batch block ${batchBlockLabel}` : ""].filter(Boolean).join(" - "))}" style="--slot-row: ${row}; --slot-offset: ${Math.max(0, Number(offset || 0))}px; --person-rail: ${peopleStyle}; ${plannerMealColorStyle(category)}${recipeImageStyle}">
+    <button class="planner-calendar-slot ${slotState.required ? "" : "optional"} ${selected && !inventoryCheckSlot ? "selected" : ""} ${displayRecipe ? "has-recipe" : ""} ${batchBlockLabel ? "batch-block" : ""} ${inventoryCheckSlot ? "inventory-check-slot" : ""} ${generatedShoppingWindow ? "shopping-window-slot" : ""} ${shoppingHorizonSlot ? "shopping-horizon-slot" : ""} ${escapeAttr(slotState.slot_status)} ${escapeAttr(temporal)} ${frozen ? "frozen" : ""}" type="button" ${actionAttr}${recipeAttr} aria-pressed="${selected && !inventoryCheckSlot ? "true" : "false"}" aria-label="${escapeAttr([ariaLabel, batchBlockLabel ? `batch block ${batchBlockLabel}` : ""].filter(Boolean).join(" - "))}" style="--slot-row: ${row}; --slot-offset: ${Math.max(0, Number(offset || 0))}px; --person-rail: ${peopleStyle}; ${plannerMealColorStyle(category)}${recipeImageStyle}">
       <span class="planner-slot-rail" aria-hidden="true"></span>
       <span class="planner-slot-card-body">
         <span class="${slotLineClass}">
@@ -14714,7 +15767,7 @@ function plannerOptionsPolicy() {
       beef_mince_family_id: "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
       beef_mince_pack_size_g: 750,
       max_beef_mince_dinners_per_week: 2,
-      block_stranded_beef_mince_pack: true,
+      block_stranded_beef_mince_pack: false,
     },
     external_meal_policy: "reserve_budget",
     build_trigger: "manual_button",
@@ -14793,10 +15846,16 @@ function plannerEmptyWeekEfficiencySummary() {
     inventory_use_up_score: 0,
     assumed_stock_use_count: 0,
     ingredient_target_score: 0,
+    carry_forward_waste_count: 0,
+    carry_forward_waste_gbp: 0,
+    carry_forward_waste_score: 0,
     expensive_beef_mince_waste_line_count: 0,
     expensive_beef_mince_waste_amount_g: 0,
     expensive_beef_mince_waste_cost_gbp: 0,
     expensive_beef_mince_waste_score: 0,
+    pack_clean_awkward_leftover_count: 0,
+    pack_clean_awkward_leftover_value_gbp: 0,
+    pack_clean_waste_score: 0,
     shopping_efficiency_score: 0,
     workload_score: 0,
     workload_min_minutes: 0,
@@ -16217,6 +17276,8 @@ function plannerWeekEfficiencySummary(dayOptions, template) {
   const statuses = Object.values(dayOptions || {});
   const budgetBounds = plannerWeekBudgetBounds(dayOptions);
   const workloadBounds = plannerWeekWorkloadBounds(dayOptions);
+  const packCleanWaste = plannerPackCleanWasteSummary(selectedOptions);
+  const carryForwardWaste = plannerCarryForwardWasteAvoidanceMetrics(selectedOptions, plannerActiveWeekStartKey());
   const recipeUseCounts = {};
   selectedOptions.forEach(({ option }) => {
     Object.entries(plannerOptionRecipeUseCounts(option)).forEach(([recipeId, useCount]) => {
@@ -16240,7 +17301,14 @@ function plannerWeekEfficiencySummary(dayOptions, template) {
     inventory_use_up_score: plannerWeeklyInventoryUseUpScore(selectedOptions),
     assumed_stock_use_count: assumedUseSummary.item_count,
     ingredient_target_score: plannerWeeklyIngredientTargetScore(selectedOptions),
+    carry_forward_waste_count: Number(carryForwardWaste.carry_forward_waste_count || 0),
+    carry_forward_waste_gbp: roundMoney(carryForwardWaste.carry_forward_waste_gbp || 0),
+    carry_forward_waste_score: Math.round(Number(carryForwardWaste.carry_forward_waste_score || 0) * 10) / 10,
+    ...plannerCarryForwardObligationMetrics(selectedOptions, plannerActiveWeekStartKey(), dayOptions, days),
     ...plannerExpensiveBeefMinceWasteMetrics(selectedOptions),
+    pack_clean_awkward_leftover_count: Number(packCleanWaste.awkward_leftover_count || 0),
+    pack_clean_awkward_leftover_value_gbp: roundMoney(packCleanWaste.awkward_leftover_value_gbp || 0),
+    pack_clean_waste_score: Math.round(Number(packCleanWaste.score || 0) * 10) / 10,
     shopping_efficiency_score: plannerShoppingEfficiencyScore(selectedOptions),
     workload_score: selectedOptions.reduce((sum, { option }) => sum + plannerOptionWorkloadScore(option), 0),
     cost_score: selectedOptions.reduce((sum, { option }) => sum + plannerOptionCostScore(option), 0),
@@ -16276,6 +17344,7 @@ function plannerFindWeeklyOptionSequence(dayOptions, template) {
     issueCache: new Map(),
     remainingCapacityCache: new Map(),
     batchCompletionCache: new Map(),
+    batchCompletionLookaheadCache: new Map(),
     proteinFamilyCache: new Map(),
     fatigueProfileCache: new Map(),
     remainingExpensiveBeefPotentialCache: new Map(),
@@ -16460,6 +17529,9 @@ function plannerWeeklySequenceMetrics({ dayIndex, selectedByDay, optionScore, ac
   const shoppingEfficiencyScore = plannerShoppingEfficiencyScore(selectedOptions);
   const expensiveBeefMinceWaste = plannerExpensiveBeefMinceWasteSummary(selectedOptions);
   const expensiveBeefMinceWasteScore = Number(expensiveBeefMinceWaste.score || 0);
+  const packCleanWaste = plannerPackCleanWasteSummary(selectedOptions);
+  const carryForwardWaste = plannerCarryForwardWasteAvoidanceMetrics(selectedOptions, plannerActiveWeekStartKey());
+  const carryForwardObligations = plannerCarryForwardObligationMetrics(selectedOptions, plannerActiveWeekStartKey(), dayOptions, days);
   const inventoryUseUpScore = plannerWeeklyInventoryUseUpScore(selectedOptions);
   const ingredientTargetScore = plannerWeeklyIngredientTargetScore(selectedOptions);
   const adjacentDinnerProteinRepeatScore = plannerAdjacentDinnerProteinRepeatScore(selectedOptions);
@@ -16483,10 +17555,23 @@ function plannerWeeklySequenceMetrics({ dayIndex, selectedByDay, optionScore, ac
     dinner_fatigue_warning_count: Number(dinnerFatigueSummary.warning_count || 0),
     inventory_use_up_score: Math.round(inventoryUseUpScore * 10) / 10,
     ingredient_target_score: Math.round(ingredientTargetScore * 10) / 10,
+    carry_forward_waste_count: Number(carryForwardWaste.carry_forward_waste_count || 0),
+    carry_forward_waste_gbp: roundMoney(carryForwardWaste.carry_forward_waste_gbp || 0),
+    carry_forward_waste_score: Math.round(Number(carryForwardWaste.carry_forward_waste_score || 0) * 10) / 10,
+    carry_forward_obligation_count: Number(carryForwardObligations.carry_forward_obligation_count || 0),
+    carry_forward_obligation_unmet_count: Number(carryForwardObligations.carry_forward_obligation_unmet_count || 0),
+    carry_forward_silent_ignore_count: Number(carryForwardObligations.carry_forward_silent_ignore_count || 0),
+    carry_forward_obligation_blocked_count: Number(carryForwardObligations.carry_forward_obligation_blocked_count || 0),
+    carry_forward_obligation_score: Math.round(Number(carryForwardObligations.carry_forward_obligation_score || 0) * 10) / 10,
+    carry_forward_obligation_labels: carryForwardObligations.carry_forward_obligation_labels || [],
+    carry_forward_obligation_outcomes: carryForwardObligations.carry_forward_obligation_outcomes || [],
     expensive_beef_mince_waste_line_count: Number(expensiveBeefMinceWaste.line_count || 0),
     expensive_beef_mince_waste_amount_g: Math.round(Number(expensiveBeefMinceWaste.leftover_amount_g || 0) * 10) / 10,
     expensive_beef_mince_waste_cost_gbp: Math.round(Number(expensiveBeefMinceWaste.leftover_cost_gbp || 0) * 100) / 100,
     expensive_beef_mince_waste_score: Math.round(expensiveBeefMinceWasteScore * 10) / 10,
+    pack_clean_awkward_leftover_count: Number(packCleanWaste.awkward_leftover_count || 0),
+    pack_clean_awkward_leftover_value_gbp: roundMoney(packCleanWaste.awkward_leftover_value_gbp || 0),
+    pack_clean_waste_score: Math.round(Number(packCleanWaste.score || 0) * 10) / 10,
     shopping_efficiency_score: Math.round(shoppingEfficiencyScore * 10) / 10,
     workload_score: Math.round(workloadScore * 10) / 10,
     cost_score: Math.round(costScore * 10) / 10,
@@ -16519,6 +17604,12 @@ function plannerWeeklySequenceBeats(candidate, current) {
     ["missing_required_recipe_slot_count", "lower"],
     ["selected_recipe_slot_count", "higher"],
     ["gap_days", "lower"],
+    ["carry_forward_silent_ignore_count", "lower"],
+    ["carry_forward_obligation_unmet_count", "lower"],
+    ["carry_forward_obligation_score", "lower"],
+    ["carry_forward_waste_score", "lower"],
+    ["carry_forward_waste_gbp", "lower"],
+    ["carry_forward_waste_count", "lower"],
     ["dinner_fatigue_hard_count", "lower"],
     ["previous_week_dinner_exact_repeat_count", "lower"],
     ["dinner_fatigue_penalty", "lower"],
@@ -16529,6 +17620,8 @@ function plannerWeeklySequenceBeats(candidate, current) {
     ["expensive_beef_mince_waste_line_count", "lower"],
     ["expensive_beef_mince_waste_amount_g", "lower"],
     ["expensive_beef_mince_waste_score", "lower"],
+    ["pack_clean_awkward_leftover_count", "lower"],
+    ["pack_clean_waste_score", "lower"],
     ["week_score", "higher"],
     ["completed_batch_blocks", "higher"],
     ["adjacent_dinner_protein_repeat_score", "lower"],
@@ -16696,12 +17789,30 @@ function plannerWeekScoreReadinessBlocked(metrics = {}) {
 function plannerWeekScoreSummaryForSelectedOptions(selectedOptions = [], context = {}) {
   const policy = plannerWeekScorePolicy();
   const currentDinnerFatigueSummary = plannerDinnerFatigueSummaryForSelectedOptions(selectedOptions, context.recipeById);
+  const packCleanWaste = plannerPackCleanWasteSummary(selectedOptions);
+  const carryForwardWaste = plannerCarryForwardWasteAvoidanceMetrics(selectedOptions, plannerActiveWeekStartKey());
+  const carryForwardObligations = context.metrics
+    ? {}
+    : plannerCarryForwardObligationMetrics(selectedOptions, plannerActiveWeekStartKey(), {}, currentPlannerTemplate()?.days || []);
   const metrics = {
     selected_day_count: selectedOptions.length,
     macro_score: selectedOptions.reduce((sum, { option }) => sum + Number(option?.score || 0), 0),
     inventory_use_up_score: plannerWeeklyInventoryUseUpScore(selectedOptions),
     ingredient_target_score: plannerWeeklyIngredientTargetScore(selectedOptions),
+    carry_forward_waste_count: Number(carryForwardWaste.carry_forward_waste_count || 0),
+    carry_forward_waste_gbp: roundMoney(carryForwardWaste.carry_forward_waste_gbp || 0),
+    carry_forward_waste_score: Math.round(Number(carryForwardWaste.carry_forward_waste_score || 0) * 10) / 10,
+    carry_forward_obligation_count: Number(carryForwardObligations.carry_forward_obligation_count || 0),
+    carry_forward_obligation_unmet_count: Number(carryForwardObligations.carry_forward_obligation_unmet_count || 0),
+    carry_forward_silent_ignore_count: Number(carryForwardObligations.carry_forward_silent_ignore_count || 0),
+    carry_forward_obligation_blocked_count: Number(carryForwardObligations.carry_forward_obligation_blocked_count || 0),
+    carry_forward_obligation_score: Math.round(Number(carryForwardObligations.carry_forward_obligation_score || 0) * 10) / 10,
+    carry_forward_obligation_labels: carryForwardObligations.carry_forward_obligation_labels || [],
+    carry_forward_obligation_outcomes: carryForwardObligations.carry_forward_obligation_outcomes || [],
     ...plannerExpensiveBeefMinceWasteMetrics(selectedOptions),
+    pack_clean_awkward_leftover_count: Number(packCleanWaste.awkward_leftover_count || 0),
+    pack_clean_awkward_leftover_value_gbp: roundMoney(packCleanWaste.awkward_leftover_value_gbp || 0),
+    pack_clean_waste_score: Math.round(Number(packCleanWaste.score || 0) * 10) / 10,
     shopping_efficiency_score: plannerShoppingEfficiencyScore(selectedOptions),
     workload_score: selectedOptions.reduce((sum, { option }) => sum + plannerOptionWorkloadScore(option), 0),
     cost_score: selectedOptions.reduce((sum, { option }) => sum + plannerOptionCostScore(option), 0),
@@ -16717,7 +17828,12 @@ function plannerWeekScoreSummaryForSelectedOptions(selectedOptions = [], context
   const useUpScore = lowWasteRaw > 0
     ? plannerWeekScoreClamp(72 + (plannerWeekScorePositive(lowWasteRaw, 400) * 0.28))
     : targetCount ? 40 : 75;
-  const wastePenaltyScore = plannerWeekScoreNegative(metrics.shopping_efficiency_score, 900);
+  const wastePenaltyScore = plannerWeekScoreNegative(
+    Number(metrics.shopping_efficiency_score || 0)
+    + Number(metrics.carry_forward_waste_score || 0)
+    + Number(metrics.carry_forward_obligation_score || 0),
+    900
+  );
   const lowWaste = plannerWeekScoreClamp((useUpScore * 0.72) + (wastePenaltyScore * 0.28));
   const fatigueSummary = plannerWeekLongTermFatigueSummary(selectedOptions, {
     policy,
@@ -16774,10 +17890,23 @@ function plannerWeekScoreSummaryForSelectedOptions(selectedOptions = [], context
     assumed_stock_use_count: Number(metrics.assumed_stock_use_count || 0),
     inventory_use_up_score: Math.round(Number(metrics.inventory_use_up_score || 0) * 10) / 10,
     ingredient_target_score: Math.round(Number(metrics.ingredient_target_score || 0) * 10) / 10,
+    carry_forward_waste_count: Number(metrics.carry_forward_waste_count || 0),
+    carry_forward_waste_gbp: Math.round(Number(metrics.carry_forward_waste_gbp || 0) * 100) / 100,
+    carry_forward_waste_score: Math.round(Number(metrics.carry_forward_waste_score || 0) * 10) / 10,
+    carry_forward_obligation_count: Number(metrics.carry_forward_obligation_count || 0),
+    carry_forward_obligation_unmet_count: Number(metrics.carry_forward_obligation_unmet_count || 0),
+    carry_forward_silent_ignore_count: Number(metrics.carry_forward_silent_ignore_count || 0),
+    carry_forward_obligation_blocked_count: Number(metrics.carry_forward_obligation_blocked_count || 0),
+    carry_forward_obligation_score: Math.round(Number(metrics.carry_forward_obligation_score || 0) * 10) / 10,
+    carry_forward_obligation_labels: Array.isArray(metrics.carry_forward_obligation_labels) ? metrics.carry_forward_obligation_labels.slice(0, 6) : [],
+    carry_forward_obligation_outcomes: Array.isArray(metrics.carry_forward_obligation_outcomes) ? metrics.carry_forward_obligation_outcomes.slice(0, 12) : [],
     expensive_beef_mince_waste_line_count: Number(metrics.expensive_beef_mince_waste_line_count || 0),
     expensive_beef_mince_waste_amount_g: Math.round(Number(metrics.expensive_beef_mince_waste_amount_g || 0) * 10) / 10,
     expensive_beef_mince_waste_cost_gbp: Math.round(Number(metrics.expensive_beef_mince_waste_cost_gbp || 0) * 100) / 100,
     expensive_beef_mince_waste_score: Math.round(Number(metrics.expensive_beef_mince_waste_score || 0) * 10) / 10,
+    pack_clean_awkward_leftover_count: Number(metrics.pack_clean_awkward_leftover_count || 0),
+    pack_clean_awkward_leftover_value_gbp: Math.round(Number(metrics.pack_clean_awkward_leftover_value_gbp || 0) * 100) / 100,
+    pack_clean_waste_score: Math.round(Number(metrics.pack_clean_waste_score || 0) * 10) / 10,
     shopping_efficiency_score: Math.round(Number(metrics.shopping_efficiency_score || 0) * 10) / 10,
     workload_score: Math.round(Number(metrics.workload_score || 0) * 10) / 10,
     workload_min_minutes: roundPlannerMinutes(metrics.workload_min_minutes),
@@ -16858,6 +17987,10 @@ function plannerWeekScoreReasons(score, components, metrics, fatigueSummary, tar
   else if (components.cook_time < 65) reasons.push("Kitchen time is heavier than typical options.");
   if (Number(metrics.budget_over_normal_cost || 0) > 0) reasons.push("This route is above the normal budget band for these meal slots.");
   else if (components.budget < 65) reasons.push("This route is more expensive than typical options.");
+  if (Number(metrics.carry_forward_silent_ignore_count || 0) > 0) reasons.push("Some usable previous-week food had a matching recipe but was not selected.");
+  else if (Number(metrics.carry_forward_obligation_blocked_count || 0) > 0) reasons.push("Some previous-week food could not be matched to a valid early recipe.");
+  if (Number(metrics.carry_forward_waste_gbp || 0) > 0) reasons.push("Some previous-week fresh food is still expected to be wasted.");
+  if (Number(metrics.pack_clean_awkward_leftover_count || 0) > 0) reasons.push("Awkward fresh leftovers still need a cleaner recipe route.");
   if (components.pack_batch < 65) reasons.push("Awkward packs or weak batch efficiency reduce the score.");
   return [...new Set(reasons)].slice(0, 5);
 }
@@ -17030,6 +18163,19 @@ function plannerWeekScorePublicMetrics(metrics = {}) {
     inventory_use_up_score: Number(metrics.inventory_use_up_score || 0),
     assumed_stock_use_count: Number(metrics.assumed_stock_use_count || 0),
     ingredient_target_score: Number(metrics.ingredient_target_score || 0),
+    carry_forward_waste_count: Number(metrics.carry_forward_waste_count || 0),
+    carry_forward_waste_gbp: Number(metrics.carry_forward_waste_gbp || 0),
+    carry_forward_waste_score: Number(metrics.carry_forward_waste_score || 0),
+    carry_forward_obligation_count: Number(metrics.carry_forward_obligation_count || 0),
+    carry_forward_obligation_unmet_count: Number(metrics.carry_forward_obligation_unmet_count || 0),
+    carry_forward_silent_ignore_count: Number(metrics.carry_forward_silent_ignore_count || 0),
+    carry_forward_obligation_blocked_count: Number(metrics.carry_forward_obligation_blocked_count || 0),
+    carry_forward_obligation_score: Number(metrics.carry_forward_obligation_score || 0),
+    carry_forward_obligation_labels: Array.isArray(metrics.carry_forward_obligation_labels) ? metrics.carry_forward_obligation_labels.slice(0, 6) : [],
+    carry_forward_obligation_outcomes: Array.isArray(metrics.carry_forward_obligation_outcomes) ? metrics.carry_forward_obligation_outcomes.slice(0, 12) : [],
+    pack_clean_awkward_leftover_count: Number(metrics.pack_clean_awkward_leftover_count || 0),
+    pack_clean_awkward_leftover_value_gbp: Number(metrics.pack_clean_awkward_leftover_value_gbp || 0),
+    pack_clean_waste_score: Number(metrics.pack_clean_waste_score || 0),
     shopping_efficiency_score: Number(metrics.shopping_efficiency_score || 0),
     workload_score: Number(metrics.workload_score || 0),
     cost_score: Number(metrics.cost_score || 0),
@@ -17190,7 +18336,7 @@ function plannerSequentialInventoryUseLedger(selectedOptions = [], weekStart = p
   const byInventoryId = {};
   let inventoryUseUpScore = 0;
   let ingredientTargetScore = 0;
-  (selectedOptions || []).forEach(({ option }) => {
+  (selectedOptions || []).forEach(({ dayName, option }) => {
     (option?.inventory_use_up || []).forEach((use) => {
       const record = stockState.by_inventory_id?.[use.inventory_id];
       if (!record || record.unit !== shoppingNormalizeAmountUnit(use.unit) || Number(record.remaining || 0) <= 0) return;
@@ -17212,7 +18358,7 @@ function plannerSequentialInventoryUseLedger(selectedOptions = [], weekStart = p
       };
       current.used_amount += used;
       current.remaining_amount = record.remaining;
-      current.uses.push({ ...use, used_amount: used });
+      current.uses.push({ ...use, used_amount: used, day_name: dayName || use.day_name || "" });
       byInventoryId[use.inventory_id] = current;
     });
   });
@@ -17273,17 +18419,12 @@ function plannerShoppingEfficiencyScore(selectedOptions = []) {
     const left = Math.max(0, Number(plan?.totalQuantity || 0) - amount);
     return sum + 100 + Math.min(100, left / Math.max(1, amount || 1));
   }, 0);
-  const score = awkwardPackScore + plannerExpensiveBeefMinceWastePenalty(lines);
+  const score = awkwardPackScore + plannerExpensiveBeefMinceWastePenalty(lines) + plannerPackCleanWasteScore(selectedOptions);
   cache.set(key, score);
   return score;
 }
 
-function plannerShoppingTripLinesForSelectedOptions(selectedOptions = []) {
-  if (!Array.isArray(selectedOptions) || !selectedOptions.length) return [];
-  const key = `${plannerActiveWeekStartKey()}::${plannerInventoryUpdateMarker()}::${plannerSelectedOptionsCacheKey(selectedOptions)}`;
-  const cache = plannerShoppingTripLinesForSelectedOptions.cache || new Map();
-  plannerShoppingTripLinesForSelectedOptions.cache = cache;
-  if (cache.has(key)) return cache.get(key);
+function plannerSelectedOptionsSlotRecords(selectedOptions = []) {
   const template = currentPlannerTemplate();
   const slots = new Map(allPlannerSlots(template).map((slot) => [slot.slot_id, slot]));
   const days = new Map((template?.days || []).map((day) => [day.day, day]));
@@ -17310,7 +18451,17 @@ function plannerShoppingTripLinesForSelectedOptions(selectedOptions = []) {
       });
     });
   });
-  const usageRows = shoppingRecipeUsageRows(slotRecords, [...recipeIds]);
+  return { slotRecords, recipeIds: [...recipeIds] };
+}
+
+function plannerShoppingTripLinesForSelectedOptions(selectedOptions = []) {
+  if (!Array.isArray(selectedOptions) || !selectedOptions.length) return [];
+  const key = `${plannerActiveWeekStartKey()}::${plannerInventoryUpdateMarker()}::${plannerSelectedOptionsCacheKey(selectedOptions)}`;
+  const cache = plannerShoppingTripLinesForSelectedOptions.cache || new Map();
+  plannerShoppingTripLinesForSelectedOptions.cache = cache;
+  if (cache.has(key)) return cache.get(key);
+  const { slotRecords, recipeIds } = plannerSelectedOptionsSlotRecords(selectedOptions);
+  const usageRows = shoppingRecipeUsageRows(slotRecords, recipeIds);
   const baseLines = shoppingApplyInventoryUseUp(
     plannerActiveWeekStartKey(),
     shoppingAggregateLines(plannerActiveWeekStartKey(), usageRows)
@@ -17319,6 +18470,88 @@ function plannerShoppingTripLinesForSelectedOptions(selectedOptions = []) {
   const lines = tripModel.lines || [];
   cache.set(key, lines);
   return lines;
+}
+
+function plannerPackFitPreviewReceiptForSelectedOptions(selectedOptions = []) {
+  if (!Array.isArray(selectedOptions) || !selectedOptions.length) return null;
+  const weekStart = plannerActiveWeekStartKey();
+  const key = `${weekStart}::${plannerInventoryUpdateMarker()}::${plannerSelectedOptionsCacheKey(selectedOptions)}`;
+  const cache = plannerPackFitPreviewReceiptForSelectedOptions.cache || new Map();
+  plannerPackFitPreviewReceiptForSelectedOptions.cache = cache;
+  if (cache.has(key)) return cache.get(key);
+  const { slotRecords, recipeIds } = plannerSelectedOptionsSlotRecords(selectedOptions);
+  const usageRows = shoppingRecipeUsageRows(slotRecords, recipeIds);
+  const demandSlots = weekPackFitDemandSlotsForUsageRows(weekStart, usageRows);
+  if (!demandSlots.length) {
+    cache.set(key, null);
+    return null;
+  }
+  const week = {
+    schema_version: "v4.live_planner_pack_fit_input.1",
+    week_id: `planner-pack-fit-preview-${weekStart}`,
+    week_start: weekStart,
+    week_end: plannerDateKey(plannerActiveWeekEndDate()),
+    source_calendar_id: "v4_app_planner_pack_fit_preview",
+    local_only: true,
+    slots: demandSlots,
+  };
+  const receipt = buildAppWeekPackFitReceipt(week, state.recipeIndex);
+  cache.set(key, receipt);
+  return receipt;
+}
+
+function plannerPackCleanWasteScore(selectedOptions = []) {
+  return plannerPackCleanWasteSummary(selectedOptions).score;
+}
+
+function plannerPackCleanWasteSummary(selectedOptions = []) {
+  const receipt = plannerPackFitPreviewReceiptForSelectedOptions(selectedOptions);
+  return plannerPackCleanWasteSummaryFromReceipt(receipt);
+}
+
+function plannerPackCleanWasteSummaryFromReceipt(receipt = null) {
+  const familyIndex = shoppingSkuFamilyIndex().byId;
+  const packChoiceByFamily = new Map((Array.isArray(receipt?.pack_choices) ? receipt.pack_choices : [])
+    .map((choice) => [`${choice.family_id || ""}:${shoppingNormalizeAmountUnit(choice.unit || "")}`, choice]));
+  const summary = {
+    score: 0,
+    awkward_leftover_count: 0,
+    awkward_leftover_value_gbp: 0,
+    warnings: [],
+  };
+  (Array.isArray(receipt?.leftovers) ? receipt.leftovers : []).forEach((leftover) => {
+    const family = familyIndex.get(leftover.family_id);
+    const policy = appPackFitPackCleanPolicy(family || {});
+    if (!policy.mode) return;
+    const key = `${leftover.family_id || ""}:${shoppingNormalizeAmountUnit(leftover.unit || "")}`;
+    const choice = packChoiceByFamily.get(key) || {};
+    const penalty = appPackFitPackCleanRemainderPenalty(policy, leftover.leftover_amount, choice.pack_total_quantity, choice.amount_after);
+    if (penalty <= 0) return;
+    const packCost = Number(choice.pack_cost_gbp || 0);
+    const packTotal = Number(choice.pack_total_quantity || 0);
+    const leftoverValue = packCost > 0 && packTotal > 0
+      ? (Number(leftover.leftover_amount || 0) / packTotal) * packCost
+      : 0;
+    summary.score += penalty;
+    summary.awkward_leftover_count += 1;
+    summary.awkward_leftover_value_gbp += leftoverValue;
+    summary.warnings.push({
+      family_id: leftover.family_id,
+      family_label: leftover.family_label,
+      leftover_amount: appPackFitRoundNumber(leftover.leftover_amount),
+      unit: leftover.unit,
+      amount_after: appPackFitRoundNumber(choice.amount_after),
+      pack_total_quantity: appPackFitRoundNumber(choice.pack_total_quantity),
+      reason: policy.reason_label || "Awkward fresh leftover",
+      penalty: appPackFitRoundNumber(penalty),
+      value_gbp: roundMoney(leftoverValue),
+    });
+  });
+  return {
+    ...summary,
+    score: appPackFitRoundNumber(summary.score),
+    awkward_leftover_value_gbp: roundMoney(summary.awkward_leftover_value_gbp),
+  };
 }
 
 function plannerExpensiveBeefMinceWasteScore(selectedOptions = []) {
@@ -17332,7 +18565,7 @@ function plannerExpensiveFreshWastePolicy() {
     beef_mince_family_id: String(policy.beef_mince_family_id || "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F"),
     beef_mince_pack_size_g: Math.max(1, Number(policy.beef_mince_pack_size_g || 750)),
     max_beef_mince_dinners_per_week: Math.max(0, Number(policy.max_beef_mince_dinners_per_week || 2)),
-    block_stranded_beef_mince_pack: policy.block_stranded_beef_mince_pack !== false,
+    block_stranded_beef_mince_pack: policy.block_stranded_beef_mince_pack === true,
   };
 }
 
@@ -18124,6 +19357,7 @@ function plannerApplyBatchContinuityToWeekOptions(dayOptions, template) {
     issueCache: new Map(),
     remainingCapacityCache: new Map(),
     batchCompletionCache: new Map(),
+    batchCompletionLookaheadCache: new Map(),
     remainingExpensiveBeefPotentialCache: new Map(),
   };
   days.forEach((day, dayIndex) => {
@@ -18357,29 +19591,116 @@ function plannerCanCompleteStartedBatch(option, recipeId, dayIndex, days, dayOpt
     if (cacheKey) cache.set(cacheKey, true);
     return true;
   }
-  for (let index = dayIndex + 1; index < (days || []).length; index += 1) {
-    const result = dayOptions?.[days[index]?.day];
-    const options = (result?.options || []).filter((candidate) => (
-      plannerOptionRecipeIdSet(candidate).has(recipeId)
-    ));
-    const next = options.find((candidate) => (
-      plannerWeeklyOptionIssues(candidate, index, days, dayOptions, state.activeBatches, new Set(), state.weeklyUseCounts, {
-        skipBatchStartLookahead: true,
-      }, context).length === 0
-    ));
-    if (!next) {
-      if (cacheKey) cache.set(cacheKey, false);
-      return false;
-    }
-    state = plannerAdvanceWeeklySequenceState(next, state.activeBatches, state.weeklyUseCounts, { dayIndex: index, days, dayOptions, recipeById: context.recipeById });
-    if (!state.activeBatches.some((batch) => batch.recipe_id === recipeId)) {
+  const complete = plannerCanResolveBatchLookaheadState({
+    recipeId,
+    startIndex: dayIndex + 1,
+    days,
+    dayOptions,
+    activeBatches: state.activeBatches,
+    weeklyUseCounts: state.weeklyUseCounts,
+    context,
+  });
+  if (cacheKey) cache.set(cacheKey, complete);
+  return complete;
+}
+
+function plannerCanResolveBatchLookaheadState({ recipeId, startIndex, days, dayOptions, activeBatches, weeklyUseCounts, context = {}, depth = 0 }) {
+  const blockingBatches = plannerBlockingActiveBatches(activeBatches);
+  if (!blockingBatches.some((batch) => batch.recipe_id === recipeId)) return true;
+  if (startIndex >= (days || []).length) return false;
+  const maxDepth = Math.max(1, Math.min(5, Number(plannerOptionsPolicy().max_batch_completion_lookahead_depth || 4)));
+  if (depth > maxDepth) return false;
+  const cache = context.batchCompletionLookaheadCache instanceof Map ? context.batchCompletionLookaheadCache : null;
+  const activeIds = blockingBatches.map((batch) => batch.recipe_id).filter(Boolean).sort();
+  const cacheKey = cache
+    ? `${recipeId}::${startIndex}::${plannerWeeklyStateSignature(activeBatches, weeklyUseCounts, null, { skipBatchStartLookahead: true })}`
+    : "";
+  if (cacheKey && cache.has(cacheKey)) return cache.get(cacheKey);
+  const day = days[startIndex];
+  const result = dayOptions?.[day?.day];
+  if (!result?.options?.length) {
+    if (cacheKey) cache.set(cacheKey, false);
+    return false;
+  }
+  const branchLimit = Math.max(8, Number(plannerOptionsPolicy().max_batch_completion_lookahead_options || 32));
+  const candidates = plannerBatchLookaheadCandidates(result.options || [], activeIds, weeklyUseCounts, context, branchLimit);
+  for (const candidate of candidates) {
+    const issues = plannerWeeklyOptionIssues(candidate, startIndex, days, dayOptions, activeBatches, new Set(), weeklyUseCounts, {
+      skipBatchStartLookahead: true,
+    }, context);
+    if (issues.length) continue;
+    const next = plannerAdvanceWeeklySequenceState(candidate, activeBatches, weeklyUseCounts, {
+      dayIndex: startIndex,
+      days,
+      dayOptions,
+      recipeById: context.recipeById,
+    });
+    if (plannerCanResolveBatchLookaheadState({
+      recipeId,
+      startIndex: startIndex + 1,
+      days,
+      dayOptions,
+      activeBatches: next.activeBatches,
+      weeklyUseCounts: next.weeklyUseCounts,
+      context,
+      depth: depth + 1,
+    })) {
       if (cacheKey) cache.set(cacheKey, true);
       return true;
     }
   }
-  const complete = !state.activeBatches.some((batch) => batch.recipe_id === recipeId);
-  if (cacheKey) cache.set(cacheKey, complete);
-  return complete;
+  if (cacheKey) cache.set(cacheKey, false);
+  return false;
+}
+
+function plannerBatchLookaheadCandidates(options = [], activeIds = [], weeklyUseCounts = {}, context = {}, limit = 32) {
+  const max = Math.max(1, Number(limit || 32));
+  const activeIdSet = new Set(activeIds || []);
+  const ranked = [...(options || [])]
+    .filter((candidate) => (activeIds || []).every((activeRecipeId) => plannerOptionRecipeUseCount(candidate, activeRecipeId) > 0))
+    .sort((a, b) => (
+      plannerOptionRepeatPressure(a, weeklyUseCounts, context.recipeById) - plannerOptionRepeatPressure(b, weeklyUseCounts, context.recipeById)
+      || Number(a?.score || 0) - Number(b?.score || 0)
+    ));
+  const selected = [];
+  const selectedKeys = new Set();
+  const coveredBySlot = {};
+  const coveredSignatures = new Set();
+  function add(option) {
+    const key = option?.option_id || plannerDayOptionStorageKey(option);
+    if (!key || selectedKeys.has(key) || selected.length >= max) return false;
+    selected.push(option);
+    selectedKeys.add(key);
+    Object.entries(option?.recipe_ids_by_slot || {}).forEach(([slotId, recipeId]) => {
+      if (!recipeId || activeIdSet.has(recipeId)) return;
+      if (!coveredBySlot[slotId]) coveredBySlot[slotId] = new Set();
+      coveredBySlot[slotId].add(recipeId);
+    });
+    const signature = plannerDayOptionWeeklyRouteSignature(option, context.recipeById);
+    if (signature) coveredSignatures.add(signature);
+    return true;
+  }
+  const topTarget = Math.min(max, Math.max(4, Math.ceil(max * 0.35)));
+  ranked.forEach((option) => {
+    if (selected.length < topTarget) add(option);
+  });
+  ranked.forEach((option) => {
+    if (selected.length >= max) return;
+    const addsSlotRecipe = Object.entries(option?.recipe_ids_by_slot || {}).some(([slotId, recipeId]) => (
+      recipeId && !activeIdSet.has(recipeId) && !coveredBySlot[slotId]?.has(recipeId)
+    ));
+    if (addsSlotRecipe) add(option);
+  });
+  ranked.forEach((option) => {
+    if (selected.length >= max) return;
+    const signature = plannerDayOptionWeeklyRouteSignature(option, context.recipeById);
+    if (signature && !coveredSignatures.has(signature)) add(option);
+  });
+  ranked.forEach((option) => {
+    if (selected.length >= max) return;
+    add(option);
+  });
+  return selected;
 }
 
 function plannerRemainingRecipeCapacity(recipeId, dayIndex, days, dayOptions, context = {}) {
@@ -18564,6 +19885,8 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
     : [];
   const finisherReserveActive = plannerDayHasFinisherReserve(slotRecords);
   const partialMacroDay = plannerDayIsPartialMacroDay(recipeSlotRecords, externalSlotRecords, [...skippedSlotRecords, ...frozenSlotRecords]);
+  const inventoryContextForDay = plannerInventoryContextForDay(day);
+  const ingredientTargetMapForDay = plannerIngredientTargetsForWeek(plannerActiveWeekStartKey()).by_inventory_id || {};
   const slotCandidates = recipeSlotRecords.map(({ slot, state: slotState }) => {
     const lockedRecipeId = plannerLockedRecipeForSlot(slot.slot_id);
     const candidates = usableRecipes
@@ -18571,6 +19894,18 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
       .filter((recipe) => !plannerRecipeBlockedForSlot(recipe, slot.slot_id))
       .filter((recipe) => !lockedRecipeId || recipeKey(recipe) === lockedRecipeId)
       .filter((recipe) => !plannerRecipeOnCooldown(recipe))
+      .map((recipe, index) => ({
+        recipe,
+        index,
+        use_up_scores: plannerRecipeInventoryUseScoresForSlot(recipe, day, slot, inventoryContextForDay, ingredientTargetMapForDay),
+      }))
+      .sort((a, b) => (
+        Number(b.use_up_scores?.ingredient_target_score || 0) - Number(a.use_up_scores?.ingredient_target_score || 0)
+        || Number(b.use_up_scores?.inventory_use_up_score || 0) - Number(a.use_up_scores?.inventory_use_up_score || 0)
+        || plannerRecipeCandidateSortScore(a.recipe) - plannerRecipeCandidateSortScore(b.recipe)
+        || a.index - b.index
+      ))
+      .map((entry) => entry.recipe)
       .slice(0, Number(policy.max_candidate_options_per_slot || 60));
     return {
       slot_id: slot.slot_id,
@@ -18634,8 +19969,8 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
   const cap = Number(policy.max_raw_valid_options || 5000);
   const combinationCap = Number(policy.max_raw_combinations_per_day || 50000);
   const scoringContext = {
-    inventoryContext: plannerInventoryContextForDay(day),
-    ingredientTargetMap: plannerIngredientTargetsForWeek(plannerActiveWeekStartKey()).by_inventory_id || {},
+    inventoryContext: inventoryContextForDay,
+    ingredientTargetMap: ingredientTargetMapForDay,
     draftFatiguePenaltyByRecipe: plannerDraftFatiguePenaltyMapForActiveWeek(),
     profileByPerson: new Map((state.profileIndex?.people || []).map((profile) => [profile.person, profile])),
     recipePersonTotalsCache: new Map(),
@@ -18790,11 +20125,11 @@ function plannerMarkDayOptionCoverage(option, coveredBySlot) {
 }
 
 function plannerDayOptionRouteKeyPriorities() {
-  return ["batch", "expensive_beef_mince_demand", "breakfast", "dinner", "lunch"];
+  return ["use_up_target", "batch", "expensive_beef_mince_demand", "breakfast", "dinner", "lunch"];
 }
 
 function plannerDayOptionBatchRouteKeyPriorities() {
-  return ["batch_set", "dinner", "breakfast", "lunch"];
+  return ["batch_set", "use_up_target", "dinner", "breakfast", "lunch"];
 }
 
 function plannerDayOptionWeeklyRouteEntries(option, recipeById = null) {
@@ -18819,6 +20154,10 @@ function plannerDayOptionWeeklyRouteEntries(option, recipeById = null) {
   const beefDemand = plannerOptionExpensiveBeefMinceDemand(option, recipeById);
   const beefBand = plannerExpensiveBeefMinceDemandBand(beefDemand);
   add("expensive_beef_mince_demand", beefBand);
+  (option?.inventory_use_up || []).forEach((use) => {
+    const targetKey = use.family_id || use.sku_code || use.inventory_id || use.item_name || "";
+    if (targetKey) add("use_up_target", targetKey);
+  });
   return entries;
 }
 
