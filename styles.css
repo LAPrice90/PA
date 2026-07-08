@@ -4663,14 +4663,15 @@ body[data-route="profiles"] .profile-summary-grid .metric span {
   border: 2px solid #dbe8d5;
   border-radius: 16px;
   background: #fbfdf8;
+  scrollbar-gutter: stable;
 }
 
 .planner-calendar-header,
 .planner-calendar-grid,
 .planner-calendar-week-total {
-  min-width: 1120px;
+  min-width: 1320px;
   display: grid;
-  grid-template-columns: 58px repeat(8, minmax(130px, 1fr));
+  grid-template-columns: 58px repeat(8, minmax(154px, 1fr));
 }
 
 .planner-calendar-header {
@@ -4691,6 +4692,10 @@ body[data-route="profiles"] .profile-summary-grid .metric span {
 }
 
 .planner-time-corner {
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: #f6faf2;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 1000;
@@ -4715,11 +4720,14 @@ body[data-route="profiles"] .profile-summary-grid .metric span {
 .planner-time-axis,
 .planner-calendar-day {
   display: grid;
-  grid-template-rows: repeat(15, 74px);
-  min-height: 1110px;
+  grid-template-rows: repeat(16, 74px);
+  min-height: 1184px;
 }
 
 .planner-time-axis {
+  position: sticky;
+  left: 0;
+  z-index: 5;
   background: #f6faf2;
 }
 
@@ -4737,6 +4745,7 @@ body[data-route="profiles"] .profile-summary-grid .metric span {
   position: relative;
   border-right: 1px solid #e2eadf;
   padding: 0 5px;
+  overflow: hidden;
   background:
     repeating-linear-gradient(
       to bottom,
@@ -7549,14 +7558,14 @@ body[data-route="profiles"] .profile-section {
 .planner-clean-calendar-panel .planner-calendar-header,
 .planner-clean-calendar-panel .planner-calendar-grid,
 .planner-clean-calendar-panel .planner-calendar-week-total {
-  min-width: 1300px;
-  grid-template-columns: 56px repeat(8, minmax(150px, 1fr));
+  min-width: 1424px;
+  grid-template-columns: 56px repeat(8, minmax(164px, 1fr));
 }
 
 .planner-clean-calendar-panel .planner-time-axis,
 .planner-clean-calendar-panel .planner-calendar-day {
-  grid-template-rows: repeat(15, 78px);
-  min-height: 1170px;
+  grid-template-rows: repeat(16, 78px);
+  min-height: 1248px;
 }
 
 .planner-clean-calendar-panel .planner-calendar-day {
@@ -8248,6 +8257,7 @@ body[data-route="profiles"] .profile-section {
 .planner-carry-forward-panel {
   display: grid;
   gap: 12px;
+  min-height: 0;
 }
 
 .planner-carry-forward-panel.empty {
@@ -8333,18 +8343,22 @@ body[data-route="profiles"] .profile-section {
 
 .planner-carry-forward-table {
   display: grid;
-  overflow: hidden;
+  gap: 8px;
+  max-height: min(58vh, 580px);
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid #d9ead2;
   border-radius: 14px;
-  background: #ffffff;
+  background: #fbfdf8;
+  padding: 8px;
+  scrollbar-gutter: stable;
 }
 
 .planner-carry-forward-table-head,
 .planner-carry-forward-row {
   display: grid;
-  grid-template-columns: minmax(86px, 1.4fr) minmax(54px, 0.72fr) minmax(54px, 0.72fr) minmax(66px, 0.9fr);
-  gap: 6px;
-  align-items: center;
+  gap: 7px;
+  align-items: start;
 }
 
 .planner-carry-forward-table-head {
@@ -8362,14 +8376,17 @@ body[data-route="profiles"] .profile-section {
 }
 
 .planner-carry-forward-row {
-  min-height: 39px;
+  min-height: 92px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #d9ead2;
   border-left: 5px solid #d9ead2;
-  border-bottom: 1px solid #edf3e9;
-  padding: 7px 8px 7px 6px;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 9px;
 }
 
 .planner-carry-forward-row:last-child {
-  border-bottom: 0;
+  border-bottom: 1px solid #d9ead2;
 }
 
 .planner-carry-forward-row.used {
@@ -8404,44 +8421,64 @@ body[data-route="profiles"] .profile-section {
 .planner-carry-forward-row span,
 .planner-carry-forward-row em {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .planner-carry-forward-row strong {
+  grid-column: 1 / -1;
   color: var(--ink);
-  font-size: 0.76rem;
+  font-size: 0.82rem;
+  line-height: 1.18;
   font-weight: 1000;
+  overflow-wrap: anywhere;
 }
 
-.planner-carry-forward-row span {
+.planner-carry-forward-row span,
+.planner-carry-forward-row em {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  min-height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 5px 6px;
+}
+
+.planner-carry-forward-row span b,
+.planner-carry-forward-row em b {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.planner-carry-forward-row span i,
+.planner-carry-forward-row em i {
   color: #44554b;
   font-size: 0.72rem;
+  font-style: normal;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 .planner-carry-forward-row em {
   justify-self: start;
   max-width: 100%;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--ink);
-  padding: 3px 7px;
-  font-size: 0.66rem;
   font-style: normal;
-  font-weight: 1000;
+  width: 100%;
 }
 
-.planner-carry-forward-row.waste em {
+.planner-carry-forward-row.waste em i {
   color: #a02020;
 }
 
-.planner-carry-forward-row.used em {
+.planner-carry-forward-row.used em i {
   color: var(--green-deep);
 }
 
 .planner-carry-forward-more {
+  display: none;
   min-height: 36px;
   border: 2px solid var(--line);
   border-radius: 12px;
@@ -10853,8 +10890,8 @@ body[data-route="profiles"] .profile-section {
   .planner-clean-calendar-panel .planner-calendar-header,
   .planner-clean-calendar-panel .planner-calendar-grid,
   .planner-clean-calendar-panel .planner-calendar-week-total {
-    min-width: 920px;
-    grid-template-columns: 52px repeat(7, minmax(124px, 1fr));
+    min-width: 1100px;
+    grid-template-columns: 52px repeat(8, minmax(124px, 1fr));
   }
 
   .planner-week-review-strip {

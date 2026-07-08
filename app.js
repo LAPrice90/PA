@@ -10827,7 +10827,6 @@ function plannerCarryForwardSourceLabel(item) {
 function plannerCarryForwardPanel() {
   const weekStart = plannerActiveWeekStartKey();
   const rows = plannerCarryForwardRows(weekStart);
-  const visibleRows = rows.slice(0, 10);
   const usedCount = rows.filter((row) => Number(row.used_amount || 0) > 0).length;
   const wasteSummary = plannerCarryForwardWasteSummary(weekStart);
   const checkCount = rows.filter((row) => row.source_tone === "suggested").length;
@@ -10859,16 +10858,9 @@ function plannerCarryForwardPanel() {
         <span><em>Waste risk</em><strong>${escapeHtml(money(wasteSummary.total_gbp || 0))}</strong></span>
         <span><em>Check</em><strong>${escapeHtml(number(checkCount))}</strong></span>
       </div>
-      <div class="planner-carry-forward-table" role="table" aria-label="Food carried into this week">
-        <div class="planner-carry-forward-table-head" role="row">
-          <span role="columnheader">Item</span>
-          <span role="columnheader">Brought</span>
-          <span role="columnheader">Used</span>
-          <span role="columnheader">Result</span>
-        </div>
-        ${visibleRows.map(plannerCarryForwardRow).join("")}
+      <div class="planner-carry-forward-table" role="list" aria-label="Food carried into this week">
+        ${rows.map(plannerCarryForwardRow).join("")}
       </div>
-      ${rows.length > visibleRows.length ? `<button class="planner-carry-forward-more" type="button" data-planner-open-inventory>${escapeHtml(`${number(rows.length - visibleRows.length)} more in count`)}</button>` : ""}
     </section>
   `;
 }
@@ -10879,11 +10871,11 @@ function plannerCarryForwardRow(row) {
     ? money(row.waste_gbp)
     : row.status.label;
   return `
-    <div class="planner-carry-forward-row ${escapeAttr(row.status.id)} ${escapeAttr(row.source_tone)}" role="row" title="${escapeAttr(row.title)}">
-      <strong role="cell">${escapeHtml(item.item_name || "Fresh item")}</strong>
-      <span role="cell">${escapeHtml(shoppingAmountLabel(row.amount, item.unit))}</span>
-      <span role="cell">${escapeHtml(shoppingAmountLabel(row.used_amount, item.unit))}</span>
-      <em role="cell">${escapeHtml(result)}</em>
+    <div class="planner-carry-forward-row ${escapeAttr(row.status.id)} ${escapeAttr(row.source_tone)}" role="listitem" title="${escapeAttr(row.title)}">
+      <strong>${escapeHtml(item.item_name || "Fresh item")}</strong>
+      <span><b>Brought</b><i>${escapeHtml(shoppingAmountLabel(row.amount, item.unit))}</i></span>
+      <span><b>Used</b><i>${escapeHtml(shoppingAmountLabel(row.used_amount, item.unit))}</i></span>
+      <em><b>Result</b><i>${escapeHtml(result)}</i></em>
     </div>
   `;
 }
@@ -13681,7 +13673,7 @@ function plannerMiniMetric(label, value) {
 }
 
 function plannerTimeLabels() {
-  return Array.from({ length: 15 }, (_, index) => `${String(index + 7).padStart(2, "0")}:00`);
+  return Array.from({ length: 16 }, (_, index) => `${String(index + 7).padStart(2, "0")}:00`);
 }
 
 function plannerCalendarHourRowHeight() {
