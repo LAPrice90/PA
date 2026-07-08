@@ -26,6 +26,7 @@ const RECIPE_INVOICE_RESTORE_ENDPOINT = "/api/v4/recipe-invoice-restore";
 const PACK_FIT_ADJUSTABLE_STORAGE_CLASSES = new Set(["fresh", "short_fresh"]);
 const PACK_FIT_ROUNDABLE_UNITS = new Set(["g", "gram", "grams", "ml", "millilitre", "millilitres"]);
 const PACK_FIT_MIN_ROUND_FLEX_INTERVAL = 25;
+const PACK_FIT_SMALL_FRESH_AMOUNT_LIMITS = { g: 25, ml: 25 };
 const PACK_FIT_ADJUSTMENT_GUARDRAILS = {
   perishable_pack_boundary: "Fresh and short-fresh rows may flex to fit an already chosen pack, but an upward adjustment must not open another pack.",
   round_amount_policy: "For g/ml perishables, final adjusted recipe amounts prefer clean 25g/25ml style steps unless the saved line interval is larger.",
@@ -5003,6 +5004,28 @@ function appPackFitPerishableFamily(family) {
   return PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(storage) || freshness === "fresh";
 }
 
+function appPackFitSmallFreshAmountLimit(unit) {
+  return PACK_FIT_SMALL_FRESH_AMOUNT_LIMITS[shoppingNormalizeAmountUnit(unit || "")] || 0;
+}
+
+function appPackFitCanRoundToNoPurchase(family, minTotal, demand, unit) {
+  const threshold = appPackFitSmallFreshAmountLimit(unit || family?.unit || "");
+  return appPackFitPerishableFamily(family)
+    && threshold > 0
+    && appPackFitNumber(minTotal) <= 1e-9
+    && appPackFitNumber(demand) > 0
+    && appPackFitNumber(demand) <= threshold + 1e-9;
+}
+
+function appPackFitActionableFreshLeftover(leftover) {
+  const amount = appPackFitNumber(leftover?.leftover_amount);
+  if (amount <= 0) return false;
+  const storage = String(leftover?.storage_class || "").trim().toLowerCase();
+  if (!PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(storage)) return false;
+  const threshold = appPackFitSmallFreshAmountLimit(leftover?.unit || "");
+  return threshold <= 0 || amount >= threshold - 1e-9;
+}
+
 function appPackFitGroupDemandRows(rows) {
   const groups = {};
   (rows || []).forEach((row) => {
@@ -5093,7 +5116,7 @@ function appPackFitFitGroupToPack(group) {
     });
   }
   return {
-    pack_choice: appPackFitPackChoiceRow(group, demand, after, plan.picks, "fit", plan),
+    pack_choice: appPackFitPackChoiceRow(group, demand, after, plan.picks, plan.no_purchase_after_flex ? "no_purchase_after_flex" : "fit", plan),
     adjustments,
     rejected_adjustments: rejectedAdjustments,
     leftover: leftoverAmount > 0 ? appPackFitLeftoverForGroup(group, demand, after, leftoverAmount) : null,
@@ -5134,13 +5157,15 @@ function appPackFitPackPlans(family, minTotal, demand, unit) {
     }))
     .filter((option) => option.pack_quantity > 0 && (!normalizedUnit || !option.pack_unit || option.pack_unit === normalizedUnit));
   if (!options.length) return [];
+  const allowNoPurchasePlan = appPackFitCanRoundToNoPurchase(family || {}, minTotal, demand, normalizedUnit);
   const smallest = Math.min(...options.map((option) => option.pack_quantity));
   const maxPacks = Math.min(24, Math.max(1, Math.ceil(Math.max(minTotal, demand) / smallest) + options.length + 2));
   const plans = [];
   const counts = [];
   function walk(index) {
     if (index === options.length) {
-      if (!counts.some(Boolean)) return;
+      const hasPicks = counts.some(Boolean);
+      if (!hasPicks && !allowNoPurchasePlan) return;
       const total = counts.reduce((sum, count, optionIndex) => sum + count * options[optionIndex].pack_quantity, 0);
       if (total + 1e-9 < minTotal) return;
       const cost = counts.reduce((sum, count, optionIndex) => sum + count * options[optionIndex].pack_cost_gbp, 0);
@@ -5150,6 +5175,7 @@ function appPackFitPackPlans(family, minTotal, demand, unit) {
         pack_count: counts.reduce((sum, count) => sum + count, 0),
         adjustment_abs: Math.abs(total - demand),
         leftover_pressure: Math.max(0, total - demand),
+        no_purchase_after_flex: !hasPicks,
         picks: counts.map((count, optionIndex) => count ? { ...options[optionIndex], count } : null).filter(Boolean),
       });
       return;
@@ -5283,7 +5309,7 @@ function appPackFitLeftoverForGroup(group, before, after, leftover) {
 }
 
 function appPackFitShouldCreateUseUp(leftover) {
-  return appPackFitNumber(leftover?.leftover_amount) > 0 && PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(String(leftover?.storage_class || "").trim().toLowerCase());
+  return appPackFitActionableFreshLeftover(leftover);
 }
 
 function appPackFitUseUpEntryFromLeftover(weekId, leftover, week = {}) {
