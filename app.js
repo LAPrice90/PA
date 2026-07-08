@@ -28,6 +28,11 @@ const PACK_FIT_ROUNDABLE_UNITS = new Set(["g", "gram", "grams", "ml", "millilitr
 const PACK_FIT_MIN_ROUND_FLEX_INTERVAL = 25;
 const PACK_FIT_SMALL_FRESH_AMOUNT_LIMITS = { g: 25, ml: 25 };
 const PACK_FIT_SMALL_REMAINDER_CLEAN_STEP = 5;
+const PACK_FIT_DEFAULT_PERCENT_FLEX = {
+  fresh_default: { percent: 0.2, round_step: 5, reason: "default_fresh_percent_flex" },
+  fresh_protein: { percent: 0.1, round_step: 5, reason: "default_fresh_protein_percent_flex" },
+  fresh_starch: { percent: 0.15, round_step: 5, reason: "default_fresh_starch_percent_flex" },
+};
 const PACK_FIT_ADJUSTMENT_GUARDRAILS = {
   perishable_pack_boundary: "Fresh and short-fresh rows may flex to fit an already chosen pack, but an upward adjustment must not open another pack.",
   round_amount_policy: "For g/ml perishables, final adjusted recipe amounts prefer clean 25g/25ml style steps unless the saved line interval is larger.",
@@ -4880,6 +4885,45 @@ function buildAppWeekPackFitReceipt(week, recipeIndex = state.recipeIndex) {
   return receipt;
 }
 
+function appPackFitLineHasNumeric(value) {
+  if (value === undefined || value === null || value === "") return false;
+  return Number.isFinite(Number(value));
+}
+
+function appPackFitRoundDownToStep(value, step) {
+  const cleanStep = appPackFitNumber(step);
+  if (cleanStep <= 0) return appPackFitRoundNumber(value);
+  return appPackFitRoundNumber(Math.floor((appPackFitNumber(value) + 1e-9) / cleanStep) * cleanStep);
+}
+
+function appPackFitRoundUpToStep(value, step) {
+  const cleanStep = appPackFitNumber(step);
+  if (cleanStep <= 0) return appPackFitRoundNumber(value);
+  return appPackFitRoundNumber(Math.ceil((appPackFitNumber(value) - 1e-9) / cleanStep) * cleanStep);
+}
+
+function appPackFitDefaultFlexPolicyForLine(line, family) {
+  if (line?.pack_fit_eligible !== true) return null;
+  if (!appPackFitPerishableFamily(family)) return null;
+  const text = [
+    line?.ingredient,
+    line?.ingredient_name,
+    line?.item_name,
+    family?.family_id,
+    family?.family_label,
+    family?.display_name,
+    family?.shopping_name,
+  ].filter(Boolean).join(" ").toLowerCase();
+  if (/(spice|seasoning|salt|pepper|oil|vinegar|stock|flour|cornflour)/.test(text)) return null;
+  if (/(chicken|beef|mince|steak|pork|lamb|turkey|ham|chorizo|sausage|salmon|cod|hake|fish|prawn|seafood)/.test(text)) {
+    return PACK_FIT_DEFAULT_PERCENT_FLEX.fresh_protein;
+  }
+  if (/(potato|bread|wrap|pitta|bun|rice|pasta|noodle|couscous|quinoa)/.test(text)) {
+    return PACK_FIT_DEFAULT_PERCENT_FLEX.fresh_starch;
+  }
+  return PACK_FIT_DEFAULT_PERCENT_FLEX.fresh_default;
+}
+
 function appPackFitDemandRowForLine(slot, recipe, line) {
   const family = shoppingFamilyForSku(line.sku_code) || {};
   const amountData = line.calculation_amount && typeof line.calculation_amount === "object" ? line.calculation_amount : {};
@@ -4888,15 +4932,28 @@ function appPackFitDemandRowForLine(slot, recipe, line) {
   const normalizedAmount = shoppingNormalizeAmountValue(rawAmount, rawUnit);
   const lineAmount = appPackFitNumber(normalizedAmount.amount);
   const lineUnit = normalizedAmount.unit || rawUnit || "g";
-  const minLineAmount = appPackFitNormalizeLineAmount(line.flex_min_amount ?? lineAmount, lineUnit);
-  const maxLineAmount = appPackFitNormalizeLineAmount(line.flex_max_amount ?? lineAmount, lineUnit);
-  const sourceInterval = appPackFitNormalizeLineAmount(line.flex_interval || 0, lineUnit);
+  const hasManualFlexMin = appPackFitLineHasNumeric(line.flex_min_amount);
+  const hasManualFlexMax = appPackFitLineHasNumeric(line.flex_max_amount);
+  const hasManualFlexInterval = appPackFitLineHasNumeric(line.flex_interval);
+  const defaultFlexPolicy = !hasManualFlexMin && !hasManualFlexMax
+    ? appPackFitDefaultFlexPolicyForLine(line, family)
+    : null;
+  const defaultRoundStep = appPackFitNumber(defaultFlexPolicy?.round_step || 0);
+  const defaultMinLineAmount = defaultFlexPolicy
+    ? appPackFitRoundDownToStep(lineAmount * (1 - appPackFitNumber(defaultFlexPolicy.percent)), defaultRoundStep)
+    : lineAmount;
+  const defaultMaxLineAmount = defaultFlexPolicy
+    ? appPackFitRoundUpToStep(lineAmount * (1 + appPackFitNumber(defaultFlexPolicy.percent)), defaultRoundStep)
+    : lineAmount;
+  const minLineAmount = appPackFitNormalizeLineAmount(hasManualFlexMin ? line.flex_min_amount : defaultMinLineAmount, lineUnit);
+  const maxLineAmount = appPackFitNormalizeLineAmount(hasManualFlexMax ? line.flex_max_amount : defaultMaxLineAmount, lineUnit);
+  const sourceInterval = appPackFitNormalizeLineAmount(hasManualFlexInterval ? line.flex_interval : defaultRoundStep, lineUnit);
   const familyUnit = shoppingNormalizeAmountUnit(family.unit || lineUnit || "g");
   const familyAmount = appPackFitConvertAmountToFamilyUnit(lineAmount, lineUnit, family);
   const flexMinAmount = appPackFitConvertAmountToFamilyUnit(minLineAmount.amount, minLineAmount.unit, family);
   const flexMaxAmount = appPackFitConvertAmountToFamilyUnit(maxLineAmount.amount, maxLineAmount.unit, family);
   const familyInterval = sourceInterval.amount > 0 ? appPackFitConvertAmountToFamilyUnit(sourceInterval.amount, sourceInterval.unit, family) : 0;
-  const preferredInterval = appPackFitPreferredFlexInterval(familyInterval, familyUnit, family);
+  const preferredInterval = appPackFitPreferredFlexInterval(familyInterval, familyUnit, family, { allowSmallStep: Boolean(defaultFlexPolicy) });
   return {
     slot_id: slot?.slot_id || "",
     source_slot_id: slot?.source_slot_id || "",
@@ -4927,7 +4984,7 @@ function appPackFitDemandRowForLine(slot, recipe, line) {
     line_flex_max_amount: appPackFitRoundNumber(maxLineAmount.amount),
     pack_fit_eligible: line.pack_fit_eligible === true,
     pack_fit_exempt_reason: line.pack_fit_exempt_reason || "",
-    flex_reason: line.flex_reason || "",
+    flex_reason: line.flex_reason || defaultFlexPolicy?.reason || "",
     family,
   };
 }
@@ -4983,10 +5040,11 @@ function appPackFitConvertFamilyDeltaToLineUnit(delta, row) {
   return appPackFitNumber(delta);
 }
 
-function appPackFitPreferredFlexInterval(interval, unit, family) {
+function appPackFitPreferredFlexInterval(interval, unit, family, options = {}) {
   const rawInterval = appPackFitNumber(interval);
   if (!PACK_FIT_ROUNDABLE_UNITS.has(shoppingNormalizeAmountUnit(unit))) return rawInterval;
   if (!appPackFitPerishableFamily(family)) return rawInterval;
+  if (options.allowSmallStep) return Math.max(rawInterval, PACK_FIT_SMALL_REMAINDER_CLEAN_STEP);
   const smallestPack = appPackFitSmallestPackQuantity(family);
   if (smallestPack > 0 && smallestPack < PACK_FIT_MIN_ROUND_FLEX_INTERVAL) return rawInterval || smallestPack;
   return Math.max(rawInterval, PACK_FIT_MIN_ROUND_FLEX_INTERVAL);
