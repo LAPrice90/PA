@@ -1,0 +1,1929 @@
+{
+  "schema_version": "v4.week_invoice_pack_fit_receipt.1",
+  "week_id": "calendar-pack-fit-proof-20260704",
+  "source_calendar_id": "local_calendar_builder_proof",
+  "generated_at_uk": "2026-07-05T07:55:45+01:00",
+  "status": "passed",
+  "blockers": [],
+  "adjustment_guardrails": {
+    "perishable_pack_boundary": "Fresh and short-fresh rows may flex to fit an already chosen pack, but an upward adjustment must not open another pack.",
+    "round_amount_policy": "For g/ml perishables, final adjusted recipe amounts prefer clean 25g/25ml style steps unless the saved line interval is larger.",
+    "non_perishable_policy": "Pantry, freezer, ambient, spice, seasoning, oil and sauce rows are not adjustment candidates.",
+    "filling_breach_policy": "Small recalculated macro and fullness movement is allowed for local pack-fit overlays; calculator blockers still block."
+  },
+  "demand_before": [
+    {
+      "family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+      "family_label": "Ashfields British Lean Beef Steak Mince 5% Fat",
+      "amount": 1000.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-HAM",
+      "family_label": "Ashfields Wafer Thin British Cooked Ham 40 Slices",
+      "amount": 195.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-DARK-SOY-SAUCE",
+      "family_label": "Asia Specialities Dark Soy Sauce",
+      "amount": 45.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "NOODLE1",
+      "family_label": "Asia Specialities Medium Egg Noodles",
+      "amount": 250.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-ENGLISH-MUSTARD",
+      "family_label": "Bramwells English Mustard",
+      "amount": 10.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-GHERKINS",
+      "family_label": "Bramwells Gherkins",
+      "amount": 60.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-LIGHTER-THAN-LIGHT-MAYONNAISE",
+      "family_label": "Bramwells Squeezy Lighter Than Light Mayonnaise",
+      "amount": 40.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-TOMATO-KETCHUP",
+      "family_label": "Bramwells Tomato Ketchup",
+      "amount": 30.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "YOGFF1",
+      "family_label": "Brooklea Fat Free Greek Style Yogurt",
+      "amount": 105.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "family_label": "Emporium British Mature Cheddar Cheese",
+      "amount": 140.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-TINNED-SWEETCORN",
+      "family_label": "Four Seasons Supersweet Sweetcorn in Water",
+      "amount": 105.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-BABY-SPINACH",
+      "family_label": "Nature's Pick Baby Spinach",
+      "amount": 180.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-BRITISH-BROCCOLI",
+      "family_label": "Nature's Pick British Broccoli",
+      "amount": 360.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-ONIONS",
+      "family_label": "Nature's Pick Brown Onions",
+      "amount": 80.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-CARROTS",
+      "family_label": "Nature's Pick Carrots",
+      "amount": 180.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "CUCUMBER1",
+      "family_label": "Nature's Pick Cucumber",
+      "amount": 0.689,
+      "unit": "cucumber",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "GARLIC1",
+      "family_label": "Nature's Pick Garlic",
+      "amount": 0.2,
+      "unit": "bulb",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-GINGER",
+      "family_label": "Nature's Pick Ginger",
+      "amount": 10.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ICEBERG1",
+      "family_label": "Nature's Pick Iceberg Lettuce",
+      "amount": 0.129,
+      "unit": "lettuce",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "LITTLEGEM1",
+      "family_label": "Nature's Pick Little Gem Lettuce",
+      "amount": 1.224,
+      "unit": "lettuce",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "SALADTOMATO1",
+      "family_label": "Nature's Pick Salad Tomatoes",
+      "amount": 4.0,
+      "unit": "tomato",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-V1-VEGETABLE-OIL",
+      "family_label": "Solesta Vegetable Oil",
+      "amount": 25.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-HIMALAYAN-SALT",
+      "family_label": "Specially Selected Pink Himalayan Rock Salt",
+      "amount": 3.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "BRIOCHEBUN1",
+      "family_label": "Specially Selected Sliced Brioche Burger Buns",
+      "amount": 4.0,
+      "unit": "bun",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-BLACK-PEPPERCORNS",
+      "family_label": "Stonemill Black Peppercorns",
+      "amount": 3.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "WHITEWRAP1",
+      "family_label": "Village Bakery White Tortilla Wraps",
+      "amount": 3.0,
+      "unit": "wrap",
+      "storage_class": "pantry"
+    }
+  ],
+  "pack_choices": [
+    {
+      "family_id": "WHITEWRAP1",
+      "family_label": "Village Bakery White Tortilla Wraps",
+      "unit": "wrap",
+      "storage_class": "pantry",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "pack_total_quantity": 8.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-village-bakery-white-tortilla-wraps-8x62g",
+          "pack_label": "8 each",
+          "count": 1,
+          "pack_quantity": 8,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 8.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-HAM",
+      "family_label": "Ashfields Wafer Thin British Cooked Ham 40 Slices",
+      "unit": "g",
+      "storage_class": "short_fresh",
+      "amount_before": 195.0,
+      "amount_after": 200.0,
+      "pack_total_quantity": 400.0,
+      "pack_cost_gbp": 1.89,
+      "picks": [
+        {
+          "sku_code": "aldi-ashfields-wafer-thin-ham-400g",
+          "pack_label": "400g",
+          "count": 1,
+          "pack_quantity": 400,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.89
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 400.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "family_label": "Emporium British Mature Cheddar Cheese",
+      "unit": "g",
+      "storage_class": "short_fresh",
+      "amount_before": 140.0,
+      "amount_after": 140.0,
+      "pack_total_quantity": 400.0,
+      "pack_cost_gbp": 2.49,
+      "picks": [
+        {
+          "sku_code": "aldi-emporium-british-mature-cheddar-cheese-400g",
+          "pack_label": "400g",
+          "count": 1,
+          "pack_quantity": 400,
+          "pack_unit": "g",
+          "pack_cost_gbp": 2.49
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 400.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "YOGFF1",
+      "family_label": "Brooklea Fat Free Greek Style Yogurt",
+      "unit": "g",
+      "storage_class": "short_fresh",
+      "amount_before": 105.0,
+      "amount_after": 100.0,
+      "pack_total_quantity": 1000.0,
+      "pack_cost_gbp": 1.49,
+      "picks": [
+        {
+          "sku_code": "aldi-brooklea-fat-free-greek-style-yogurt-1kg",
+          "pack_label": "1000g",
+          "count": 1,
+          "pack_quantity": 1000,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.49
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1000.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-TINNED-SWEETCORN",
+      "family_label": "Four Seasons Supersweet Sweetcorn in Water",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 105.0,
+      "amount_after": 105.0,
+      "pack_total_quantity": 285.0,
+      "pack_cost_gbp": 0.55,
+      "picks": [
+        {
+          "sku_code": "aldi-four-seasons-supersweet-sweetcorn-in-water-285g",
+          "pack_label": "285g",
+          "count": 1,
+          "pack_quantity": 285,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.55
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 285.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ICEBERG1",
+      "family_label": "Nature's Pick Iceberg Lettuce",
+      "unit": "lettuce",
+      "storage_class": "short_fresh",
+      "amount_before": 0.129,
+      "amount_after": 0.129,
+      "pack_total_quantity": 1.0,
+      "pack_cost_gbp": 0.89,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-iceberg-lettuce-each",
+          "pack_label": "1 each",
+          "count": 1,
+          "pack_quantity": 1,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.89
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "CUCUMBER1",
+      "family_label": "Nature's Pick Cucumber",
+      "unit": "cucumber",
+      "storage_class": "fresh",
+      "amount_before": 0.689,
+      "amount_after": 0.689,
+      "pack_total_quantity": 1.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-cucumber-each",
+          "pack_label": "1 each",
+          "count": 1,
+          "pack_quantity": 1,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-BLACK-PEPPERCORNS",
+      "family_label": "Stonemill Black Peppercorns",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "pack_total_quantity": 100.0,
+      "pack_cost_gbp": 1.59,
+      "picks": [
+        {
+          "sku_code": "aldi-stonemill-black-peppercorns-100g",
+          "pack_label": "100g",
+          "count": 1,
+          "pack_quantity": 100,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.59
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 100.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+      "family_label": "Ashfields British Lean Beef Steak Mince 5% Fat",
+      "unit": "g",
+      "storage_class": "short_fresh",
+      "amount_before": 1000.0,
+      "amount_after": 1000.0,
+      "pack_total_quantity": 1500.0,
+      "pack_cost_gbp": 14.3,
+      "picks": [
+        {
+          "sku_code": "aldi-ashfields-beef-mince-5-fat-750g",
+          "pack_label": "750g",
+          "count": 2,
+          "pack_quantity": 750,
+          "pack_unit": "g",
+          "pack_cost_gbp": 7.15
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1500.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "NOODLE1",
+      "family_label": "Asia Specialities Medium Egg Noodles",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 250.0,
+      "amount_after": 250.0,
+      "pack_total_quantity": 250.0,
+      "pack_cost_gbp": 0.95,
+      "picks": [
+        {
+          "sku_code": "aldi-asia-specialities-medium-egg-noodles-250g",
+          "pack_label": "250g",
+          "count": 1,
+          "pack_quantity": 250,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.95
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 250.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-VEGETABLE-OIL",
+      "family_label": "Solesta Vegetable Oil",
+      "unit": "ml",
+      "storage_class": "pantry",
+      "amount_before": 25.0,
+      "amount_after": 25.0,
+      "pack_total_quantity": 1000.0,
+      "pack_cost_gbp": 1.45,
+      "picks": [
+        {
+          "sku_code": "aldi-solesta-vegetable-oil-1l",
+          "pack_label": "1000ml",
+          "count": 1,
+          "pack_quantity": 1000,
+          "pack_unit": "ml",
+          "pack_cost_gbp": 1.45
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 1000.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-DARK-SOY-SAUCE",
+      "family_label": "Asia Specialities Dark Soy Sauce",
+      "unit": "ml",
+      "storage_class": "pantry",
+      "amount_before": 45.0,
+      "amount_after": 45.0,
+      "pack_total_quantity": 150.0,
+      "pack_cost_gbp": 0.55,
+      "picks": [
+        {
+          "sku_code": "aldi-asia-specialities-dark-soy-sauce-150ml",
+          "pack_label": "150ml",
+          "count": 1,
+          "pack_quantity": 150,
+          "pack_unit": "ml",
+          "pack_cost_gbp": 0.55
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 150.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-GINGER",
+      "family_label": "Nature's Pick Ginger",
+      "unit": "g",
+      "storage_class": "fresh",
+      "amount_before": 10.0,
+      "amount_after": 10.0,
+      "pack_total_quantity": 125.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-ginger-125g",
+          "pack_label": "125g",
+          "count": 1,
+          "pack_quantity": 125,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 125.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "GARLIC1",
+      "family_label": "Nature's Pick Garlic",
+      "unit": "bulb",
+      "storage_class": "fresh",
+      "amount_before": 0.2,
+      "amount_after": 0.2,
+      "pack_total_quantity": 4.0,
+      "pack_cost_gbp": 0.87,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-garlic-4pk",
+          "pack_label": "4 each",
+          "count": 1,
+          "pack_quantity": 4,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.87
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 4.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-BRITISH-BROCCOLI",
+      "family_label": "Nature's Pick British Broccoli",
+      "unit": "g",
+      "storage_class": "fresh",
+      "amount_before": 360.0,
+      "amount_after": 360.0,
+      "pack_total_quantity": 360.0,
+      "pack_cost_gbp": 0.79,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-british-broccoli-360g",
+          "pack_label": "360g",
+          "count": 1,
+          "pack_quantity": 360,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.79
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 360.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-CARROTS",
+      "family_label": "Nature's Pick Carrots",
+      "unit": "g",
+      "storage_class": "fresh",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "pack_total_quantity": 1000.0,
+      "pack_cost_gbp": 0.69,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-carrots-1kg",
+          "pack_label": "1000g",
+          "count": 1,
+          "pack_quantity": 1000,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.69
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1000.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-BABY-SPINACH",
+      "family_label": "Nature's Pick Baby Spinach",
+      "unit": "g",
+      "storage_class": "short_fresh",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "pack_total_quantity": 240.0,
+      "pack_cost_gbp": 1.09,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-baby-spinach-240g",
+          "pack_label": "240g",
+          "count": 1,
+          "pack_quantity": 240,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.09
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 240.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "BRIOCHEBUN1",
+      "family_label": "Specially Selected Sliced Brioche Burger Buns",
+      "unit": "bun",
+      "storage_class": "pantry",
+      "amount_before": 4.0,
+      "amount_after": 4.0,
+      "pack_total_quantity": 4.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-specially-selected-sliced-brioche-burger-buns-4pk",
+          "pack_label": "4 each",
+          "count": 1,
+          "pack_quantity": 4,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 4.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-LIGHTER-THAN-LIGHT-MAYONNAISE",
+      "family_label": "Bramwells Squeezy Lighter Than Light Mayonnaise",
+      "unit": "ml",
+      "storage_class": "pantry",
+      "amount_before": 40.0,
+      "amount_after": 40.0,
+      "pack_total_quantity": 500.0,
+      "pack_cost_gbp": 0.95,
+      "picks": [
+        {
+          "sku_code": "aldi-bramwells-lighter-than-light-mayonnaise-500ml",
+          "pack_label": "500ml",
+          "count": 1,
+          "pack_quantity": 500,
+          "pack_unit": "ml",
+          "pack_cost_gbp": 0.95
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 500.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-TOMATO-KETCHUP",
+      "family_label": "Bramwells Tomato Ketchup",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 30.0,
+      "amount_after": 30.0,
+      "pack_total_quantity": 550.0,
+      "pack_cost_gbp": 0.89,
+      "picks": [
+        {
+          "sku_code": "aldi-bramwells-tomato-ketchup-650g",
+          "pack_label": "550g",
+          "count": 1,
+          "pack_quantity": 550,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.89
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 550.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-ENGLISH-MUSTARD",
+      "family_label": "Bramwells English Mustard",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 10.0,
+      "amount_after": 10.0,
+      "pack_total_quantity": 200.0,
+      "pack_cost_gbp": 0.49,
+      "picks": [
+        {
+          "sku_code": "aldi-bramwells-english-mustard-200g",
+          "pack_label": "200g",
+          "count": 1,
+          "pack_quantity": 200,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.49
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 200.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "ING-V1-GHERKINS",
+      "family_label": "Bramwells Gherkins",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 60.0,
+      "amount_after": 60.0,
+      "pack_total_quantity": 680.0,
+      "pack_cost_gbp": 1.09,
+      "picks": [
+        {
+          "sku_code": "aldi-bramwells-gherkins-680g",
+          "pack_label": "680g",
+          "count": 1,
+          "pack_quantity": 680,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.09
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 680.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    },
+    {
+      "family_id": "LITTLEGEM1",
+      "family_label": "Nature's Pick Little Gem Lettuce",
+      "unit": "lettuce",
+      "storage_class": "short_fresh",
+      "amount_before": 1.224,
+      "amount_after": 1.224,
+      "pack_total_quantity": 2.0,
+      "pack_cost_gbp": 0.49,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-little-gem-lettuce-2pk",
+          "pack_label": "2 each",
+          "count": 1,
+          "pack_quantity": 2,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.49
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 2.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "SALADTOMATO1",
+      "family_label": "Nature's Pick Salad Tomatoes",
+      "unit": "tomato",
+      "storage_class": "fresh",
+      "amount_before": 4.0,
+      "amount_after": 4.0,
+      "pack_total_quantity": 6.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-salad-tomatoes-6pk",
+          "pack_label": "6 each",
+          "count": 1,
+          "pack_quantity": 6,
+          "pack_unit": "each",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 6.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-ONIONS",
+      "family_label": "Nature's Pick Brown Onions",
+      "unit": "g",
+      "storage_class": "fresh",
+      "amount_before": 80.0,
+      "amount_after": 75.0,
+      "pack_total_quantity": 1000.0,
+      "pack_cost_gbp": 0.99,
+      "picks": [
+        {
+          "sku_code": "aldi-natures-pick-brown-onions-1kg",
+          "pack_label": "1000g",
+          "count": 1,
+          "pack_quantity": 1000,
+          "pack_unit": "g",
+          "pack_cost_gbp": 0.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": true,
+        "upward_adjustment_must_not_exceed_pack_total": true,
+        "non_perishable_adjustment_allowed": true,
+        "pack_total_quantity": 1000.0,
+        "rule": "fill_selected_pack_only"
+      }
+    },
+    {
+      "family_id": "ING-V1-HIMALAYAN-SALT",
+      "family_label": "Specially Selected Pink Himalayan Rock Salt",
+      "unit": "g",
+      "storage_class": "pantry",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "pack_total_quantity": 110.0,
+      "pack_cost_gbp": 1.99,
+      "picks": [
+        {
+          "sku_code": "aldi-specially-selected-pink-himalayan-rock-salt-110g",
+          "pack_label": "110g",
+          "count": 1,
+          "pack_quantity": 110,
+          "pack_unit": "g",
+          "pack_cost_gbp": 1.99
+        }
+      ],
+      "status": "fit",
+      "pack_boundary_guardrail": {
+        "perishable_pack_boundary_enforced": false,
+        "upward_adjustment_must_not_exceed_pack_total": false,
+        "non_perishable_adjustment_allowed": false,
+        "pack_total_quantity": 110.0,
+        "rule": "no_recipe_adjustment_for_non_perishable_or_no_pack"
+      }
+    }
+  ],
+  "adjustments": [
+    {
+      "slot_id": "mon-luke-lunch-1",
+      "day": "Monday",
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "line_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch:line-02-wafer_thin_ham",
+      "row_index": 2,
+      "ingredient": "wafer-thin ham",
+      "family_id": "ING-V1-HAM",
+      "storage_class": "short_fresh",
+      "amount_before": 195.0,
+      "amount_after": 200.0,
+      "amount_delta": 5.0,
+      "unit": "g",
+      "line_amount_before": 195.0,
+      "line_amount_after": 200.0,
+      "line_amount_delta": 5.0,
+      "line_unit": "g",
+      "rounding_interval": 25.0,
+      "source_flex_interval": 25.0,
+      "rounding_status": "rounded_final_amount",
+      "reason": "ham_pack_fraction_fit"
+    },
+    {
+      "slot_id": "mon-luke-lunch-1",
+      "day": "Monday",
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "line_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch:line-04-fat_free_greek_yoghurt",
+      "row_index": 4,
+      "ingredient": "fat-free Greek style yoghurt",
+      "family_id": "YOGFF1",
+      "storage_class": "short_fresh",
+      "amount_before": 105.0,
+      "amount_after": 100.0,
+      "amount_delta": -5.0,
+      "unit": "g",
+      "line_amount_before": 105.0,
+      "line_amount_after": 100.0,
+      "line_amount_delta": -5.0,
+      "line_unit": "g",
+      "rounding_interval": 25.0,
+      "source_flex_interval": 10.0,
+      "rounding_status": "rounded_final_amount",
+      "reason": "fresh_pack_low_waste_fit"
+    },
+    {
+      "slot_id": "tue-dinner",
+      "day": "Tuesday",
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "line_id": "beef-broccoli-noodle-stir-fry:line-10-carrots",
+      "row_index": 10,
+      "ingredient": "carrots",
+      "family_id": "ING-CARROTS",
+      "storage_class": "fresh",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "amount_delta": -5.0,
+      "unit": "g",
+      "line_amount_before": 180.0,
+      "line_amount_after": 175.0,
+      "line_amount_delta": -5.0,
+      "line_unit": "g",
+      "rounding_interval": 25.0,
+      "source_flex_interval": 10.0,
+      "rounding_status": "rounded_final_amount",
+      "reason": "fresh_pack_low_waste_fit"
+    },
+    {
+      "slot_id": "tue-dinner",
+      "day": "Tuesday",
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "line_id": "beef-broccoli-noodle-stir-fry:line-11-baby_spinach",
+      "row_index": 11,
+      "ingredient": "baby spinach",
+      "family_id": "ING-V1-BABY-SPINACH",
+      "storage_class": "short_fresh",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "amount_delta": -5.0,
+      "unit": "g",
+      "line_amount_before": 180.0,
+      "line_amount_after": 175.0,
+      "line_amount_delta": -5.0,
+      "line_unit": "g",
+      "rounding_interval": 25.0,
+      "source_flex_interval": 10.0,
+      "rounding_status": "rounded_final_amount",
+      "reason": "fresh_leaf_or_herb_low_waste_fit"
+    },
+    {
+      "slot_id": "fri-dinner",
+      "day": "Friday",
+      "recipe_id": "lean-beef-smash-burger-plates",
+      "line_id": "lean-beef-smash-burger-plates:line-11-brown_onion",
+      "row_index": 11,
+      "ingredient": "brown onion",
+      "family_id": "ING-ONIONS",
+      "storage_class": "fresh",
+      "amount_before": 80.0,
+      "amount_after": 75.0,
+      "amount_delta": -5.0,
+      "unit": "g",
+      "line_amount_before": 80.0,
+      "line_amount_after": 75.0,
+      "line_amount_delta": -5.0,
+      "line_unit": "g",
+      "rounding_interval": 25.0,
+      "source_flex_interval": 10.0,
+      "rounding_status": "rounded_final_amount",
+      "reason": "fresh_pack_low_waste_fit"
+    }
+  ],
+  "rejected_adjustments": [
+    {
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "reason": "No eligible line could absorb pack-fit delta without breaking the saved guardrails."
+    }
+  ],
+  "demand_after": [
+    {
+      "family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+      "family_label": "Ashfields British Lean Beef Steak Mince 5% Fat",
+      "amount": 1000.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-HAM",
+      "family_label": "Ashfields Wafer Thin British Cooked Ham 40 Slices",
+      "amount": 200.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-DARK-SOY-SAUCE",
+      "family_label": "Asia Specialities Dark Soy Sauce",
+      "amount": 45.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "NOODLE1",
+      "family_label": "Asia Specialities Medium Egg Noodles",
+      "amount": 250.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-ENGLISH-MUSTARD",
+      "family_label": "Bramwells English Mustard",
+      "amount": 10.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-GHERKINS",
+      "family_label": "Bramwells Gherkins",
+      "amount": 60.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-LIGHTER-THAN-LIGHT-MAYONNAISE",
+      "family_label": "Bramwells Squeezy Lighter Than Light Mayonnaise",
+      "amount": 40.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-TOMATO-KETCHUP",
+      "family_label": "Bramwells Tomato Ketchup",
+      "amount": 30.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "YOGFF1",
+      "family_label": "Brooklea Fat Free Greek Style Yogurt",
+      "amount": 100.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "family_label": "Emporium British Mature Cheddar Cheese",
+      "amount": 140.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-TINNED-SWEETCORN",
+      "family_label": "Four Seasons Supersweet Sweetcorn in Water",
+      "amount": 105.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-BABY-SPINACH",
+      "family_label": "Nature's Pick Baby Spinach",
+      "amount": 175.0,
+      "unit": "g",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "ING-V1-BRITISH-BROCCOLI",
+      "family_label": "Nature's Pick British Broccoli",
+      "amount": 360.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-ONIONS",
+      "family_label": "Nature's Pick Brown Onions",
+      "amount": 75.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-CARROTS",
+      "family_label": "Nature's Pick Carrots",
+      "amount": 175.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "CUCUMBER1",
+      "family_label": "Nature's Pick Cucumber",
+      "amount": 0.689,
+      "unit": "cucumber",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "GARLIC1",
+      "family_label": "Nature's Pick Garlic",
+      "amount": 0.2,
+      "unit": "bulb",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-GINGER",
+      "family_label": "Nature's Pick Ginger",
+      "amount": 10.0,
+      "unit": "g",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ICEBERG1",
+      "family_label": "Nature's Pick Iceberg Lettuce",
+      "amount": 0.129,
+      "unit": "lettuce",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "LITTLEGEM1",
+      "family_label": "Nature's Pick Little Gem Lettuce",
+      "amount": 1.224,
+      "unit": "lettuce",
+      "storage_class": "short_fresh"
+    },
+    {
+      "family_id": "SALADTOMATO1",
+      "family_label": "Nature's Pick Salad Tomatoes",
+      "amount": 4.0,
+      "unit": "tomato",
+      "storage_class": "fresh"
+    },
+    {
+      "family_id": "ING-V1-VEGETABLE-OIL",
+      "family_label": "Solesta Vegetable Oil",
+      "amount": 25.0,
+      "unit": "ml",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-HIMALAYAN-SALT",
+      "family_label": "Specially Selected Pink Himalayan Rock Salt",
+      "amount": 3.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "BRIOCHEBUN1",
+      "family_label": "Specially Selected Sliced Brioche Burger Buns",
+      "amount": 4.0,
+      "unit": "bun",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "ING-V1-BLACK-PEPPERCORNS",
+      "family_label": "Stonemill Black Peppercorns",
+      "amount": 3.0,
+      "unit": "g",
+      "storage_class": "pantry"
+    },
+    {
+      "family_id": "WHITEWRAP1",
+      "family_label": "Village Bakery White Tortilla Wraps",
+      "amount": 3.0,
+      "unit": "wrap",
+      "storage_class": "pantry"
+    }
+  ],
+  "leftovers": [
+    {
+      "family_id": "WHITEWRAP1",
+      "family_label": "Village Bakery White Tortilla Wraps",
+      "storage_class": "pantry",
+      "leftover_policy": "use_whole_edible_units",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "leftover_amount": 5.0,
+      "unit": "wrap"
+    },
+    {
+      "family_id": "ING-V1-HAM",
+      "family_label": "Ashfields Wafer Thin British Cooked Ham 40 Slices",
+      "storage_class": "short_fresh",
+      "leftover_policy": "use_pack_or_assign_component_split",
+      "amount_before": 195.0,
+      "amount_after": 200.0,
+      "leftover_amount": 200.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "family_label": "Emporium British Mature Cheddar Cheese",
+      "storage_class": "short_fresh",
+      "leftover_policy": "chilled_carryover",
+      "amount_before": 140.0,
+      "amount_after": 140.0,
+      "leftover_amount": 260.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "YOGFF1",
+      "family_label": "Brooklea Fat Free Greek Style Yogurt",
+      "storage_class": "short_fresh",
+      "leftover_policy": "chilled_carryover",
+      "amount_before": 105.0,
+      "amount_after": 100.0,
+      "leftover_amount": 900.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-TINNED-SWEETCORN",
+      "family_label": "Four Seasons Supersweet Sweetcorn in Water",
+      "storage_class": "pantry",
+      "leftover_policy": "assign_opened_pack_leftover",
+      "amount_before": 105.0,
+      "amount_after": 105.0,
+      "leftover_amount": 180.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ICEBERG1",
+      "family_label": "Nature's Pick Iceberg Lettuce",
+      "storage_class": "short_fresh",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 0.129,
+      "amount_after": 0.129,
+      "leftover_amount": 0.871,
+      "unit": "lettuce"
+    },
+    {
+      "family_id": "CUCUMBER1",
+      "family_label": "Nature's Pick Cucumber",
+      "storage_class": "fresh",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 0.689,
+      "amount_after": 0.689,
+      "leftover_amount": 0.311,
+      "unit": "cucumber"
+    },
+    {
+      "family_id": "ING-V1-BLACK-PEPPERCORNS",
+      "family_label": "Stonemill Black Peppercorns",
+      "storage_class": "pantry",
+      "leftover_policy": "carry_forward_or_component_split",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "leftover_amount": 97.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+      "family_label": "Ashfields British Lean Beef Steak Mince 5% Fat",
+      "storage_class": "short_fresh",
+      "leftover_policy": "use_pack_or_assign_component_split",
+      "amount_before": 1000.0,
+      "amount_after": 1000.0,
+      "leftover_amount": 500.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-VEGETABLE-OIL",
+      "family_label": "Solesta Vegetable Oil",
+      "storage_class": "pantry",
+      "leftover_policy": "pantry_micro",
+      "amount_before": 25.0,
+      "amount_after": 25.0,
+      "leftover_amount": 975.0,
+      "unit": "ml"
+    },
+    {
+      "family_id": "ING-V1-DARK-SOY-SAUCE",
+      "family_label": "Asia Specialities Dark Soy Sauce",
+      "storage_class": "pantry",
+      "leftover_policy": "pantry_micro",
+      "amount_before": 45.0,
+      "amount_after": 45.0,
+      "leftover_amount": 105.0,
+      "unit": "ml"
+    },
+    {
+      "family_id": "ING-GINGER",
+      "family_label": "Nature's Pick Ginger",
+      "storage_class": "fresh",
+      "leftover_policy": "carry_forward_or_component_split",
+      "amount_before": 10.0,
+      "amount_after": 10.0,
+      "leftover_amount": 115.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "GARLIC1",
+      "family_label": "Nature's Pick Garlic",
+      "storage_class": "fresh",
+      "leftover_policy": "carry_forward_or_component_split",
+      "amount_before": 0.2,
+      "amount_after": 0.2,
+      "leftover_amount": 3.8,
+      "unit": "bulb"
+    },
+    {
+      "family_id": "ING-CARROTS",
+      "family_label": "Nature's Pick Carrots",
+      "storage_class": "fresh",
+      "leftover_policy": "assign_leftover_if_partial_unit",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "leftover_amount": 825.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-BABY-SPINACH",
+      "family_label": "Nature's Pick Baby Spinach",
+      "storage_class": "short_fresh",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 180.0,
+      "amount_after": 175.0,
+      "leftover_amount": 65.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-LIGHTER-THAN-LIGHT-MAYONNAISE",
+      "family_label": "Bramwells Squeezy Lighter Than Light Mayonnaise",
+      "storage_class": "pantry",
+      "leftover_policy": "carry_forward_or_component_split",
+      "amount_before": 40.0,
+      "amount_after": 40.0,
+      "leftover_amount": 460.0,
+      "unit": "ml"
+    },
+    {
+      "family_id": "ING-V1-TOMATO-KETCHUP",
+      "family_label": "Bramwells Tomato Ketchup",
+      "storage_class": "pantry",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 30.0,
+      "amount_after": 30.0,
+      "leftover_amount": 520.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-ENGLISH-MUSTARD",
+      "family_label": "Bramwells English Mustard",
+      "storage_class": "pantry",
+      "leftover_policy": "pantry_micro",
+      "amount_before": 10.0,
+      "amount_after": 10.0,
+      "leftover_amount": 190.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-GHERKINS",
+      "family_label": "Bramwells Gherkins",
+      "storage_class": "pantry",
+      "leftover_policy": "carry_forward_or_component_split",
+      "amount_before": 60.0,
+      "amount_after": 60.0,
+      "leftover_amount": 620.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "LITTLEGEM1",
+      "family_label": "Nature's Pick Little Gem Lettuce",
+      "storage_class": "short_fresh",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 1.224,
+      "amount_after": 1.224,
+      "leftover_amount": 0.776,
+      "unit": "lettuce"
+    },
+    {
+      "family_id": "SALADTOMATO1",
+      "family_label": "Nature's Pick Salad Tomatoes",
+      "storage_class": "fresh",
+      "leftover_policy": "easy_carryover",
+      "amount_before": 4.0,
+      "amount_after": 4.0,
+      "leftover_amount": 2.0,
+      "unit": "tomato"
+    },
+    {
+      "family_id": "ING-ONIONS",
+      "family_label": "Nature's Pick Brown Onions",
+      "storage_class": "fresh",
+      "leftover_policy": "assign_leftover_if_partial_unit",
+      "amount_before": 80.0,
+      "amount_after": 75.0,
+      "leftover_amount": 925.0,
+      "unit": "g"
+    },
+    {
+      "family_id": "ING-V1-HIMALAYAN-SALT",
+      "family_label": "Specially Selected Pink Himalayan Rock Salt",
+      "storage_class": "pantry",
+      "leftover_policy": "pantry_carryover",
+      "amount_before": 3.0,
+      "amount_after": 3.0,
+      "leftover_amount": 107.0,
+      "unit": "g"
+    }
+  ],
+  "use_up_stock_created": [
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-V1-HAM-1f963d346aa21eb9",
+      "family_id": "ING-V1-HAM",
+      "item_name": "Ashfields Wafer Thin British Cooked Ham 40 Slices",
+      "amount": 200.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-V1-MATURE-CHEDDAR-CHEESE-89b42a98c03f7a19",
+      "family_id": "ING-V1-MATURE-CHEDDAR-CHEESE",
+      "item_name": "Emporium British Mature Cheddar Cheese",
+      "amount": 260.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-YOGFF1-9ffb62f18e68abd9",
+      "family_id": "YOGFF1",
+      "item_name": "Brooklea Fat Free Greek Style Yogurt",
+      "amount": 900.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ICEBERG1-32e190d56fea82ce",
+      "family_id": "ICEBERG1",
+      "item_name": "Nature's Pick Iceberg Lettuce",
+      "amount": 0.871,
+      "unit": "lettuce",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-CUCUMBER1-ec0d51922b0ecc24",
+      "family_id": "CUCUMBER1",
+      "item_name": "Nature's Pick Cucumber",
+      "amount": 0.311,
+      "unit": "cucumber",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F-6017fcc656ec26f8",
+      "family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+      "item_name": "Ashfields British Lean Beef Steak Mince 5% Fat",
+      "amount": 500.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-GINGER-ef935af5c130344c",
+      "family_id": "ING-GINGER",
+      "item_name": "Nature's Pick Ginger",
+      "amount": 115.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-GARLIC1-4085dca753e68993",
+      "family_id": "GARLIC1",
+      "item_name": "Nature's Pick Garlic",
+      "amount": 3.8,
+      "unit": "bulb",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-CARROTS-5cfe89e975f7e89e",
+      "family_id": "ING-CARROTS",
+      "item_name": "Nature's Pick Carrots",
+      "amount": 825.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-V1-BABY-SPINACH-cbff5ea6dd74dbdf",
+      "family_id": "ING-V1-BABY-SPINACH",
+      "item_name": "Nature's Pick Baby Spinach",
+      "amount": 65.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-LITTLEGEM1-641011bedec6e8ca",
+      "family_id": "LITTLEGEM1",
+      "item_name": "Nature's Pick Little Gem Lettuce",
+      "amount": 0.776,
+      "unit": "lettuce",
+      "opened": true,
+      "storage_class": "short_fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-08",
+      "priority": "high",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-SALADTOMATO1-514a2ed808a63c26",
+      "family_id": "SALADTOMATO1",
+      "item_name": "Nature's Pick Salad Tomatoes",
+      "amount": 2.0,
+      "unit": "tomato",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    },
+    {
+      "inventory_id": "calendar-pack-fit-proof-20260704-ING-ONIONS-dec8fc2c2508cc2c",
+      "family_id": "ING-ONIONS",
+      "item_name": "Nature's Pick Brown Onions",
+      "amount": 925.0,
+      "unit": "g",
+      "opened": true,
+      "storage_class": "fresh",
+      "location": "Fridge use-up",
+      "source_week_id": "calendar-pack-fit-proof-20260704",
+      "use_by_date": "2026-07-11",
+      "priority": "medium",
+      "consumed_by_later_calendar": false
+    }
+  ],
+  "macro_delta_by_person_day": [
+    {
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "person": "Luke lunch 1",
+      "energy_kcal_delta": 0.8,
+      "protein_g_delta": 0.2,
+      "cost_gbp_delta": 0.01,
+      "fruit_veg_grams_delta": 0.0
+    },
+    {
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "person": "Luke lunch 2",
+      "energy_kcal_delta": 0.8,
+      "protein_g_delta": 0.2,
+      "cost_gbp_delta": 0.01,
+      "fruit_veg_grams_delta": 0.0
+    },
+    {
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "person": "Luke lunch 3",
+      "energy_kcal_delta": 0.8,
+      "protein_g_delta": 0.2,
+      "cost_gbp_delta": 0.01,
+      "fruit_veg_grams_delta": 0.0
+    },
+    {
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "person": "Luke",
+      "energy_kcal_delta": 52.8,
+      "protein_g_delta": 1.2,
+      "cost_gbp_delta": -0.01,
+      "fruit_veg_grams_delta": -5.0
+    },
+    {
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "person": "Sarah",
+      "energy_kcal_delta": 35.1,
+      "protein_g_delta": 0.8,
+      "cost_gbp_delta": -0.01,
+      "fruit_veg_grams_delta": -3.4
+    },
+    {
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "person": "Louis",
+      "energy_kcal_delta": 17.6,
+      "protein_g_delta": 0.4,
+      "cost_gbp_delta": 0.0,
+      "fruit_veg_grams_delta": -1.6
+    },
+    {
+      "recipe_id": "lean-beef-smash-burger-plates",
+      "person": "Luke",
+      "energy_kcal_delta": -0.9,
+      "protein_g_delta": 0.0,
+      "cost_gbp_delta": 0.0,
+      "fruit_veg_grams_delta": -2.5
+    },
+    {
+      "recipe_id": "lean-beef-smash-burger-plates",
+      "person": "Sarah",
+      "energy_kcal_delta": -0.4,
+      "protein_g_delta": 0.0,
+      "cost_gbp_delta": 0.0,
+      "fruit_veg_grams_delta": -1.2
+    },
+    {
+      "recipe_id": "lean-beef-smash-burger-plates",
+      "person": "Louis",
+      "energy_kcal_delta": -0.4,
+      "protein_g_delta": 0.0,
+      "cost_gbp_delta": 0.0,
+      "fruit_veg_grams_delta": -1.2
+    }
+  ],
+  "recipe_overlays": [
+    {
+      "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+      "status": "pass",
+      "line_count": 2,
+      "adjustments": [
+        {
+          "slot_id": "mon-luke-lunch-1",
+          "day": "Monday",
+          "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+          "line_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch:line-02-wafer_thin_ham",
+          "row_index": 2,
+          "ingredient": "wafer-thin ham",
+          "family_id": "ING-V1-HAM",
+          "storage_class": "short_fresh",
+          "amount_before": 195.0,
+          "amount_after": 200.0,
+          "amount_delta": 5.0,
+          "unit": "g",
+          "line_amount_before": 195.0,
+          "line_amount_after": 200.0,
+          "line_amount_delta": 5.0,
+          "line_unit": "g",
+          "rounding_interval": 25.0,
+          "source_flex_interval": 25.0,
+          "rounding_status": "rounded_final_amount",
+          "reason": "ham_pack_fraction_fit"
+        },
+        {
+          "slot_id": "mon-luke-lunch-1",
+          "day": "Monday",
+          "recipe_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch",
+          "line_id": "ham-sweetcorn-yoghurt-wraps-3-day-lunch:line-04-fat_free_greek_yoghurt",
+          "row_index": 4,
+          "ingredient": "fat-free Greek style yoghurt",
+          "family_id": "YOGFF1",
+          "storage_class": "short_fresh",
+          "amount_before": 105.0,
+          "amount_after": 100.0,
+          "amount_delta": -5.0,
+          "unit": "g",
+          "line_amount_before": 105.0,
+          "line_amount_after": 100.0,
+          "line_amount_delta": -5.0,
+          "line_unit": "g",
+          "rounding_interval": 25.0,
+          "source_flex_interval": 10.0,
+          "rounding_status": "rounded_final_amount",
+          "reason": "fresh_pack_low_waste_fit"
+        }
+      ],
+      "recalculated_receipt_status": "pass",
+      "blockers": [],
+      "warnings": [
+        {
+          "ingredient": "white tortilla wraps",
+          "sku_code": "aldi-village-bakery-white-tortilla-wraps-8x62g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "drained sweetcorn",
+          "sku_code": "aldi-four-seasons-supersweet-sweetcorn-in-water-285g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ]
+    },
+    {
+      "recipe_id": "beef-broccoli-noodle-stir-fry",
+      "status": "pass",
+      "line_count": 2,
+      "adjustments": [
+        {
+          "slot_id": "tue-dinner",
+          "day": "Tuesday",
+          "recipe_id": "beef-broccoli-noodle-stir-fry",
+          "line_id": "beef-broccoli-noodle-stir-fry:line-10-carrots",
+          "row_index": 10,
+          "ingredient": "carrots",
+          "family_id": "ING-CARROTS",
+          "storage_class": "fresh",
+          "amount_before": 180.0,
+          "amount_after": 175.0,
+          "amount_delta": -5.0,
+          "unit": "g",
+          "line_amount_before": 180.0,
+          "line_amount_after": 175.0,
+          "line_amount_delta": -5.0,
+          "line_unit": "g",
+          "rounding_interval": 25.0,
+          "source_flex_interval": 10.0,
+          "rounding_status": "rounded_final_amount",
+          "reason": "fresh_pack_low_waste_fit"
+        },
+        {
+          "slot_id": "tue-dinner",
+          "day": "Tuesday",
+          "recipe_id": "beef-broccoli-noodle-stir-fry",
+          "line_id": "beef-broccoli-noodle-stir-fry:line-11-baby_spinach",
+          "row_index": 11,
+          "ingredient": "baby spinach",
+          "family_id": "ING-V1-BABY-SPINACH",
+          "storage_class": "short_fresh",
+          "amount_before": 180.0,
+          "amount_after": 175.0,
+          "amount_delta": -5.0,
+          "unit": "g",
+          "line_amount_before": 180.0,
+          "line_amount_after": 175.0,
+          "line_amount_delta": -5.0,
+          "line_unit": "g",
+          "rounding_interval": 25.0,
+          "source_flex_interval": 10.0,
+          "rounding_status": "rounded_final_amount",
+          "reason": "fresh_leaf_or_herb_low_waste_fit"
+        }
+      ],
+      "recalculated_receipt_status": "pass",
+      "blockers": [],
+      "warnings": [
+        {
+          "ingredient": "medium egg noodles",
+          "sku_code": "aldi-asia-specialities-medium-egg-noodles-250g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ]
+    },
+    {
+      "recipe_id": "lean-beef-smash-burger-plates",
+      "status": "pass",
+      "line_count": 1,
+      "adjustments": [
+        {
+          "slot_id": "fri-dinner",
+          "day": "Friday",
+          "recipe_id": "lean-beef-smash-burger-plates",
+          "line_id": "lean-beef-smash-burger-plates:line-11-brown_onion",
+          "row_index": 11,
+          "ingredient": "brown onion",
+          "family_id": "ING-ONIONS",
+          "storage_class": "fresh",
+          "amount_before": 80.0,
+          "amount_after": 75.0,
+          "amount_delta": -5.0,
+          "unit": "g",
+          "line_amount_before": 80.0,
+          "line_amount_after": 75.0,
+          "line_amount_delta": -5.0,
+          "line_unit": "g",
+          "rounding_interval": 25.0,
+          "source_flex_interval": 10.0,
+          "rounding_status": "rounded_final_amount",
+          "reason": "fresh_pack_low_waste_fit"
+        }
+      ],
+      "recalculated_receipt_status": "pass",
+      "blockers": [],
+      "warnings": [
+        {
+          "ingredient": "brioche burger buns",
+          "sku_code": "aldi-specially-selected-sliced-brioche-burger-buns-4pk",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "tomato ketchup",
+          "sku_code": "aldi-bramwells-tomato-ketchup-650g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "gherkins",
+          "sku_code": "aldi-bramwells-gherkins-680g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "gherkins",
+          "sku_code": "aldi-bramwells-gherkins-680g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "salad tomatoes",
+          "sku_code": "aldi-natures-pick-salad-tomatoes-6pk",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        },
+        {
+          "ingredient": "salad tomatoes",
+          "sku_code": "aldi-natures-pick-salad-tomatoes-6pk",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ]
+    }
+  ],
+  "master_recipe_mutation": false,
+  "recipe_approved": false,
+  "planner_used": false,
+  "receipt_hash": "f78424968dec18dd",
+  "calendar_integration_proof": {
+    "proof_path": "V4/app/data/week-pack-fit/calendar-pack-fit-proof-20260704.calendar-proof.json",
+    "proof_id": "calendar-pack-fit-proof-20260704",
+    "status": "passed",
+    "local_only": true
+  }
+}

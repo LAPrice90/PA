@@ -1,0 +1,21 @@
+{
+  "name": "Diet Planner V4",
+  "short_name": "Diet Planner",
+  "icons": [
+    {
+      "src": "./assets/diet-planner-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/diet-planner-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#58cc02",
+  "background_color": "#f6fbf3",
+  "display": "standalone"
+}

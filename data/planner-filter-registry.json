@@ -1,0 +1,443 @@
+{
+  "schema_version": "v4.planner_filter_registry.3",
+  "status_date": "2026-07-01",
+  "naming_policy": "Filter IDs are lowercase stable IDs. Display labels may change, but IDs must not drift.",
+  "meal_categories": [
+    {
+      "id": "breakfast",
+      "label": "Breakfast"
+    },
+    {
+      "id": "lunch",
+      "label": "Lunch"
+    },
+    {
+      "id": "dinner",
+      "label": "Dinner"
+    },
+    {
+      "id": "finisher",
+      "label": "Finisher"
+    }
+  ],
+  "people": [
+    "Luke",
+    "Sarah",
+    "Louis"
+  ],
+  "cuisines": [
+    {
+      "id": "british",
+      "label": "British"
+    },
+    {
+      "id": "indian",
+      "label": "Indian"
+    },
+    {
+      "id": "mexican",
+      "label": "Mexican"
+    },
+    {
+      "id": "korean",
+      "label": "Korean"
+    },
+    {
+      "id": "italian",
+      "label": "Italian"
+    },
+    {
+      "id": "middle-eastern",
+      "label": "Middle Eastern"
+    },
+    {
+      "id": "greek",
+      "label": "Greek"
+    },
+    {
+      "id": "american",
+      "label": "American"
+    },
+    {
+      "id": "chinese",
+      "label": "Chinese"
+    },
+    {
+      "id": "thai",
+      "label": "Thai"
+    },
+    {
+      "id": "japanese",
+      "label": "Japanese"
+    },
+    {
+      "id": "mediterranean",
+      "label": "Mediterranean"
+    },
+    {
+      "id": "fusion",
+      "label": "Fusion"
+    },
+    {
+      "id": "none",
+      "label": "No cuisine"
+    }
+  ],
+  "macro_bands": [
+    {
+      "id": "light",
+      "label": "Light"
+    },
+    {
+      "id": "standard",
+      "label": "Standard"
+    },
+    {
+      "id": "heavy",
+      "label": "Heavy"
+    }
+  ],
+  "legacy_aliases": {
+    "fish": "protein:fish",
+    "oily-fish": "protein:oily-fish",
+    "indian": "cuisine:indian",
+    "work-lunch": "work",
+    "home-lunch": "home",
+    "not-working-lunch": "not-working",
+    "shared-lunch": "shared",
+    "luke-lunch-1": "work",
+    "luke-lunch-2": "work"
+  },
+  "filters": [
+    {
+      "id": "family",
+      "label": "Family",
+      "group": "audience",
+      "show_in_planner": true
+    },
+    {
+      "id": "adult-only",
+      "label": "Adult-only",
+      "group": "audience",
+      "show_in_planner": true
+    },
+    {
+      "id": "sarah-only",
+      "label": "Sarah-only",
+      "group": "audience",
+      "show_in_planner": true
+    },
+    {
+      "id": "luke-only",
+      "label": "Luke-only",
+      "group": "audience",
+      "show_in_planner": true
+    },
+    {
+      "id": "sarah-louis",
+      "label": "Sarah and Louis",
+      "group": "audience",
+      "show_in_planner": true
+    },
+    {
+      "id": "work",
+      "label": "Work",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "home",
+      "label": "Home",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "not-working",
+      "label": "Not working",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "shared",
+      "label": "Shared",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "quick",
+      "label": "Quick",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "superquick",
+      "label": "Superquick",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "normal",
+      "label": "Normal",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "prep-ahead",
+      "label": "Prep-ahead",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "batch",
+      "label": "Batch",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "no-cook",
+      "label": "No-cook",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "warm",
+      "label": "Warm",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "freezer-friendly",
+      "label": "Freezer-friendly",
+      "group": "effort-serving",
+      "show_in_planner": true
+    },
+    {
+      "id": "fakeaway",
+      "label": "Fakeaway",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "comfort",
+      "label": "Comfort",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "salad",
+      "label": "Salad",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "soup",
+      "label": "Soup",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "wrap",
+      "label": "Wrap",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "pasta",
+      "label": "Pasta",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "bowl",
+      "label": "Bowl",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "traybake",
+      "label": "Traybake",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "one-pan",
+      "label": "One-pan",
+      "group": "style",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:chicken",
+      "label": "Chicken",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:beef",
+      "label": "Beef",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:pork",
+      "label": "Pork or ham",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:fish",
+      "label": "Fish",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:oily-fish",
+      "label": "Oily fish",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:prawn",
+      "label": "Prawn",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:tuna",
+      "label": "Tuna",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:egg",
+      "label": "Egg",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:beans",
+      "label": "Beans or pulses",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein:dairy",
+      "label": "Dairy",
+      "group": "protein",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:british",
+      "label": "British",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:indian",
+      "label": "Indian",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:mexican",
+      "label": "Mexican",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:korean",
+      "label": "Korean",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:italian",
+      "label": "Italian",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:middle-eastern",
+      "label": "Middle Eastern",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:greek",
+      "label": "Greek",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:american",
+      "label": "American",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:chinese",
+      "label": "Chinese",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:thai",
+      "label": "Thai",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:japanese",
+      "label": "Japanese",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:mediterranean",
+      "label": "Mediterranean",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:fusion",
+      "label": "Fusion",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "cuisine:none",
+      "label": "No cuisine",
+      "group": "cuisine",
+      "show_in_planner": true
+    },
+    {
+      "id": "protein-led",
+      "label": "Protein-led",
+      "group": "planning-proof",
+      "show_in_planner": false
+    },
+    {
+      "id": "fruit-veg-floor",
+      "label": "Fruit/veg floor",
+      "group": "planning-proof",
+      "show_in_planner": false
+    },
+    {
+      "id": "light",
+      "label": "Light",
+      "group": "planning-proof",
+      "show_in_planner": false
+    },
+    {
+      "id": "standard",
+      "label": "Standard",
+      "group": "planning-proof",
+      "show_in_planner": false
+    },
+    {
+      "id": "heavy",
+      "label": "Heavy",
+      "group": "planning-proof",
+      "show_in_planner": false
+    }
+  ]
+}

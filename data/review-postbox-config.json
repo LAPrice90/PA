@@ -1,7 +1,9 @@
 {
-  "schema_version": "v3.review_postbox_public_config.1",
+  "schema_version": "v4.local_decision_inbox_config.1",
   "status": "active",
-  "endpoint_url": "https://script.google.com/macros/s/AKfycbw1_kuXveJBc5Rh8gcyJASp15PNYOu3_mfJkI--mBYqqSpwmmqSiya9pgkpSiWlpznsBA/exec",
-  "shared_token": "diet-v3-review-2026-fwqebfvurqewvbuqbwr",
+  "endpoint_url": "/api/v4/acceptance-decisions",
+  "shared_token": "",
+  "mode": "local_decision_inbox",
+  "legacy_google_postbox_endpoint_url": "https://script.google.com/macros/s/AKfycbw1_kuXveJBc5Rh8gcyJASp15PNYOu3_mfJkI--mBYqqSpwmmqSiya9pgkpSiWlpznsBA/exec",
   "submit_timeout_ms": 12000
 }

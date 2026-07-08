@@ -1,0 +1,56 @@
+{
+  "schema_version": "v4.planner_macro_policy.1",
+  "draft_only": true,
+  "default_preset": "maintain",
+  "profile_goal_draft_key": "v4_profile_goal_preset_draft",
+  "presets": [
+    {
+      "preset_id": "cut",
+      "label": "Cut",
+      "load_score": 7,
+      "kcal_delta_from_maintain": -300,
+      "description": "Lighter day. Main meals stay useful and finishers close small gaps."
+    },
+    {
+      "preset_id": "maintain",
+      "label": "Maintain",
+      "load_score": 10,
+      "kcal_delta_from_maintain": 0,
+      "description": "Normal target day using the saved profile authority as the centre."
+    },
+    {
+      "preset_id": "bulk",
+      "label": "Bulk",
+      "load_score": 13,
+      "kcal_delta_from_maintain": 300,
+      "description": "Heavier day. Prefer bigger meal blocks before relying on finishers."
+    }
+  ],
+  "meal_bands": [
+    {
+      "band_id": "light",
+      "label": "Light",
+      "load_points": 1,
+      "description": "Lower end of the saved hard range. Must be balanced by the day."
+    },
+    {
+      "band_id": "standard",
+      "label": "Standard",
+      "load_points": 2,
+      "description": "Normal target range for the meal slot."
+    },
+    {
+      "band_id": "heavy",
+      "label": "Heavy",
+      "load_points": 3,
+      "description": "Upper end of the saved hard range. Useful for maintain and bulk days."
+    }
+  ],
+  "finisher_steps_kcal": [50, 100, 150, 250, 350, 450],
+  "lane_band_targets": {
+    "light": 3,
+    "standard": 4,
+    "heavy": 3
+  },
+  "plain_english": "Profiles hold the goal. Recipes hold proved per-person numbers. The planner combines light, standard, heavy, and finisher blocks without creating a new recipe for every calorie change."
+}

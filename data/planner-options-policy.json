@@ -1,0 +1,63 @@
+{
+  "schema_version": "v4.planner_options_policy.1",
+  "draft_only": true,
+  "policy_id": "normal_week_options_v1",
+  "default_cooldown_days": 7,
+  "max_stored_day_options": 300,
+  "max_raw_valid_options": 5000,
+  "max_raw_combinations_per_day": 50000,
+  "max_candidate_options_per_slot": 60,
+  "max_weekly_sequence_options_per_day": 120,
+  "max_weekly_sequence_search_ms": 900,
+  "max_weekly_breakfast_repeats": 2,
+  "max_weekly_lunch_repeats": 2,
+  "max_weekly_dinner_repeats": 1,
+  "max_weekly_recipe_repeats": 2,
+  "week_score_policy": {
+    "history_window_weeks": 4,
+    "max_alternatives": 5,
+    "meal_fatigue_weights": {
+      "dinner": 1,
+      "lunch": 0.35,
+      "breakfast": 0.2,
+      "finisher": 0
+    },
+    "recent_week_weights": {
+      "1": 1,
+      "2": 0.65,
+      "3": 0.35,
+      "4": 0.15
+    },
+    "score_weights": {
+      "low_waste": 25,
+      "fatigue": 30,
+      "macro_fit": 15,
+      "cook_time": 10,
+      "budget": 10,
+      "pack_batch": 10
+    },
+    "balanced_low_waste_mode": true
+  },
+  "expensive_fresh_waste_policy": {
+    "beef_mince_family_id": "ING-V1-BRITISH-LEAN-BEEF-STEAK-MINCE-5-PERCENT-F",
+    "beef_mince_pack_size_g": 750,
+    "max_beef_mince_dinners_per_week": 2,
+    "block_stranded_beef_mince_pack": true
+  },
+  "external_meal_policy": "reserve_budget",
+  "build_trigger": "manual_button",
+  "default_twist_scope": "slot",
+  "rank_order": [
+    "hard_validity",
+    "full_ready_days",
+    "batch_completion",
+    "repeat_fatigue",
+    "macro_closeness",
+    "weekly_variety",
+    "recipe_cooldown",
+    "shopping_efficiency_placeholder",
+    "workload",
+    "cost"
+  ],
+  "plain_english": "The planner calculates legal day versions, then chooses an efficient week: complete days first, completed batches, fewer repeats, sensible macros, then workload, cost, and later shopping efficiency. It stores a draft cache only, never a shopping list, calendar export, recipe approval, or Google Calendar event."
+}

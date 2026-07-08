@@ -1,62 +1,82 @@
-# Diet Planner V3 App
+# Diet Planner V4 App Shell
 
-Mobile-first V3 app launcher and recipe review card for Luke confirmation.
+Status date: 2026-06-28
 
-This repo currently contains a static app:
+Purpose: local V4 replacement shell for the existing GitHub Pages Diet Planner app.
 
-- `index.html`
-- `styles.css`
-- `app.js`
+Plain English: this is the new front door. It keeps the old app connection pattern, but uses the new V4 visual style. It does not import old V3 recipes into the V4 database.
+
+Planner builder blueprint:
+
+- `../PLANNER_BUILDER_BLUEPRINT.md`
+
+## Routes
+
+- `#/` - Home
+- `#/acceptance` - Acceptance queue
+- `#/collection` - Approved recipe collection
+- `#/collection/recipes` - Approved recipe collection
+- `#/collection/ingredients` - Ingredients and SKU database
+- `#/shopping` - Recipe-level shopping data
+- `#/profiles` - Household profiles and local draft changes
+- `#/planner` - Draft-only planner week builder
+
+Old V3 aliases are supported:
+
+- `#/recipes` routes to Acceptance
+- `#/database` routes to Collection
+- `#/ingredients`, `#/ingredient`, `#/skus`, and `#/sku` route to the Ingredients/SKU database
+
+## Data Connections
+
+The app reads:
+
 - `data/recipe-index.json`
-- `assets/poached-eggs-hero.png`
+- `data/profile-index.json`
+- `data/planner-week-template.json`
+- `data/review-postbox-config.json`
 
-Plain English: the root page is a simple front door with three options: Profiles, Recipe Review, and Weekly Planner. Recipe Review is the food-profile view for reviewing recipes on a phone. Profiles is now a profile settings and draft-change screen. Weekly Planner is still a coming-soon placeholder.
+Current V4 recipe database state:
 
-Routes:
+- `0` accepted recipes are currently clean
+- `3` old passed recipes have been moved to change/recheck
+- `0` clean pending Acceptance items
+- `13` repair queue rows are active, covering Sarah rice repair, dinner fruit/veg repair, adult-only lane repair, and Luke change requests
+- new recipe generation is active by Luke override, but old repair rows remain blocked from planner and shopping use
+- recipe-level shopping rows are only shown for accepted recipes; accumulated weekly shopping remains a future planner job
 
-- `#/` or no hash: Home.
-- `#/recipes`: Recipe Review.
-- `#/profiles`: Profile settings and draft changes.
-- `#/planner`: Weekly Planner coming soon.
+V4 review decisions use a V4-specific local storage key so old V3 browser decisions cannot make a pending V4 recipe look accepted:
 
-The design has moved from warm meal-kit colours to a sharper minimalist style: white cards, black header, electric green pass state, coral fail state, and blue proof/status accents.
+- `v4_recipe_review_decisions`
 
-Important boundary:
+Profile draft notes still use the old draft key during the transition so existing profile/search notes are not stranded:
 
-- Pass and Fail only save browser-local UI state.
-- They do not approve a recipe.
-- They do not create `human_review.json`.
-- They do not create planner rows, shopping plans, calendar events, Google output, live receipts, or automation output.
-- Profiles reads saved profile authority and can create browser-local draft changes.
-- Profile drafts do not change planner truth until Codex imports and validates them.
-- Weekly Planner does not expose planning controls yet.
+- `v3_profile_draft_changes`
 
-Current data state:
+Planner preference changes are browser-local drafts only. They label the weekly holes, but do not select recipes or create outputs:
 
-- 3 recipes in the review index.
-- 0 approved.
-- 1 needs review.
-- 2 blocked.
-- 3 household profiles in the profile index.
-- 413 searchable SKU rows.
-- 7 active profile food rules.
-- Poached Eggs is a source-authorised review recipe, but it is not planner-approved because `human_review.json` is absent.
+- `v4_planner_preference_draft`
 
-Profile authority rule:
+## Boundaries
 
-- Sarah's pasta rule is pasta-only, not a general gluten rule.
-- Normal pasta can require a Sarah branch; noodles, bread, flour, soy sauce, and pastry are not caught by that rule.
-- Product dislike/cannot-eat edits are draft requests only until imported into the authority files.
+This app does not write recipe truth directly.
 
-Review image rule:
+Acceptance decisions are sent to the local V4 decision inbox. A Codex import job validates them, runs the recipe gates, then updates the app database. If the local inbox is unavailable, the app copies fallback JSON for Codex import.
 
-- Generated food images are allowed for final review only after the technical recipe bundle passes.
-- The image must show only approved recipe foods.
-- Any image that adds extra ingredients must be rejected.
-- The policy copy is in `docs/final_review_visual_policy.json`.
+Profile changes are browser-local drafts only until a Codex import job validates and writes them.
 
-Culinary baseline rule:
+The weekly planner route is a draft-only calendar builder. It can choose the week template, toggle required slots, choose people, and mark slot requirement chips. It does not pick recipes, create calendar output, build accumulated shopping, write approval files, or hand anything to Google Calendar.
 
-- Technically valid but bland recipes are blocked before Luke review.
-- Eggs on toast must be rebuilt through blueprint and datasheet if it needs butter, salt, pepper, or another finish.
-- The policy copy is in `docs/culinary_baseline_policy.json`.
+## Local Preview
+
+Serve from `V4`:
+
+```powershell
+python V4\server\v4_local_app_server.py --host 127.0.0.1 --port 8044
+```
+
+Open:
+
+```text
+http://127.0.0.1:8044/app/index.html#/
+```

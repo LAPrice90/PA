@@ -3,206 +3,44 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Diet Planner V3</title>
-    <link rel="stylesheet" href="./styles.css?v=20260606-review-postbox" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Diet Planner V4</title>
+    <link rel="icon" href="./assets/diet-planner-favicon.ico" sizes="any" />
+    <link rel="icon" href="./assets/diet-planner-icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="./assets/diet-planner-icon-180.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=20260707-planner-no-debug-strip" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="app-header">
-        <div>
-          <p class="tiny-label">Diet Planner V3</p>
-          <h1 id="app-title">Diet Planner</h1>
+    <div class="app-shell">
+      <header class="app-header" aria-label="Diet Planner navigation">
+        <a class="brand" href="#/" aria-label="Diet Planner V4 home">
+          <span class="brand-mark">
+            <img src="./assets/diet-planner-logo.png" alt="" aria-hidden="true" />
+          </span>
+          <span>
+            <strong>Diet Planner</strong>
+            <em>V4</em>
+          </span>
+        </a>
+
+        <div class="shell-actions" aria-label="Current page">
+          <span class="current-route" data-current-route>Home</span>
+          <a class="shell-home-link" href="#/" data-route-link="home">Home</a>
         </div>
-        <nav class="app-nav" aria-label="Main app navigation">
-          <a href="#/">Menu</a>
-          <a href="#/recipes">Review</a>
-          <a href="#/database">Database</a>
-          <a href="#/shopping">Shopping</a>
-          <a href="#/profiles">Profiles</a>
-        </nav>
-        <a class="github-link" href="https://github.com/LAPrice90/PA" target="_blank" rel="noreferrer">GitHub</a>
       </header>
 
-      <main id="app-main" aria-live="polite">
-        <section id="home-view" class="home-view" aria-label="Diet Planner home">
-          <div class="home-panel">
-            <p class="home-kicker">Diet Planner V3</p>
-            <h2>Choose where to go</h2>
-            <p class="home-copy">A simple front door for recipes, profiles, and the future weekly planner.</p>
-            <nav class="home-actions" aria-label="App sections">
-              <a class="home-action primary food-tile" href="#/recipes">
-                <span>Recipe Review</span>
-                <strong>Pass or fail</strong>
-              </a>
-              <a class="home-action food-tile" href="#/database">
-                <span>Recipe Database</span>
-                <strong>Approved recipes</strong>
-              </a>
-              <a class="home-action food-tile" href="#/shopping">
-                <span>Shopping List</span>
-                <strong>Recipe shopping</strong>
-              </a>
-              <a class="home-action settings-tile" href="#/profiles">
-                <span>Profiles</span>
-                <strong>Open settings</strong>
-              </a>
-              <a class="home-action planner-tile" href="#/planner">
-                <span>Weekly Planner</span>
-                <strong>Coming soon</strong>
-              </a>
-            </nav>
-          </div>
-        </section>
-
-        <section id="recipes-view" class="review-stage is-hidden" aria-label="Recipe review">
-          <section class="recipe-phone" aria-label="Mobile recipe confirmation card">
-            <div class="top-strip">
-              <button id="previous-recipe" class="round-button" type="button" aria-label="Previous recipe">Prev</button>
-              <div class="review-count" id="review-count">Loading</div>
-              <button id="next-recipe" class="round-button" type="button" aria-label="Next recipe">Next</button>
-            </div>
-
-            <article id="recipe-profile" class="recipe-profile">
-              <div class="loading-card">Loading recipe profile...</div>
-            </article>
-
-            <section class="decision-panel" aria-label="Recipe decision">
-              <p id="decision-copy">Choose Pass or Fail for each recipe, then use the final Send Decisions button. The website sends choices to the manager postbox only after you press send.</p>
-              <div class="review-fields">
-                <label for="fail-reason">Fail reason</label>
-                <select id="fail-reason">
-                  <option value="taste_food_idea_wrong">Taste or food idea wrong</option>
-                  <option value="portion_wrong">Portion wrong</option>
-                  <option value="method_cooking_flow_wrong">Method or cooking flow wrong</option>
-                  <option value="shopping_ingredients_wrong">Shopping or ingredients wrong</option>
-                  <option value="nutrition_target_wrong">Nutrition or target wrong</option>
-                  <option value="layout_readability_wrong">Layout or readability wrong</option>
-                  <option value="other_notes">Other notes</option>
-                </select>
-                <label for="review-notes">Notes</label>
-                <textarea id="review-notes" rows="2" placeholder="Optional notes for repair or approval"></textarea>
-              </div>
-              <div class="decision-actions">
-                <button id="fail-recipe" class="decision-button fail" type="button">Fail</button>
-                <button id="pass-recipe" class="decision-button pass" type="button">Pass</button>
-              </div>
-              <button id="copy-review-decision" class="copy-decision-button" type="button">Send Review Decision</button>
-            </section>
-          </section>
-
-          <aside class="recipe-drawer" aria-label="Recipe queue and status">
-            <section class="drawer-section">
-              <div class="drawer-heading">
-                <h2>Queue</h2>
-                <span id="data-status" class="state-pill pending">Loading</span>
-              </div>
-              <div id="queue-summary" class="queue-summary"></div>
-              <div id="manager-queue-tools" class="manager-queue-tools">
-                <button id="copy-visible-queue" class="mini-button dark" type="button">Copy Manager Queue</button>
-                <p id="manager-queue-status">Exports the same queue state this browser is showing.</p>
-              </div>
-              <div class="filter-pills" role="group" aria-label="Recipe status filters">
-                <button class="filter-pill active" data-filter="all" type="button">All</button>
-                <button class="filter-pill" data-filter="needs_review" type="button">To Review</button>
-                <button class="filter-pill" data-filter="ready_to_send" type="button">Ready</button>
-                <button class="filter-pill" data-filter="sent_to_manager" type="button">Sent</button>
-                <button class="filter-pill" data-filter="send_failed" type="button">Failed Send</button>
-                <button class="filter-pill" data-filter="blocked" type="button">Technical Block</button>
-              </div>
-              <div id="recipe-list" class="recipe-list"></div>
-            </section>
-
-            <section class="drawer-section soft">
-              <h2>What This Screen Does</h2>
-              <p>Shows the recipe like a food profile for Luke review. The website sends review decisions to the manager postbox; it does not write recipe files, Google events, or planner handoff by itself.</p>
-            </section>
-          </aside>
-        </section>
-
-        <section id="database-view" class="database-view is-hidden" aria-label="Approved recipe database">
-          <section class="database-shell">
-            <div class="database-topline">
-              <div>
-                <p class="home-kicker">Recipe Database</p>
-                <h2>Approved recipes</h2>
-              </div>
-              <span id="database-data-status" class="state-pill pending">Loading</span>
-            </div>
-            <p class="database-intro">Only Codex-imported, Luke-confirmed recipes appear here. Local phone Pass buttons do not put recipes into this shelf.</p>
-            <div id="database-filters" class="database-filters" role="group" aria-label="Recipe database filters"></div>
-            <div class="database-layout">
-              <div id="database-list" class="database-list" aria-label="Approved recipe menu"></div>
-              <article id="database-detail" class="database-detail" aria-label="Approved recipe detail"></article>
-            </div>
-          </section>
-        </section>
-
-        <section id="shopping-view" class="shopping-view is-hidden" aria-label="Recipe-level shopping list">
-          <section class="database-shell shopping-shell">
-            <div class="database-topline">
-              <div>
-                <p class="home-kicker">Shopping List</p>
-                <h2>Recipe shopping</h2>
-              </div>
-              <span id="shopping-data-status" class="state-pill pending">Loading</span>
-            </div>
-            <p class="database-intro">This is per-recipe shopping for approved recipes only. It is not a weekly shopping plan.</p>
-            <div class="database-layout shopping-layout">
-              <div id="shopping-recipe-list" class="database-list" aria-label="Approved recipes for shopping"></div>
-              <article id="shopping-detail" class="database-detail" aria-label="Recipe shopping detail"></article>
-            </div>
-          </section>
-        </section>
-
-        <section id="profiles-view" class="profiles-view is-hidden" aria-label="Profile settings">
-          <section class="profile-workbench" aria-label="Household profiles">
-            <div class="profile-main-panel">
-              <div class="profile-topline">
-                <div>
-                  <p class="home-kicker">Profiles</p>
-                  <h2>Household settings</h2>
-                </div>
-                <span id="profile-data-status" class="state-pill pending">Loading</span>
-              </div>
-              <p class="profile-intro">Goals, meal sizes, food rules, and SKU-linked dislikes. Edits save as drafts until validated into the real authority files.</p>
-              <div id="profile-tabs" class="profile-tabs" role="tablist" aria-label="Choose person"></div>
-              <div id="profile-content" class="profile-content">
-                <div class="loading-card">Loading profile authority...</div>
-              </div>
-            </div>
-
-            <aside class="profile-side-panel" aria-label="Profile tools">
-              <section class="drawer-section">
-                <h2>Product Search</h2>
-                <p class="tool-copy">Search saved SKUs, then draft a person rule for the exact product or its ingredient family.</p>
-                <label class="field-label" for="profile-sku-search">Search products</label>
-                <input id="profile-sku-search" class="text-input" type="search" placeholder="pasta, kiwi, bread..." autocomplete="off" />
-                <div id="profile-sku-results" class="sku-results"></div>
-              </section>
-
-              <section class="drawer-section soft">
-                <h2>Draft Queue</h2>
-                <p>Drafts stay on this device until copied or imported. They do not change planner data.</p>
-                <div id="profile-draft-queue" class="draft-queue"></div>
-              </section>
-            </aside>
-          </section>
-        </section>
-
-        <section id="planner-view" class="placeholder-view is-hidden" aria-label="Weekly planner coming soon">
-          <div class="placeholder-panel">
-            <p class="home-kicker">Weekly Planner</p>
-            <h2>Weekly Planner is coming soon</h2>
-            <p>This page is only a placeholder. It is locked to coming soon and has no planning, shopping, or Google controls.</p>
-            <div class="placeholder-actions">
-              <a class="round-link" href="#/">Home</a>
-              <a class="round-link dark" href="#/recipes">Recipe Review</a>
-            </div>
-          </div>
+      <main class="app-main" id="app">
+        <section class="loading-panel">
+          <div class="loader-dot"></div>
+          <h1>Loading Diet Planner V4</h1>
+          <p>Reading the saved app data.</p>
         </section>
       </main>
     </div>
 
-    <script src="./app.js?v=20260606-review-postbox"></script>
+    <script src="./app.js?v=20260707-planner-no-debug-strip"></script>
   </body>
 </html>

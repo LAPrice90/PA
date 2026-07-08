@@ -1,0 +1,1517 @@
+{
+  "schema_version": "v4.planner_week_template.1",
+  "status_date": "2026-07-01",
+  "default_template_id": "normal_low_cook",
+  "draft_only": true,
+  "source_notes": {
+    "old_v2_rhythm": "Based on the proved V2 Sunday-to-Saturday rhythm: Sunday summary and shop, required Sunday breakfast with no fixed clock time, Sunday outside lunch and outside dinner placeholders for Luke, Sarah and Louis, weekday breakfasts at 07:45, Saturday breakfast at 08:00, Luke lunch 1 at 10:45, Sarah lunch at 12:30, Luke lunch 2 at 14:00, dinner at 18:00, adult finisher at 20:30, Wednesday top-up when needed, and prep only when it reduces work.",
+    "planner_boundary": "This file creates slot requirements only. It does not approve recipes, select recipes, create shopping output, render calendar exports, or write Google Calendar events."
+  },
+  "requirement_chips": [
+    {
+      "chip": "family",
+      "label": "Family"
+    },
+    {
+      "chip": "adult-only",
+      "label": "Adult-only"
+    },
+    {
+      "chip": "sarah-only",
+      "label": "Sarah-only"
+    },
+    {
+      "chip": "luke-only",
+      "label": "Luke-only"
+    },
+    {
+      "chip": "sarah-louis",
+      "label": "Sarah and Louis"
+    },
+    {
+      "chip": "work",
+      "label": "Work"
+    },
+    {
+      "chip": "home",
+      "label": "Home"
+    },
+    {
+      "chip": "not-working",
+      "label": "Not working"
+    },
+    {
+      "chip": "shared",
+      "label": "Shared"
+    },
+    {
+      "chip": "quick",
+      "label": "Quick"
+    },
+    {
+      "chip": "superquick",
+      "label": "Superquick"
+    },
+    {
+      "chip": "normal",
+      "label": "Normal"
+    },
+    {
+      "chip": "prep-ahead",
+      "label": "Prep-ahead"
+    },
+    {
+      "chip": "batch",
+      "label": "Batch"
+    },
+    {
+      "chip": "no-cook",
+      "label": "No-cook"
+    },
+    {
+      "chip": "warm",
+      "label": "Warm"
+    },
+    {
+      "chip": "freezer-friendly",
+      "label": "Freezer-friendly"
+    },
+    {
+      "chip": "fakeaway",
+      "label": "Fakeaway"
+    },
+    {
+      "chip": "comfort",
+      "label": "Comfort"
+    },
+    {
+      "chip": "salad",
+      "label": "Salad"
+    },
+    {
+      "chip": "soup",
+      "label": "Soup"
+    },
+    {
+      "chip": "wrap",
+      "label": "Wrap"
+    },
+    {
+      "chip": "pasta",
+      "label": "Pasta"
+    },
+    {
+      "chip": "bowl",
+      "label": "Bowl"
+    },
+    {
+      "chip": "traybake",
+      "label": "Traybake"
+    },
+    {
+      "chip": "one-pan",
+      "label": "One-pan"
+    },
+    {
+      "chip": "protein:chicken",
+      "label": "Chicken"
+    },
+    {
+      "chip": "protein:beef",
+      "label": "Beef"
+    },
+    {
+      "chip": "protein:pork",
+      "label": "Pork or ham"
+    },
+    {
+      "chip": "protein:fish",
+      "label": "Fish"
+    },
+    {
+      "chip": "protein:oily-fish",
+      "label": "Oily fish"
+    },
+    {
+      "chip": "protein:prawn",
+      "label": "Prawn"
+    },
+    {
+      "chip": "protein:tuna",
+      "label": "Tuna"
+    },
+    {
+      "chip": "protein:egg",
+      "label": "Egg"
+    },
+    {
+      "chip": "protein:beans",
+      "label": "Beans or pulses"
+    },
+    {
+      "chip": "protein:dairy",
+      "label": "Dairy"
+    },
+    {
+      "chip": "cuisine:british",
+      "label": "British"
+    },
+    {
+      "chip": "cuisine:indian",
+      "label": "Indian"
+    },
+    {
+      "chip": "cuisine:mexican",
+      "label": "Mexican"
+    },
+    {
+      "chip": "cuisine:korean",
+      "label": "Korean"
+    },
+    {
+      "chip": "cuisine:italian",
+      "label": "Italian"
+    },
+    {
+      "chip": "cuisine:middle-eastern",
+      "label": "Middle Eastern"
+    },
+    {
+      "chip": "cuisine:greek",
+      "label": "Greek"
+    },
+    {
+      "chip": "cuisine:american",
+      "label": "American"
+    },
+    {
+      "chip": "cuisine:chinese",
+      "label": "Chinese"
+    },
+    {
+      "chip": "cuisine:thai",
+      "label": "Thai"
+    },
+    {
+      "chip": "cuisine:japanese",
+      "label": "Japanese"
+    },
+    {
+      "chip": "cuisine:mediterranean",
+      "label": "Mediterranean"
+    },
+    {
+      "chip": "cuisine:fusion",
+      "label": "Fusion"
+    },
+    {
+      "chip": "cuisine:none",
+      "label": "No cuisine"
+    }
+  ],
+  "people": [
+    "Luke",
+    "Sarah",
+    "Louis"
+  ],
+  "templates": [
+    {
+      "template_id": "normal_low_cook",
+      "title": "Normal Low-Cook Week",
+      "summary": "Default week shape. Least cooking first, nutrition second, variety third.",
+      "days": [
+        {
+          "day": "Sunday",
+          "short_day": "Sun",
+          "slots": [
+            {
+              "slot_id": "sun-breakfast",
+              "time": "08:30",
+              "time_rule": "no_fixed_time",
+              "duration_minutes": 45,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "required_locked": true,
+              "meal_category_locked": true,
+              "chips": [
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "sun-weekly-summary",
+              "time": "09:30",
+              "duration_minutes": 20,
+              "slot_type": "summary",
+              "role": "Weekly summary",
+              "title": "Sunday Weekly Food Summary",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "normal"
+              ],
+              "target_meal_slots": []
+            },
+            {
+              "slot_id": "sun-food-shop",
+              "time": "10:00",
+              "duration_minutes": 60,
+              "slot_type": "shopping",
+              "role": "Main shop",
+              "title": "Sunday Food Shop",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "normal"
+              ],
+              "target_meal_slots": []
+            },
+            {
+              "slot_id": "sun-shared-lunch",
+              "time": "12:30",
+              "duration_minutes": 45,
+              "slot_type": "meal",
+              "meal_category": "lunch",
+              "role": "Sunday shared lunch",
+              "title": "Lunch",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "default_slot_status": "external_meal",
+              "chips": [],
+              "target_meal_slots": [
+                "lunch"
+              ]
+            },
+            {
+              "slot_id": "sun-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "meal_category": "dinner",
+              "role": "Sunday evening meal",
+              "title": "Dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "default_slot_status": "external_meal",
+              "chips": [],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "sun-shared-lunch-prep",
+              "time": "12:35",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Monday-Wednesday lunch prep",
+              "title": "Prep shared lunches",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "sun-luke-lunch2-prep",
+              "time": "13:25",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Luke lunch 2 prep",
+              "title": "Prep Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Monday",
+          "short_day": "Mon",
+          "slots": [
+            {
+              "slot_id": "mon-breakfast",
+              "time": "07:45",
+              "duration_minutes": 30,
+              "max_minutes": 25,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "mon-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "no-cook",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "mon-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah WFH no-cook lunch",
+              "title": "Sarah WFH no-cook lunch",
+              "people": [
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "no-cook"
+              ],
+              "target_meal_slots": [
+                "sarah_lunch_work",
+                "sarah_lunch_home",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "mon-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "mon-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Monday quick dinner",
+              "title": "Monday quick dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "mon-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Tuesday",
+          "short_day": "Tue",
+          "slots": [
+            {
+              "slot_id": "tue-breakfast",
+              "time": "07:45",
+              "duration_minutes": 30,
+              "max_minutes": 25,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "tue-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "no-cook",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "tue-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah WFH no-cook lunch",
+              "title": "Sarah WFH no-cook lunch",
+              "people": [
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "no-cook"
+              ],
+              "target_meal_slots": [
+                "sarah_lunch_work",
+                "sarah_lunch_home",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "tue-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "tue-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Tuesday normal dinner",
+              "title": "Tuesday normal dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "normal",
+                "family"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "tue-shared-lunch-prep",
+              "time": "19:00",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Wednesday shared lunch prep",
+              "title": "Prep shared lunches",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "tue-luke-lunch2-prep",
+              "time": "19:45",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Wednesday Luke lunch 2 prep",
+              "title": "Prep Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "tue-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Wednesday",
+          "short_day": "Wed",
+          "slots": [
+            {
+              "slot_id": "wed-breakfast",
+              "time": "07:45",
+              "duration_minutes": 30,
+              "max_minutes": 25,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "wed-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "no-cook",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "wed-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah WFH no-cook lunch",
+              "title": "Sarah WFH no-cook lunch",
+              "people": [
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "no-cook"
+              ],
+              "target_meal_slots": [
+                "sarah_lunch_work",
+                "sarah_lunch_home",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "wed-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "wed-top-up",
+              "time": "17:00",
+              "duration_minutes": 30,
+              "slot_type": "shopping",
+              "role": "Fresh top-up",
+              "title": "Wednesday Fresh Top-Up Shop",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "normal"
+              ],
+              "target_meal_slots": []
+            },
+            {
+              "slot_id": "wed-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Wednesday quick dinner",
+              "title": "Wednesday quick dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "wed-luke-lunch1-prep",
+              "time": "19:00",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Thursday-Friday Luke lunch 1 prep",
+              "title": "Prep Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "wed-luke-lunch2-prep",
+              "time": "19:45",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Thursday-Friday Luke lunch 2 prep",
+              "title": "Prep Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "wed-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Thursday",
+          "short_day": "Thu",
+          "slots": [
+            {
+              "slot_id": "thu-breakfast",
+              "time": "07:45",
+              "duration_minutes": 30,
+              "max_minutes": 25,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "thu-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "thu-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah lunch",
+              "title": "Sarah lunch",
+              "people": [
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "home"
+              ],
+              "target_meal_slots": [
+                "sarah_lunch_home",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "thu-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "thu-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Thursday adult dinner",
+              "title": "Thursday adult dinner",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "adult-only",
+                "normal"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "thu-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Friday",
+          "short_day": "Fri",
+          "slots": [
+            {
+              "slot_id": "fri-breakfast",
+              "time": "07:45",
+              "duration_minutes": 30,
+              "max_minutes": 25,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "fri-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "fri-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah lunch",
+              "title": "Sarah lunch",
+              "people": [
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "home"
+              ],
+              "target_meal_slots": [
+                "sarah_lunch_home",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "fri-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "fri-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Friday quick fakeaway dinner",
+              "title": "Friday quick fakeaway dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "fakeaway",
+                "family"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "fri-luke-sat-lunch-prep",
+              "time": "19:00",
+              "duration_minutes": 35,
+              "slot_type": "prep",
+              "role": "Saturday Luke work food prep",
+              "title": "Prep Saturday Luke lunch",
+              "people": [
+                "Luke"
+              ],
+              "required": false,
+              "chips": [
+                "prep-ahead",
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1",
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "fri-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        },
+        {
+          "day": "Saturday",
+          "short_day": "Sat",
+          "slots": [
+            {
+              "slot_id": "sat-breakfast",
+              "time": "08:00",
+              "duration_minutes": 45,
+              "slot_type": "meal",
+              "role": "Breakfast",
+              "title": "Breakfast",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "family"
+              ],
+              "target_meal_slots": [
+                "breakfast"
+              ]
+            },
+            {
+              "slot_id": "sat-luke-lunch-1",
+              "time": "10:45",
+              "duration_minutes": 20,
+              "slot_type": "meal",
+              "role": "Luke lunch 1",
+              "title": "Luke lunch 1",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_1"
+              ]
+            },
+            {
+              "slot_id": "sat-sarah-lunch",
+              "time": "12:30",
+              "duration_minutes": 30,
+              "slot_type": "meal",
+              "role": "Sarah and Louis shared lunch",
+              "title": "Sarah and Louis shared lunch",
+              "people": [
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "shared",
+                "home"
+              ],
+              "target_meal_slots": [
+                "sarah_louis_saturday_lunch",
+                "sarah_lunch"
+              ]
+            },
+            {
+              "slot_id": "sat-luke-lunch-2",
+              "time": "14:00",
+              "duration_minutes": 25,
+              "slot_type": "meal",
+              "role": "Luke lunch 2",
+              "title": "Luke lunch 2",
+              "people": [
+                "Luke"
+              ],
+              "required": true,
+              "chips": [
+                "work"
+              ],
+              "target_meal_slots": [
+                "luke_lunch_2"
+              ]
+            },
+            {
+              "slot_id": "sat-dinner",
+              "time": "18:00",
+              "duration_minutes": 55,
+              "slot_type": "meal",
+              "role": "Saturday fakeaway dinner",
+              "title": "Saturday fakeaway dinner",
+              "people": [
+                "Luke",
+                "Sarah",
+                "Louis"
+              ],
+              "required": true,
+              "chips": [
+                "fakeaway",
+                "family"
+              ],
+              "target_meal_slots": [
+                "dinner"
+              ]
+            },
+            {
+              "slot_id": "sat-finisher",
+              "time": "20:30",
+              "duration_minutes": 15,
+              "slot_type": "meal",
+              "role": "Evening finisher",
+              "title": "Evening finisher",
+              "people": [
+                "Luke",
+                "Sarah"
+              ],
+              "required": true,
+              "chips": [
+                "quick",
+                "adult-only"
+              ],
+              "target_meal_slots": [
+                "adult_snack"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "saved_searches": [
+    {
+      "search_id": "breakfast",
+      "label": "Breakfast",
+      "target_count": 10,
+      "meal_category": "breakfast",
+      "people": [
+        "Luke",
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "family"
+      ],
+      "optional_filters": [
+        "quick"
+      ],
+      "target_meal_slots": [
+        "breakfast"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "luke_lunch_1",
+      "label": "Luke work no-cook lunch batch",
+      "target_count": 10,
+      "meal_category": "lunch",
+      "people": [
+        "Luke"
+      ],
+      "required_filters": [
+        "work"
+      ],
+      "optional_filters": [
+        "no-cook",
+        "work"
+      ],
+      "target_meal_slots": [
+        "luke_lunch_1"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "luke_lunch_2",
+      "label": "Luke work warm lunch batch",
+      "target_count": 10,
+      "meal_category": "lunch",
+      "people": [
+        "Luke"
+      ],
+      "required_filters": [
+        "work"
+      ],
+      "optional_filters": [
+        "work"
+      ],
+      "target_meal_slots": [
+        "luke_lunch_2"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "sarah_wfh_lunch",
+      "label": "Sarah WFH no-cook lunch",
+      "target_count": 10,
+      "meal_category": "lunch",
+      "people": [
+        "Sarah"
+      ],
+      "required_filters": [
+        "quick",
+        "no-cook"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "sarah_lunch_work",
+        "sarah_lunch_home",
+        "sarah_lunch"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "sarah_lunch",
+      "label": "Sarah lunch",
+      "target_count": 10,
+      "meal_category": "lunch",
+      "people": [
+        "Sarah"
+      ],
+      "required_filters": [],
+      "optional_filters": [
+        "home"
+      ],
+      "target_meal_slots": [
+        "sarah_lunch_home",
+        "sarah_lunch_work",
+        "sarah_lunch"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "sarah_louis_shared_lunch",
+      "label": "Sarah and Louis shared lunch",
+      "target_count": 10,
+      "meal_category": "lunch",
+      "people": [
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "shared"
+      ],
+      "optional_filters": [
+        "home"
+      ],
+      "target_meal_slots": [
+        "sarah_louis_saturday_lunch",
+        "sarah_louis_lunch",
+        "sarah_lunch"
+      ],
+      "seed_stage": "starter"
+    },
+    {
+      "search_id": "dinner_family",
+      "label": "Dinner + family",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [
+        "Luke",
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "family"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual"
+    },
+    {
+      "search_id": "dinner_quick_family",
+      "label": "Dinner + quick + family",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [
+        "Luke",
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "quick",
+        "family"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual"
+    },
+    {
+      "search_id": "dinner_quick_fakeaway_family",
+      "label": "Dinner + quick + fakeaway + family",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [
+        "Luke",
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "quick",
+        "fakeaway",
+        "family"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual",
+      "variety": true
+    },
+    {
+      "search_id": "dinner_fakeaway_family",
+      "label": "Dinner + fakeaway + family",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [
+        "Luke",
+        "Sarah",
+        "Louis"
+      ],
+      "required_filters": [
+        "fakeaway",
+        "family"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual",
+      "variety": true
+    },
+    {
+      "search_id": "dinner_adult_only",
+      "label": "Dinner + adult-only",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [
+        "Luke",
+        "Sarah"
+      ],
+      "required_filters": [
+        "adult-only"
+      ],
+      "optional_filters": [
+        "normal"
+      ],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual",
+      "variety": true
+    },
+    {
+      "search_id": "dinner_fish",
+      "label": "Dinner + fish",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [],
+      "required_filters": [
+        "protein:fish"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual",
+      "variety": true
+    },
+    {
+      "search_id": "dinner_oily_fish",
+      "label": "Dinner + oily fish",
+      "target_count": 10,
+      "meal_category": "dinner",
+      "people": [],
+      "required_filters": [
+        "protein:oily-fish"
+      ],
+      "optional_filters": [],
+      "target_meal_slots": [
+        "dinner"
+      ],
+      "seed_stage": "manual",
+      "variety": true
+    },
+    {
+      "search_id": "evening_finisher",
+      "label": "Evening finisher",
+      "target_count": 10,
+      "meal_category": "finisher",
+      "people": [
+        "Luke",
+        "Sarah"
+      ],
+      "required_filters": [
+        "adult-only"
+      ],
+      "optional_filters": [
+        "quick"
+      ],
+      "target_meal_slots": [
+        "adult_snack"
+      ],
+      "seed_stage": "later"
+    }
+  ],
+  "planner_filter_registry": {
+    "path": "V4/app/data/planner-filter-registry.json",
+    "schema_version": "v4.planner_filter_registry.1",
+    "last_synced_at_uk": "2026-07-01T10:11:12+01:00"
+  }
+}

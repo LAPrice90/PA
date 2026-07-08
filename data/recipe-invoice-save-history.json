@@ -1,0 +1,249 @@
+{
+  "schema_version": "v4.recipe_invoice_save_history.1",
+  "entries": [
+    {
+      "schema_version": "v4.recipe_invoice_save_entry.1",
+      "save_id": "2026-07-03T1217010100-apple-cinnamon-french-toast-berry-plates-fc6a02b4b0c1baf9",
+      "saved_at_uk": "2026-07-03T12:17:01+01:00",
+      "recipe_id": "apple-cinnamon-french-toast-berry-plates",
+      "title": "Apple Cinnamon French Toast Berry Plates",
+      "status": "saved",
+      "receipt_status": "pass",
+      "before_invoice_hash": "6f978360cba48ff7",
+      "after_invoice_hash": "6f978360cba48ff7",
+      "line_count": 9,
+      "changed_line_count": 0,
+      "changed_lines": [],
+      "source_phase4_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json",
+      "source_receipt_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json",
+      "backups": [
+        {
+          "kind": "phase4_source",
+          "path": "V4/backups/recipe-invoice-overwrite-phase4-20260703-121700/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json"
+        },
+        {
+          "kind": "calculation_receipt",
+          "path": "V4/backups/recipe-invoice-overwrite-receipt-20260703-121700/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json"
+        },
+        {
+          "kind": "recipe_index",
+          "path": "V4/backups/recipe-invoice-overwrite-index-20260703-121700/recipe-index.json"
+        }
+      ],
+      "warning_count": 1,
+      "blocker_count": 0,
+      "warnings": [
+        {
+          "ingredient": "ground cinnamon",
+          "sku_code": "aldi-ready-set-cook-ground-cinnamon-40g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ],
+      "recipe_card_sync": {
+        "status": "passed",
+        "audit_output": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V4\\app\\data\\recipe-card-invoice-sync-audit.json",
+        "backup_dir": "V4/backups/recipe-invoice-save-card-sync-20260703-121701",
+        "totals": {
+          "recipes_seen": 1,
+          "json_cards_checked": 2,
+          "json_cards_updated": 2,
+          "html_cards_rendered": 2,
+          "missing_card_files": 0,
+          "blocked_recipes": 0
+        }
+      },
+      "recipe_approved": false,
+      "planner_used": false,
+      "finalized_at_uk": "2026-07-03T12:17:02+01:00"
+    },
+    {
+      "schema_version": "v4.recipe_invoice_save_entry.1",
+      "save_id": "2026-07-03T1218380100-apple-cinnamon-french-toast-berry-plates-3996abc7f98a7093",
+      "saved_at_uk": "2026-07-03T12:18:38+01:00",
+      "recipe_id": "apple-cinnamon-french-toast-berry-plates",
+      "title": "Apple Cinnamon French Toast Berry Plates",
+      "status": "saved",
+      "receipt_status": "pass",
+      "before_invoice_hash": "6f978360cba48ff7",
+      "after_invoice_hash": "6f978360cba48ff7",
+      "line_count": 9,
+      "changed_line_count": 0,
+      "changed_lines": [],
+      "source_phase4_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json",
+      "source_receipt_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json",
+      "backups": [
+        {
+          "kind": "phase4_source",
+          "path": "V4/backups/recipe-invoice-overwrite-phase4-20260703-121837/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json"
+        },
+        {
+          "kind": "calculation_receipt",
+          "path": "V4/backups/recipe-invoice-overwrite-receipt-20260703-121837/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json"
+        },
+        {
+          "kind": "recipe_index",
+          "path": "V4/backups/recipe-invoice-overwrite-index-20260703-121837/recipe-index.json"
+        }
+      ],
+      "warning_count": 1,
+      "blocker_count": 0,
+      "warnings": [
+        {
+          "ingredient": "ground cinnamon",
+          "sku_code": "aldi-ready-set-cook-ground-cinnamon-40g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ],
+      "recipe_card_sync": {
+        "status": "passed",
+        "audit_output": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V4\\app\\data\\recipe-card-invoice-sync-audit.json",
+        "backup_dir": "V4/backups/recipe-invoice-save-card-sync-20260703-121838",
+        "totals": {
+          "recipes_seen": 1,
+          "json_cards_checked": 2,
+          "json_cards_updated": 2,
+          "html_cards_rendered": 2,
+          "missing_card_files": 0,
+          "blocked_recipes": 0
+        }
+      },
+      "recipe_approved": false,
+      "planner_used": false,
+      "finalized_at_uk": "2026-07-03T12:18:39+01:00"
+    },
+    {
+      "schema_version": "v4.recipe_invoice_save_entry.1",
+      "save_id": "2026-07-03T1220200100-apple-cinnamon-french-toast-berry-plates-335a68c25ea1cd2e",
+      "saved_at_uk": "2026-07-03T12:20:20+01:00",
+      "recipe_id": "apple-cinnamon-french-toast-berry-plates",
+      "title": "Apple Cinnamon French Toast Berry Plates",
+      "status": "saved",
+      "receipt_status": "pass",
+      "before_invoice_hash": "6f978360cba48ff7",
+      "after_invoice_hash": "6f978360cba48ff7",
+      "line_count": 9,
+      "changed_line_count": 0,
+      "changed_lines": [],
+      "source_phase4_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json",
+      "source_receipt_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json",
+      "backups": [
+        {
+          "kind": "phase4_source",
+          "path": "V4/backups/recipe-invoice-overwrite-phase4-20260703-122019/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json"
+        },
+        {
+          "kind": "calculation_receipt",
+          "path": "V4/backups/recipe-invoice-overwrite-receipt-20260703-122019/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json"
+        },
+        {
+          "kind": "recipe_index",
+          "path": "V4/backups/recipe-invoice-overwrite-index-20260703-122019/recipe-index.json"
+        }
+      ],
+      "warning_count": 1,
+      "blocker_count": 0,
+      "warnings": [
+        {
+          "ingredient": "ground cinnamon",
+          "sku_code": "aldi-ready-set-cook-ground-cinnamon-40g",
+          "code": "source_searched_estimate",
+          "message": "Macro row uses labelled searched estimate authority."
+        }
+      ],
+      "recipe_card_sync": {
+        "status": "passed",
+        "audit_output": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V4\\app\\data\\recipe-card-invoice-sync-audit.json",
+        "backup_dir": "V4/backups/recipe-invoice-save-card-sync-20260703-122020",
+        "totals": {
+          "recipes_seen": 1,
+          "json_cards_checked": 2,
+          "json_cards_updated": 2,
+          "html_cards_rendered": 2,
+          "missing_card_files": 0,
+          "blocked_recipes": 0
+        }
+      },
+      "recipe_approved": false,
+      "planner_used": false,
+      "finalized_at_uk": "2026-07-03T12:20:21+01:00"
+    }
+  ],
+  "meta": {
+    "save_count": 3,
+    "last_save_id": "2026-07-03T1220200100-apple-cinnamon-french-toast-berry-plates-335a68c25ea1cd2e",
+    "last_saved_recipe_id": "apple-cinnamon-french-toast-berry-plates",
+    "last_saved_at_uk": "2026-07-03T12:20:20+01:00",
+    "last_finalized_save_id": "2026-07-03T1220200100-apple-cinnamon-french-toast-berry-plates-335a68c25ea1cd2e",
+    "last_recipe_card_sync_status": "passed",
+    "restore_count": 1,
+    "last_restore_id": "2026-07-03T1246310100-restore-apple-cinnamon-french-toast-berry-plates-311a3c4ce618a793",
+    "last_restored_save_id": "2026-07-03T1220200100-apple-cinnamon-french-toast-berry-plates-335a68c25ea1cd2e",
+    "last_restored_recipe_id": "apple-cinnamon-french-toast-berry-plates",
+    "last_restored_at_uk": "2026-07-03T12:46:31+01:00",
+    "last_restore_finalized_at_uk": "2026-07-03T12:46:32+01:00"
+  },
+  "restore_entries": [
+    {
+      "schema_version": "v4.recipe_invoice_restore_entry.1",
+      "restore_id": "2026-07-03T1246310100-restore-apple-cinnamon-french-toast-berry-plates-311a3c4ce618a793",
+      "restored_at_uk": "2026-07-03T12:46:31+01:00",
+      "save_id": "2026-07-03T1220200100-apple-cinnamon-french-toast-berry-plates-335a68c25ea1cd2e",
+      "recipe_id": "apple-cinnamon-french-toast-berry-plates",
+      "title": "Apple Cinnamon French Toast Berry Plates",
+      "status": "restored",
+      "restore_rows": [
+        {
+          "kind": "phase4_source",
+          "backup_path": "V4/backups/recipe-invoice-overwrite-phase4-20260703-122019/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json",
+          "target_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json",
+          "status": "restored"
+        },
+        {
+          "kind": "calculation_receipt",
+          "backup_path": "V4/backups/recipe-invoice-overwrite-receipt-20260703-122019/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json",
+          "target_path": "V4/factory/04_tune_ingredients_pack_sizes_macros/passed/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json",
+          "status": "restored"
+        },
+        {
+          "kind": "recipe_index",
+          "backup_path": "V4/backups/recipe-invoice-overwrite-index-20260703-122019/recipe-index.json",
+          "target_path": "V4/app/data/recipe-index.json",
+          "status": "restored"
+        }
+      ],
+      "current_backups": [
+        {
+          "kind": "file",
+          "path": "V4/backups/recipe-invoice-restore-current-20260703-124631/apple-cinnamon-french-toast-berry-plates.phase-4-tuned-recipe-data.json"
+        },
+        {
+          "kind": "calculation_receipt",
+          "path": "V4/backups/recipe-invoice-restore-current-20260703-124631/apple-cinnamon-french-toast-berry-plates.phase-4-calculation-receipt.json"
+        },
+        {
+          "kind": "recipe_index",
+          "path": "V4/backups/recipe-invoice-restore-current-20260703-124631/recipe-index.json"
+        }
+      ],
+      "recipe_approved": false,
+      "planner_used": false,
+      "recipe_card_sync": {
+        "status": "passed",
+        "audit_output": "C:\\Users\\Luke\\Desktop\\Diet Planner\\V4\\app\\data\\recipe-card-invoice-sync-audit.json",
+        "backup_dir": "V4/backups/recipe-invoice-restore-card-sync-20260703-124631",
+        "totals": {
+          "recipes_seen": 1,
+          "json_cards_checked": 2,
+          "json_cards_updated": 2,
+          "html_cards_rendered": 2,
+          "missing_card_files": 0,
+          "blocked_recipes": 0
+        },
+        "restores_card_json_and_html_from_restored_invoice_source": true
+      },
+      "finalized_at_uk": "2026-07-03T12:46:32+01:00"
+    }
+  ]
+}
