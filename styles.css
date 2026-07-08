@@ -2727,6 +2727,14 @@ button.shopping-product-thumb:hover {
   width: min(100%, 680px);
 }
 
+.shopping-week-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
 .shopping-week-strip {
   margin-top: 0;
 }
@@ -2752,6 +2760,10 @@ button.shopping-product-thumb:hover {
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
   gap: 14px;
   align-items: start;
+}
+
+.shopping-week-layout.shopping-list-only {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .shopping-source-panel {
@@ -3183,7 +3195,7 @@ button.shopping-product-thumb:hover {
 }
 
 .shopping-list-heading h2 {
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--ink);
   font-size: 1.7rem;
   line-height: 1;
@@ -3690,6 +3702,64 @@ button.shopping-product-thumb:hover {
   max-width: 420px;
   color: var(--muted);
   font-weight: 850;
+}
+
+.shopping-week-details {
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 4px 0 #d9e8d3;
+  overflow: hidden;
+}
+
+.shopping-week-details summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  color: var(--ink);
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.shopping-copy-notice {
+  color: var(--green-deep);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.shopping-week-details-body {
+  display: grid;
+  gap: 12px;
+  border-top: 2px solid var(--line);
+  padding: 14px;
+}
+
+.shopping-copy-fallback {
+  display: grid;
+  gap: 8px;
+}
+
+.shopping-copy-fallback span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.shopping-copy-fallback textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  box-sizing: border-box;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fbfdf8;
+  color: var(--ink);
+  padding: 10px;
+  font: 850 0.82rem/1.35 var(--font);
 }
 
 .profile-layout {
@@ -10395,6 +10465,14 @@ body[data-route="profiles"] .profile-section {
   .shopping-list-heading {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .shopping-week-actions {
+    width: 100%;
+  }
+
+  .shopping-week-actions .planner-command-button {
+    flex: 1 1 0;
   }
 
   .collection-view-tabs {

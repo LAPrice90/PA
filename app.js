@@ -3726,7 +3726,7 @@ function renderShopping() {
     <section class="topbar shopping-topbar">
       <div>
         <h1>Shopping list</h1>
-        <p>Select a planner week, then tick off the food grouped by place and category.</p>
+        <p>${escapeHtml(model.week_range)}</p>
       </div>
       <div class="topbar-actions">
         <a class="outline-action" href="#/planner">Open planner</a>
@@ -3735,14 +3735,15 @@ function renderShopping() {
 
     <section class="shopping-week-command" aria-label="Shopping week controls">
       ${shoppingWeekNavigator(model)}
-      <button class="planner-command-button" type="button" data-shopping-clear-week ${model.checked_count ? "" : "disabled"}>Clear ticks</button>
+      <div class="shopping-week-actions">
+        <button class="planner-command-button" type="button" data-shopping-copy-week>Copy week</button>
+        <button class="planner-command-button" type="button" data-shopping-clear-week ${model.checked_count ? "" : "disabled"}>Clear ticks</button>
+      </div>
     </section>
 
-    ${shoppingWeekLedgerStrip(model)}
-
-    <section class="shopping-week-layout">
-      ${shoppingWeekSourcePanel(model)}
+    <section class="shopping-week-layout shopping-list-only">
       ${shoppingWeekChecklist(model)}
+      ${shoppingWeekDetailsDrawer(model)}
     </section>
   `;
   bindRouteLinks();
@@ -3791,6 +3792,17 @@ function bindShoppingEvents() {
       setShoppingStockAmount(input.dataset.shoppingStockAmount, input.value);
     });
   });
+  app.querySelector("[data-shopping-copy-week]")?.addEventListener("click", async () => {
+    const model = buildShoppingWeekModel(state.shoppingWeekStart);
+    const text = shoppingWeekSupportPacket(model);
+    try {
+      await copyText(text);
+      state.shoppingCopyNotice = "Week copied for Codex.";
+    } catch {
+      state.shoppingCopyNotice = "Copy is blocked. Open week details and copy the packet manually.";
+    }
+    renderShopping();
+  });
   const clearButton = app.querySelector("[data-shopping-clear-week]");
   if (clearButton) {
     clearButton.addEventListener("click", () => {
@@ -3806,10 +3818,9 @@ function shoppingWeekNavigator(model) {
       <button class="planner-week-arrow" type="button" data-shopping-week-shift="-1" aria-label="Previous week" title="Previous week">${plannerChevronIcon("left")}</button>
       <div class="planner-week-current">
         <strong>${escapeHtml(model.week_range)}</strong>
-        <span>${escapeHtml(model.source_label)} - ${escapeHtml(model.status_label)}</span>
       </div>
       <button class="planner-week-arrow" type="button" data-shopping-week-shift="1" aria-label="Next week" title="Next week">${plannerChevronIcon("right")}</button>
-      <button type="button" data-shopping-week-today>Current week</button>
+      <button type="button" data-shopping-week-today>Today</button>
     </div>
   `;
 }
@@ -3886,6 +3897,78 @@ function shoppingWeekSourcePanel(model) {
       </div>
     </aside>
   `;
+}
+
+function shoppingWeekDetailsDrawer(model) {
+  const copyNotice = state.shoppingCopyNotice ? `<span class="shopping-copy-notice">${escapeHtml(state.shoppingCopyNotice)}</span>` : "";
+  return `
+    <details class="shopping-week-details">
+      <summary>
+        <span>Week details</span>
+        ${copyNotice}
+      </summary>
+      <div class="shopping-week-details-body">
+        ${shoppingIncompletePlanWarning(model)}
+        ${model.missing_price_lines?.length ? shoppingMissingPricePreview(model.missing_price_lines) : ""}
+        ${shoppingSavingsWasteSummaryPanel(model)}
+        ${shoppingPackFitReceiptPanel()}
+        <label class="shopping-copy-fallback">
+          <span>Support packet</span>
+          <textarea readonly>${escapeHtml(shoppingWeekSupportPacket(model))}</textarea>
+        </label>
+      </div>
+    </details>
+  `;
+}
+
+function shoppingWeekSupportPacket(model) {
+  const source = shoppingPlannerSourceForWeek(model.week_start);
+  const selectedSlots = (source.slot_records || [])
+    .filter((slot) => slot.recipe_id)
+    .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`));
+  const allLines = (model.lines || [])
+    .flatMap((line) => shoppingExpandedChecklistLines(line))
+    .sort(shoppingTripLineSort);
+  const carryRows = plannerCarryForwardRows(model.week_start);
+  const receipt = weekPackFitReceiptForWeek(model.week_start) || state.weekPackFitReceipt || null;
+  const lines = [
+    `# V4 week support packet`,
+    ``,
+    `Week: ${model.week_range} (${model.week_start})`,
+    `Source: ${model.source_label} / ${model.status_label}`,
+    `Readiness: ${model.plan_readiness?.is_complete ? "complete" : plannerWeekReadinessDetail(model.plan_readiness)}`,
+    ``,
+    `## Meals`,
+    ...(selectedSlots.length ? selectedSlots.map((slot) => {
+      const recipe = shoppingRecipeById(slot.recipe_id);
+      return `- ${slot.date || ""} ${slot.time || ""} ${slot.title || slot.slot_id}: ${recipe?.short_title || recipe?.title || slot.recipe_id}`;
+    }) : ["- No selected recipes."]),
+    ``,
+    `## Shopping Windows`,
+    ...shoppingWindowPlanActiveWindows(model.shopping_window_plan).map((window) => (
+      `- ${window.label || window.window_id}: ${window.scheduled_at || ""} (${window.status || "planned"}) covers ${window.covers_from_at || "start"} to ${window.covers_until_at || "end"}`
+    )),
+    ``,
+    `## Shopping Lines`,
+    ...(allLines.length ? allLines.map((line) => {
+      const display = shoppingLineDisplayParts(line);
+      const trip = shoppingTripTitle(line.trip_key, model);
+      const left = line.leftover_label ? `, left ${line.leftover_label}` : "";
+      const warn = line.warning_label ? `, warning ${line.warning_label}` : "";
+      return `- ${trip}: ${display.name} - ${display.packSize}, qty ${display.qty}, ${line.need_label || display.need}${left}${warn}`;
+    }) : ["- No shopping lines."]),
+    ``,
+    `## Carry Forward`,
+    ...(carryRows.length ? carryRows.map((row) => (
+      `- ${row.item.item_name}: brought ${shoppingAmountLabel(row.amount, row.item.unit)}, used ${shoppingAmountLabel(row.used_amount, row.item.unit)}, remaining ${shoppingAmountLabel(row.remaining_amount, row.item.unit)}, status ${row.status?.label || "check"}, waste ${money(row.waste_gbp || 0)}`
+    )) : ["- No previous-week carry-forward rows."]),
+    ``,
+    `## Pack Fit`,
+    receipt?.week_id
+      ? `- ${receipt.week_id}: ${receipt.status || "draft"}, adjustments ${(receipt.adjustments || []).length}, leftovers ${(receipt.leftovers || []).filter((item) => Number(item.leftover_amount || 0) > 0).length}, use-up ${(receipt.use_up_stock_created || []).length}`
+      : "- No pack-fit receipt for this week.",
+  ];
+  return lines.join("\n");
 }
 
 function shoppingIncompletePlanWarning(model) {
@@ -4276,11 +4359,9 @@ function shoppingWeekChecklist(model) {
     <article class="panel shopping-list-panel">
       <div class="shopping-list-heading">
         <div>
-          <span class="status-pill">${escapeHtml(model.status_label)}</span>
           <h2>${escapeHtml(shoppingTripTitle(model.active_trip, model))}</h2>
-          <p>${escapeHtml(model.item_count ? shoppingTripDescription(model.active_trip, model) : "Pick or lock recipes on the planner week before this can build a shopping checklist.")}</p>
         </div>
-        <div class="shopping-progress" aria-label="Shopping progress">
+        <div class="shopping-progress" aria-label="Shopping progress" title="${escapeAttr(model.item_count ? `${viewChecked} of ${viewCount} ticked` : "No shopping items yet")}">
           <strong>${escapeHtml(viewCount ? `${Math.round((viewChecked / viewCount) * 100)}%` : "0%")}</strong>
           <span>${escapeHtml(`${viewChecked} of ${viewCount} ticked`)}</span>
         </div>
@@ -4299,7 +4380,8 @@ function shoppingTripTabs(model) {
     ["sunday", labels.sunday || "Sunday shop"],
     ["wednesday", labels.wednesday || "Wednesday top-up"],
     ["all", labels.all || "All week"],
-  ];
+  ].filter(([key]) => key === "all" || Number(model.trip_counts?.[key] || 0) > 0);
+  if (tabs.length <= 1) return "";
   return `
     <div class="shopping-trip-tabs" aria-label="Shopping trip view">
       ${tabs.map(([key, label]) => `
@@ -4370,14 +4452,57 @@ function shoppingPlaceGroup(placeGroup) {
 }
 
 function shoppingCategoryGroup(categoryGroup) {
+  const lines = shoppingDisplayLinesForCategory(categoryGroup);
   return `
     <section class="shopping-category-group">
       <h3>${escapeHtml(categoryGroup.category)}</h3>
       <div class="shopping-check-list">
-        ${categoryGroup.lines.map((line) => shoppingCheckLine(line)).join("")}
+        ${lines.map((line) => shoppingCheckLine(line)).join("")}
       </div>
     </section>
   `;
+}
+
+function shoppingDisplayLinesForCategory(categoryGroup) {
+  return (categoryGroup.lines || []).flatMap((line) => shoppingExpandedChecklistLines(line));
+}
+
+function shoppingExpandedChecklistLines(line) {
+  if (!line || line.trip_key === "pantry" || line.is_carryover_check || line.is_inventory_use_up) return [line];
+  const plan = shoppingFamilyOptimizedPackPlan(line);
+  const picks = (plan?.picks || []).filter((pick) => Number(pick?.count || 0) > 0);
+  if (picks.length <= 1) return [line];
+  const checked = shoppingWeekTickMap(state.shoppingWeekStart);
+  return picks.map((pick) => {
+    const option = pick.option || {};
+    const count = Number(pick.count || 0);
+    const amount = appPackFitRoundNumber(count * Number(option.quantity || 0));
+    const unit = option.unit || line.amount_unit || "";
+    const key = hashString(`${line.key}:pack-option:${option.sku_code || option.label}:${count}:${line.trip_key}`);
+    const child = {
+      ...line,
+      key,
+      stock_key: key,
+      family: null,
+      sku_code: option.sku_code || line.sku_code,
+      skus: option.sku_code ? [option.sku_code] : [],
+      item_name: option.source_title || line.item_name,
+      amount_total: amount,
+      amount_unit: unit,
+      cost_gbp: roundMoney(count * Number(option.cost || 0)),
+      recipe_used_cost_gbp: 0,
+      pack_label: shoppingFamilyPickLabel(option, count),
+      weekly_pack_label: shoppingFamilyPickLabel(option, count),
+      need_label: amount && unit ? `Need ${shoppingAmountLabel(amount, unit)}` : line.need_label,
+      leftover_label: "",
+      warning_label: "",
+      trip_note: line.trip_note,
+      pack_split_child: true,
+      pack_split_parent_label: line.need_label || "",
+      checked: Boolean(checked?.[key]),
+    };
+    return child;
+  });
 }
 
 function shoppingCheckLine(line) {
@@ -6910,7 +7035,9 @@ function shoppingLineCheckedState(line, checkedMap = {}) {
 
 function shoppingActiveTripKey(weekStart, tripCounts, lines, shoppingWindowPlan = null) {
   const selected = String(state.shoppingTripView || "").trim();
-  if (["pantry", "sunday", "wednesday", "all"].includes(selected)) return selected;
+  if (["pantry", "sunday", "wednesday"].includes(selected) && Number(tripCounts?.[selected] || 0) > 0) return selected;
+  if (selected === "all" && Number(tripCounts?.all || 0) > 0) return selected;
+  if (selected && ["pantry", "sunday", "wednesday", "all"].includes(selected)) state.shoppingTripView = "";
   if (tripCounts.pantry) return "pantry";
   const weekDate = plannerDateFromKey(weekStart) || plannerStartOfWeekDate(new Date());
   const todayIndex = Math.round((plannerStartOfDayDate(plannerNow()) - weekDate) / 86400000);
@@ -7805,6 +7932,31 @@ function shoppingFamilyOptimizedPackPlan(line) {
   const options = shoppingFamilyOptions(family)
     .filter((option) => option.unit === unit && option.quantity > 0 && option.cost >= 0);
   if (!options.length) return null;
+
+  const weeklyStock = String(family.optimizer_policy || "").includes("weekly_stock")
+    || String(family.storage_class || "").toLowerCase() === "weekly_stock"
+    || String(family.leftover_policy || "").toLowerCase() === "long_life_weekly_restock";
+  if (weeklyStock) {
+    const preferred = options
+      .slice()
+      .sort((a, b) => (
+        Number(b.quantity || 0) - Number(a.quantity || 0)
+        || Number(a.cost || 0) - Number(b.cost || 0)
+        || String(a.label || "").localeCompare(String(b.label || ""))
+      ))[0];
+    if (preferred) {
+      const count = Math.max(1, Math.ceil(need / preferred.quantity - 1e-9));
+      return {
+        picks: options.map((option) => ({ option, count: option.sku_code === preferred.sku_code ? count : 0 })),
+        need,
+        unit,
+        totalQuantity: count * preferred.quantity,
+        totalCost: count * preferred.cost,
+        spare: (count * preferred.quantity) - need,
+        packCount: count,
+      };
+    }
+  }
 
   const smallest = Math.min(...options.map((option) => option.quantity).filter((quantity) => quantity > 0));
   const maxPacks = Math.min(40, Math.max(1, Math.ceil(need / smallest) + options.length + 4));
@@ -22219,8 +22371,12 @@ function plannerRecipeMatchesTargetMealSlots(recipe, targetMealSlots = [], categ
   const targets = (Array.isArray(targetMealSlots) ? targetMealSlots : []).map(plannerNormalizeMealSlotId).filter(Boolean);
   if (!targets.length) return true;
   const recipeSlot = plannerNormalizeMealSlotId(recipe?.meal_slot || "");
+  const recipeTargets = (Array.isArray(recipe?.target_meal_slots) ? recipe.target_meal_slots : [])
+    .map(plannerNormalizeMealSlotId)
+    .filter(Boolean);
   const recipeCategory = recipeMealCategory(recipe);
   const searchCategory = plannerValidMealCategory(category) || recipeCategory;
+  if (recipeTargets.some((target) => targets.includes(target))) return true;
   if (!recipeSlot) return true;
   if (recipeSlot && targets.includes(recipeSlot)) return true;
   if (recipeCategory === "breakfast" && targets.includes("breakfast")) return true;

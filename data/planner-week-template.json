@@ -1,6 +1,6 @@
 {
   "schema_version": "v4.planner_week_template.1",
-  "status_date": "2026-07-01",
+  "status_date": "2026-07-08",
   "default_template_id": "normal_low_cook",
   "draft_only": true,
   "source_notes": {
@@ -411,8 +411,8 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah WFH no-cook lunch",
-              "title": "Sarah WFH no-cook lunch",
+              "role": "Sarah super quick lunch",
+              "title": "Sarah super quick lunch",
               "people": [
                 "Sarah"
               ],
@@ -422,10 +422,9 @@
                 "no-cook"
               ],
               "target_meal_slots": [
-                "sarah_lunch_work",
-                "sarah_lunch_home",
-                "sarah_lunch"
-              ]
+                "sarah_super_quick_lunch_3_day"
+              ],
+              "meal_track": "sarah_super_quick_lunch_3_day"
             },
             {
               "slot_id": "mon-luke-lunch-2",
@@ -538,8 +537,8 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah WFH no-cook lunch",
-              "title": "Sarah WFH no-cook lunch",
+              "role": "Sarah super quick lunch",
+              "title": "Sarah super quick lunch",
               "people": [
                 "Sarah"
               ],
@@ -549,10 +548,9 @@
                 "no-cook"
               ],
               "target_meal_slots": [
-                "sarah_lunch_work",
-                "sarah_lunch_home",
-                "sarah_lunch"
-              ]
+                "sarah_super_quick_lunch_3_day"
+              ],
+              "meal_track": "sarah_super_quick_lunch_3_day"
             },
             {
               "slot_id": "tue-luke-lunch-2",
@@ -705,8 +703,8 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah WFH no-cook lunch",
-              "title": "Sarah WFH no-cook lunch",
+              "role": "Sarah super quick lunch",
+              "title": "Sarah super quick lunch",
               "people": [
                 "Sarah"
               ],
@@ -716,10 +714,9 @@
                 "no-cook"
               ],
               "target_meal_slots": [
-                "sarah_lunch_work",
-                "sarah_lunch_home",
-                "sarah_lunch"
-              ]
+                "sarah_super_quick_lunch_3_day"
+              ],
+              "meal_track": "sarah_super_quick_lunch_3_day"
             },
             {
               "slot_id": "wed-luke-lunch-2",
@@ -885,19 +882,21 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah lunch",
-              "title": "Sarah lunch",
+              "role": "Sarah quick batch lunch",
+              "title": "Sarah quick batch lunch",
               "people": [
                 "Sarah"
               ],
               "required": true,
               "chips": [
-                "home"
+                "home",
+                "quick",
+                "batch"
               ],
               "target_meal_slots": [
-                "sarah_lunch_home",
-                "sarah_lunch"
-              ]
+                "sarah_quick_lunch_2_day"
+              ],
+              "meal_track": "sarah_quick_lunch_2_day"
             },
             {
               "slot_id": "thu-luke-lunch-2",
@@ -1008,19 +1007,21 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah lunch",
-              "title": "Sarah lunch",
+              "role": "Sarah quick batch lunch",
+              "title": "Sarah quick batch lunch",
               "people": [
                 "Sarah"
               ],
               "required": true,
               "chips": [
-                "home"
+                "home",
+                "quick",
+                "batch"
               ],
               "target_meal_slots": [
-                "sarah_lunch_home",
-                "sarah_lunch"
-              ]
+                "sarah_quick_lunch_2_day"
+              ],
+              "meal_track": "sarah_quick_lunch_2_day"
             },
             {
               "slot_id": "fri-luke-lunch-2",
@@ -1151,8 +1152,8 @@
               "time": "12:30",
               "duration_minutes": 30,
               "slot_type": "meal",
-              "role": "Sarah and Louis shared lunch",
-              "title": "Sarah and Louis shared lunch",
+              "role": "Sarah and Louis easy lunch",
+              "title": "Sarah and Louis easy lunch",
               "people": [
                 "Sarah",
                 "Louis"
@@ -1160,12 +1161,13 @@
               "required": true,
               "chips": [
                 "shared",
-                "home"
+                "home",
+                "quick"
               ],
               "target_meal_slots": [
-                "sarah_louis_saturday_lunch",
-                "sarah_lunch"
-              ]
+                "sarah_louis_easy_lunch"
+              ],
+              "meal_track": "sarah_louis_easy_lunch"
             },
             {
               "slot_id": "sat-luke-lunch-2",
@@ -1513,5 +1515,6 @@
     "path": "V4/app/data/planner-filter-registry.json",
     "schema_version": "v4.planner_filter_registry.1",
     "last_synced_at_uk": "2026-07-01T10:11:12+01:00"
-  }
+  },
+  "updated_by_shopping_sarah_sku_repair_at_uk": "2026-07-08T23:06:05+01:00"
 }

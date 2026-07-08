@@ -758,7 +758,8 @@
       "source_notes": "Household stock rule confirmed by Luke on 2026-07-06. Eggs are household fridge stock; 6-pack is the low-waste option and 15-pack remains available for larger restocks.",
       "shelf_life_days": 21,
       "awkward_pack_exempt": true,
-      "stock_rule_note": "UK household eggs are weekly ambient stock, not urgent fridge use-up."
+      "stock_rule_note": "UK eggs are ambient weekly stock; prefer normal 15-egg top-up packs over tiny perfect-fit packs.",
+      "stock_pack_multiple_quantity": 15
     },
     {
       "family_id": "GARLIC1",
@@ -2225,7 +2226,7 @@
         }
       ],
       "storage_class": "fresh",
-      "leftover_policy": "carry_forward_or_component_split",
+      "leftover_policy": "base_veg_carryover",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -2234,7 +2235,10 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "medium"
+      "risk_priority": "medium",
+      "base_veg": true,
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Baby potatoes are common base veg; carry normal leftovers instead of treating them as failed pack-fit."
     },
     {
       "family_id": "ING-V1-BABY-SPINACH",
@@ -4955,7 +4959,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "pantry_tin_drained_leftover",
+      "leftover_policy": "tin_drained_half_or_full",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -4969,7 +4973,21 @@
       "pack_gross_quantity": 400,
       "pack_edible_quantity": 240,
       "awkward_pack_exempt": true,
-      "stock_rule_note": "Recipe demand is drained chickpea weight; the 400g tin is not 400g edible drained chickpeas."
+      "stock_rule_note": "Recipe demand is drained chickpea weight; a 400g tin is about 240g drained.",
+      "pack_clean_policy": {
+        "mode": "half_or_full_drained_tin",
+        "preferred_consumption_targets": [
+          120,
+          240,
+          480
+        ],
+        "clean_leftover_amounts": [
+          0,
+          120
+        ],
+        "minimum_use_if_purchased": 120,
+        "reason_label": "Chickpeas should use half or one drained tin."
+      }
     },
     {
       "family_id": "ING-V1-CHILLI-FLAKES",
@@ -6703,8 +6721,8 @@
       "category": "Frozen",
       "primary_shop": "Aldi",
       "unit": "g",
-      "freshness": "pantry",
-      "optimizer_policy": "standard_low_cost_then_waste",
+      "freshness": "frozen",
+      "optimizer_policy": "stock_item_then_cost",
       "options": [
         {
           "sku_code": "aldi-four-seasons-sweetcorn-1kg",
@@ -6755,7 +6773,7 @@
         }
       ],
       "storage_class": "freezer",
-      "leftover_policy": "carry_forward_or_component_split",
+      "leftover_policy": "freezer_stock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -6764,7 +6782,9 @@
       },
       "pack_fit_policy": "exempt_freezer_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Default sweetcorn family for planner recipes; freezer stock can be topped up without urgent use-up pressure."
     },
     {
       "family_id": "ING-V1-FROZEN-WHITE-FISH-FILLETS",
@@ -6990,7 +7010,11 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "default_blocked": true,
+      "backup_only": true,
+      "replacement_family_id": "ING-V1-HIGH-PROTEIN-GREEK-STYLE-YOGHURT",
+      "stock_rule_note": "Full-fat Greek yogurt is backup only; normal planning consolidates on high-protein Greek-style yogurt."
     },
     {
       "family_id": "ING-V1-GARAM-MASALA",
@@ -7740,7 +7764,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "carry_forward_or_component_split",
+      "leftover_policy": "pantry_micro",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -7749,7 +7773,9 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Ground almonds are pantry stock, not a same-week use-up target."
     },
     {
       "family_id": "ING-V1-GROUND-CINNAMON",
@@ -8387,7 +8413,7 @@
       "category": "Dairy",
       "primary_shop": "Aldi",
       "unit": "g",
-      "freshness": "fresh",
+      "freshness": "chilled_stock",
       "optimizer_policy": "fresh_low_waste_then_cost",
       "options": [
         {
@@ -8457,17 +8483,19 @@
           "source_note": "batch-082-final-six-source-label-signoff: signed off with complete nutrition; Aldi page proves the 500g Brooklea high-protein Greek style yogurt range and states Natural or Vanilla flavour. Luke confirmed on 2026-07-06 that the plain/natural tub is regularly stocked in Aldi even when hard to find as a separate web page. Stored Open Food Facts front and nutrition photos prove the Natural variant and directly show energy, fat, saturates, sugars, salt and 55g protein per pot. Total carbohydrate is completed from exact natural yogurt Nutracheck/MyNetDiary entries, so this remains signed off but not marked as a complete packet-label table."
         }
       ],
-      "storage_class": "short_fresh",
-      "leftover_policy": "chilled_carryover",
+      "storage_class": "chilled_stock",
+      "leftover_policy": "weekly_stock_restock",
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
         "amount": 25,
         "unit": "g"
       },
-      "pack_fit_policy": "fresh_moderate_flex",
+      "pack_fit_policy": "whole_unit_pack_fit",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Default yogurt family for planning; one 500g tub should be used regularly rather than buying several yogurt types."
     },
     {
       "family_id": "ING-V1-HIMALAYAN-SALT",
@@ -8987,7 +9015,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "chilled_carryover",
+      "leftover_policy": "full_tin_or_no_buy",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -8996,7 +9024,20 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": false,
+      "pack_clean_policy": {
+        "mode": "full_tin",
+        "preferred_consumption_targets": [
+          400
+        ],
+        "clean_leftover_amounts": [
+          0
+        ],
+        "minimum_use_if_purchased": 400,
+        "reason_label": "Coconut milk should use the full 400ml tin."
+      },
+      "stock_rule_note": "Avoid 300ml from a 400ml tin unless another dated recipe uses the rest."
     },
     {
       "family_id": "ING-V1-LIGHT-CREAM-CHEESE",
@@ -9075,7 +9116,23 @@
       },
       "pack_fit_policy": "fresh_moderate_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "pack_clean_policy": {
+        "mode": "half_or_full_tub",
+        "preferred_consumption_targets": [
+          100,
+          200,
+          300,
+          400
+        ],
+        "clean_leftover_amounts": [
+          0,
+          100
+        ],
+        "minimum_use_if_purchased": 100,
+        "reason_label": "Soft cheese should land on 100g or 200g blocks."
+      },
+      "stock_rule_note": "Avoid 75g soft-cheese buys from a 200g tub unless another recipe uses the rest."
     },
     {
       "family_id": "ING-V1-LIGHTER-CREME-FRAICHE",
@@ -10627,7 +10684,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "assign_opened_pack_leftover",
+      "leftover_policy": "tin_drained_half_or_full",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -10636,7 +10693,25 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "pack_basis": "drained_weight",
+      "pack_gross_quantity": 400,
+      "pack_edible_quantity": 240,
+      "awkward_pack_exempt": true,
+      "pack_clean_policy": {
+        "mode": "half_or_full_drained_tin",
+        "preferred_consumption_targets": [
+          120,
+          240,
+          480
+        ],
+        "clean_leftover_amounts": [
+          0,
+          120
+        ],
+        "minimum_use_if_purchased": 120,
+        "reason_label": "Kidney beans should use half or one drained tin."
+      }
     },
     {
       "family_id": "ING-V1-RED-LENTILS",
@@ -11013,7 +11088,7 @@
       "category": "Pantry",
       "primary_shop": "Aldi",
       "unit": "g",
-      "freshness": "pantry",
+      "freshness": "fridge_sauce_stock",
       "optimizer_policy": "standard_low_cost_then_waste",
       "options": [
         {
@@ -11067,8 +11142,8 @@
           "live_blocker_cleared_reason": "Cleared stale live blocker after signed-off row was rechecked against the V4 recipe-usable minimum: source, pack, price, and kcal/protein/fat/carbs are present. Old blocker text is preserved in previous_v4_signoff_blocker_before_20260706_live_blocker_cleanup."
         }
       ],
-      "storage_class": "pantry",
-      "leftover_policy": "carry_forward_or_component_split",
+      "storage_class": "fridge_stock",
+      "leftover_policy": "opened_fridge_sauce_stock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -11077,7 +11152,10 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "awkward_pack_exempt": true,
+      "opened_shelf_life_days": 21,
+      "stock_rule_note": "Salsa is a fridge sauce stock item; use regularly or check before topping up."
     },
     {
       "family_id": "ING-V1-SALTED-BUTTER",
@@ -11883,7 +11961,21 @@
       },
       "pack_fit_policy": "leafy_fresh_flex",
       "flex_policy": "moderate_fresh_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "pack_clean_policy": {
+        "mode": "leafy_minimum_use",
+        "preferred_consumption_targets": [
+          120,
+          240
+        ],
+        "clean_leftover_amounts": [
+          0,
+          40
+        ],
+        "minimum_use_if_purchased": 120,
+        "reason_label": "Sweet leaf salad should not be opened for a tiny 40-60g use."
+      },
+      "stock_rule_note": "Use one leaf type with a dated follow-up, or avoid opening the bag."
     },
     {
       "family_id": "ING-V1-SWEET-POTATOES",
@@ -12097,7 +12189,11 @@
       },
       "pack_fit_policy": "exempt_pantry_carryover",
       "flex_policy": "not_flexible_carryover",
-      "risk_priority": "low"
+      "risk_priority": "low",
+      "default_blocked": true,
+      "backup_only": true,
+      "replacement_family_id": "ING-V1-FROZEN-SWEETCORN",
+      "stock_rule_note": "Use frozen sweetcorn for normal recipes so odd tin remainders do not drive waste."
     },
     {
       "family_id": "ING-V1-TOMATO-KETCHUP",
@@ -12701,7 +12797,7 @@
         }
       ],
       "storage_class": "pantry",
-      "leftover_policy": "use_whole_edible_units",
+      "leftover_policy": "long_life_weekly_restock",
       "after_open_days": "",
       "allow_half_pack_use": false,
       "portion_interval": {
@@ -12719,7 +12815,9 @@
           "rounding": "ceil",
           "note": "V4 white pitta rows store grams; this Aldi pack is 6 x 60g pittas."
         }
-      ]
+      ],
+      "awkward_pack_exempt": true,
+      "stock_rule_note": "Pittas keep better than salad leaves; carry or freeze rather than treating a part pack as immediate waste."
     },
     {
       "family_id": "ING-V1-WHITE-WINE-VINEGAR",
@@ -13856,8 +13954,8 @@
     },
     {
       "family_id": "SOURDOUGH1",
-      "display_name": "White sourdough sliced loaf",
-      "shopping_name": "Specially Selected White Sourdough Sliced Loaf",
+      "display_name": "White sliced tin loaf",
+      "shopping_name": "White sliced tin loaf",
       "category": "Bakery",
       "primary_shop": "Aldi",
       "unit": "slice",
@@ -13935,7 +14033,7 @@
       "standard_slice_weight_g": 40,
       "wide_slice_backup_only": true,
       "awkward_pack_exempt": true,
-      "stock_rule_note": "Sourdough is long-life bread stock for planning; slice weight is explicit to avoid wide/narrow drift."
+      "stock_rule_note": "Use a normal tin-loaf slice assumption in planning; old wide-slice sourdough weights are no longer the default."
     },
     {
       "family_id": "TORCHONHAM1",
@@ -14486,7 +14584,11 @@
       "flex_policy": "whole_unit_only",
       "risk_priority": "high",
       "notes": "500g current Aldi pot is the low-waste option for small demand; 1kg pot remains best for 1000g demand.",
-      "source_notes": "Aldi 500g product page added on 2026-07-06 after family was found to contain only the 1kg option."
+      "source_notes": "Aldi 500g product page added on 2026-07-06 after family was found to contain only the 1kg option.",
+      "default_blocked": true,
+      "backup_only": true,
+      "replacement_family_id": "ING-V1-HIGH-PROTEIN-GREEK-STYLE-YOGHURT",
+      "stock_rule_note": "Fat-free Greek yogurt is backup only; normal planning consolidates on high-protein Greek-style yogurt."
     },
     {
       "family_id": "ING-V1-PULSES-IN-WATER",
@@ -15454,6 +15556,7 @@
   "last_homemade_fajita_seasoning_repair_at_uk": "2026-07-06T18:06:08+01:00",
   "meta": {
     "sku_recipe_pack_shape_repair_at_uk": "2026-07-08T21:04:12+01:00",
-    "sku_recipe_pack_shape_repair_change_count": 17
+    "sku_recipe_pack_shape_repair_change_count": 17,
+    "shopping_sarah_sku_repair_at_uk": "2026-07-08T23:06:05+01:00"
   }
 }
