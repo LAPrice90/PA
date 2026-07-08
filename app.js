@@ -27,6 +27,7 @@ const PACK_FIT_ADJUSTABLE_STORAGE_CLASSES = new Set(["fresh", "short_fresh"]);
 const PACK_FIT_ROUNDABLE_UNITS = new Set(["g", "gram", "grams", "ml", "millilitre", "millilitres"]);
 const PACK_FIT_MIN_ROUND_FLEX_INTERVAL = 25;
 const PACK_FIT_SMALL_FRESH_AMOUNT_LIMITS = { g: 25, ml: 25 };
+const PACK_FIT_SMALL_REMAINDER_CLEAN_STEP = 5;
 const PACK_FIT_ADJUSTMENT_GUARDRAILS = {
   perishable_pack_boundary: "Fresh and short-fresh rows may flex to fit an already chosen pack, but an upward adjustment must not open another pack.",
   round_amount_policy: "For g/ml perishables, final adjusted recipe amounts prefer clean 25g/25ml style steps unless the saved line interval is larger.",
@@ -5017,6 +5018,52 @@ function appPackFitCanRoundToNoPurchase(family, minTotal, demand, unit) {
     && appPackFitNumber(demand) <= threshold + 1e-9;
 }
 
+function appPackFitIsMultiple(value, interval) {
+  const cleanInterval = appPackFitNumber(interval);
+  if (cleanInterval <= 0) return true;
+  return Math.abs(appPackFitNumber(value) - Math.round(appPackFitNumber(value) / cleanInterval) * cleanInterval) <= 0.02;
+}
+
+function appPackFitCanUseSmallRemainderCleanup(row, limit, direction) {
+  if (!appPackFitRoundablePerishableRow(row)) return false;
+  const threshold = appPackFitSmallFreshAmountLimit(row?.unit || "");
+  if (threshold <= 0 || appPackFitNumber(limit) > threshold + 1e-9) return false;
+  const current = appPackFitNumber(row?.amount_before);
+  const after = current + (appPackFitNumber(limit) * direction);
+  if (after < appPackFitNumber(row?.flex_min_amount) - 1e-9) return false;
+  if (after > appPackFitNumber(row?.flex_max_amount) + 1e-9) return false;
+  return appPackFitIsMultiple(after, PACK_FIT_SMALL_REMAINDER_CLEAN_STEP);
+}
+
+function appPackFitAdjustmentRoundingStatus(row, familyDelta) {
+  if (!appPackFitRoundablePerishableRow(row)) {
+    return {
+      rounding_interval: appPackFitRoundNumber(row?.flex_interval),
+      rounding_status: "not_required",
+    };
+  }
+  const interval = appPackFitNumber(row?.flex_interval);
+  const after = appPackFitNumber(row?.amount_before) + appPackFitNumber(familyDelta);
+  if (interval > 0 && appPackFitIsMultiple(after, interval)) {
+    return {
+      rounding_interval: appPackFitRoundNumber(interval),
+      rounding_status: "rounded_final_amount",
+    };
+  }
+  if (
+    appPackFitCanUseSmallRemainderCleanup(row, Math.abs(appPackFitNumber(familyDelta)), appPackFitNumber(familyDelta) >= 0 ? 1 : -1)
+  ) {
+    return {
+      rounding_interval: PACK_FIT_SMALL_REMAINDER_CLEAN_STEP,
+      rounding_status: "small_remainder_cleanup",
+    };
+  }
+  return {
+    rounding_interval: appPackFitRoundNumber(interval),
+    rounding_status: "rounded_final_amount",
+  };
+}
+
 function appPackFitGroupDemandRows(rows) {
   const groups = {};
   (rows || []).forEach((row) => {
@@ -5204,6 +5251,7 @@ function appPackFitDistributeDelta(rows, delta) {
     if (take <= 0) return;
     const familyDelta = appPackFitRoundNumber(take * direction);
     const lineDelta = appPackFitConvertFamilyDeltaToLineUnit(familyDelta, row);
+    const roundingInfo = appPackFitAdjustmentRoundingStatus(row, familyDelta);
     output.push({
       slot_id: row.slot_id,
       source_slot_id: row.source_slot_id || "",
@@ -5223,9 +5271,9 @@ function appPackFitDistributeDelta(rows, delta) {
       line_amount_after: appPackFitRoundNumber(appPackFitNumber(row.line_amount_before) + lineDelta),
       line_amount_delta: appPackFitRoundNumber(lineDelta),
       line_unit: row.line_unit,
-      rounding_interval: appPackFitRoundNumber(row.flex_interval),
+      rounding_interval: roundingInfo.rounding_interval,
       source_flex_interval: appPackFitRoundNumber(row.source_flex_interval),
-      rounding_status: appPackFitRoundablePerishableRow(row) ? "rounded_final_amount" : "not_required",
+      rounding_status: roundingInfo.rounding_status,
       reason: row.flex_reason || "pack_fit",
     });
     remaining -= take;
@@ -5242,11 +5290,11 @@ function appPackFitCleanDeltaForRow(row, limit, direction) {
   const limitAfter = current + (limit * direction);
   if (direction > 0) {
     const roundedAfter = Math.floor((limitAfter + 1e-9) / interval) * interval;
-    if (roundedAfter <= current + 1e-9) return 0;
+    if (roundedAfter <= current + 1e-9) return appPackFitCanUseSmallRemainderCleanup(row, limit, direction) ? limit : 0;
     return Math.min(limit, roundedAfter - current);
   }
   const roundedAfter = Math.ceil((limitAfter - 1e-9) / interval) * interval;
-  if (roundedAfter >= current - 1e-9) return 0;
+  if (roundedAfter >= current - 1e-9) return appPackFitCanUseSmallRemainderCleanup(row, limit, direction) ? limit : 0;
   return Math.min(limit, current - roundedAfter);
 }
 
