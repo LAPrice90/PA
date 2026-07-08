@@ -5017,15 +5017,6 @@ function appPackFitCanRoundToNoPurchase(family, minTotal, demand, unit) {
     && appPackFitNumber(demand) <= threshold + 1e-9;
 }
 
-function appPackFitActionableFreshLeftover(leftover) {
-  const amount = appPackFitNumber(leftover?.leftover_amount);
-  if (amount <= 0) return false;
-  const storage = String(leftover?.storage_class || "").trim().toLowerCase();
-  if (!PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(storage)) return false;
-  const threshold = appPackFitSmallFreshAmountLimit(leftover?.unit || "");
-  return threshold <= 0 || amount >= threshold - 1e-9;
-}
-
 function appPackFitGroupDemandRows(rows) {
   const groups = {};
   (rows || []).forEach((row) => {
@@ -5309,7 +5300,7 @@ function appPackFitLeftoverForGroup(group, before, after, leftover) {
 }
 
 function appPackFitShouldCreateUseUp(leftover) {
-  return appPackFitActionableFreshLeftover(leftover);
+  return appPackFitNumber(leftover?.leftover_amount) > 0 && PACK_FIT_ADJUSTABLE_STORAGE_CLASSES.has(String(leftover?.storage_class || "").trim().toLowerCase());
 }
 
 function appPackFitUseUpEntryFromLeftover(weekId, leftover, week = {}) {
