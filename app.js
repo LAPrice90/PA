@@ -12904,7 +12904,14 @@ function plannerCalendarOutsideWeekBlocks(day) {
 }
 
 function plannerCalendarOutsideWeekWindows(day) {
-  if (!day || day.trailing_shopping_horizon) return [];
+  if (!day) return [];
+  if (day.trailing_shopping_horizon) {
+    return [{
+      start: "10:00",
+      end: "24:00",
+      label: "Next week",
+    }];
+  }
   if (String(day.day || "").toLowerCase() !== "sunday") return [];
   return [{
     start: "00:00",
