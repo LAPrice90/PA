@@ -151,6 +151,8 @@ const state = {
   plannerGapPacketFallbackOpen: false,
   plannerLowWasteNotice: "",
   plannerBuildProgress: null,
+  plannerRouteBuildSeed: "",
+  plannerRouteSeedOverride: "",
   collectionFilters: {
     mealCategories: [],
     people: [],
@@ -10607,6 +10609,8 @@ function plannerUseUpCheckButton() {
 
 function plannerCreateWeekButtonLabel() {
   if (plannerBuildInProgress()) return "Creating week";
+  const optionsState = plannerOptionsState();
+  if (optionsState.has_current_cache && !optionsState.stale && plannerCanEditActiveWeek()) return "Generate again";
   return plannerWeekTemporalState() === "active" ? "Plan remaining week" : "Create week";
 }
 
@@ -10764,11 +10768,16 @@ function plannerWeekScoreInsightCard(cache = normalizePlannerOptionsCache(state.
   const reasons = score.reasons.length ? score.reasons : ["Valid week scored against low waste, fatigue, budget and cook time."];
   const alternativeLines = alternatives.slice(0, 3).map((item) => `${item.label || "Alternative route"}: ${number(item.score)}/100`);
   const shoppingSummary = plannerWeekShoppingSummaryForStatus();
+  const routeSelection = plannerNormalizeRouteSelection(cache.route_selection || cache);
+  const variantLine = routeSelection.eligible_variant_count > 1
+    ? `Variant ${number(routeSelection.selected_variant_rank || 1)} of ${number(routeSelection.eligible_variant_count)} high-scoring routes.`
+    : "";
   const scoreDetails = [
     "Bars are strength scores. Visible values are real-world amounts.",
     "Spend and kitchen time compare against normal recipe bands, not one-off outliers.",
     "Price coverage is data confidence, not the budget score.",
     "Carry-forward food is counted as waste only when it is still left and expected to expire this week.",
+    variantLine,
     ...reasons,
     ...alternativeLines.map((line) => `Alternative - ${line}`),
   ];
@@ -15883,9 +15892,11 @@ function plannerOptionsPolicy() {
     max_stored_day_options: 300,
     max_raw_valid_options: 5000,
     max_raw_combinations_per_day: 50000,
+    day_option_spread_sample_count: 0,
     max_candidate_options_per_slot: 60,
-    max_weekly_sequence_options_per_day: 120,
+    max_weekly_sequence_options_per_day: 160,
     max_weekly_sequence_search_ms: 900,
+    max_weekly_state_variants: 4,
     max_weekly_breakfast_repeats: 2,
     max_weekly_lunch_repeats: 2,
     max_weekly_dinner_repeats: 1,
@@ -15893,6 +15904,17 @@ function plannerOptionsPolicy() {
     week_score_policy: {
       history_window_weeks: 4,
       max_alternatives: 5,
+      route_leaderboard_max_routes: 120,
+      route_sample_count: 0,
+      route_sample_max_ms: 0,
+      route_sample_option_tries: 28,
+      random_max_current_similarity: 0.8,
+      selection_mode: "high_quality_random",
+      random_top_percent: 10,
+      random_min_candidates: 10,
+      random_max_candidates: 25,
+      avoid_current_route_on_regenerate: true,
+      seed_override: "",
       meal_fatigue_weights: {
         dinner: 1,
         lunch: 0.35,
@@ -15938,6 +15960,7 @@ function normalizePlannerOptionsCache(cache) {
       day_options: {},
       shopping_horizon: plannerEmptyShoppingHorizon(""),
       week_efficiency: plannerEmptyWeekEfficiencySummary(),
+      route_selection: plannerNormalizeRouteSelection({}),
       warnings: [],
     };
   }
@@ -15962,6 +15985,14 @@ function normalizePlannerOptionsCache(cache) {
     week_efficiency: normalizePlannerWeekEfficiencySummary(cache.week_efficiency),
     week_score: normalizePlannerWeekScore(cache.week_score),
     week_score_alternatives: normalizePlannerWeekScoreAlternatives(cache.week_score_alternatives),
+    route_selection: plannerNormalizeRouteSelection(cache.route_selection || cache),
+    route_selection_mode: String(cache.route_selection_mode || cache.route_selection?.route_selection_mode || ""),
+    route_seed: String(cache.route_seed || cache.route_selection?.route_seed || ""),
+    selected_route_key: String(cache.selected_route_key || cache.route_selection?.selected_route_key || ""),
+    eligible_variant_count: Math.max(0, Number(cache.eligible_variant_count || cache.route_selection?.eligible_variant_count || 0)),
+    selected_variant_rank: Math.max(0, Number(cache.selected_variant_rank || cache.route_selection?.selected_variant_rank || 0)),
+    best_route_score: Math.round(Number(cache.best_route_score || cache.route_selection?.best_route_score || 0)),
+    selected_route_score: Math.round(Number(cache.selected_route_score || cache.route_selection?.selected_route_score || 0)),
     day_options: cache.day_options && typeof cache.day_options === "object" ? cache.day_options : {},
     shopping_horizon: normalizePlannerShoppingHorizon(cache.shopping_horizon),
     low_waste_build: cache.low_waste_build && typeof cache.low_waste_build === "object" ? cache.low_waste_build : null,
@@ -16138,6 +16169,7 @@ function plannerRequiredRecipeSlotMetricsFromDayOptions(dayOptions = {}, templat
     const result = dayOptions?.[day.day] || {};
     const selectedOptionId = hasSelectedMap ? selectedByDay[day.day] : result.selected_option_id;
     const option = (result.options || []).find((item) => item.option_id === selectedOptionId) || null;
+    if (hasSelectedMap && plannerDayResultSkipsRouteRequiredSlots(result)) return;
     (planningDay.slots || []).forEach((slot) => {
       const slotState = plannerSlotState(slot);
       const slotRecord = {
@@ -16163,6 +16195,11 @@ function plannerRequiredRecipeSlotMetricsFromDayOptions(dayOptions = {}, templat
     missing_required_recipe_slot_count: Math.max(0, requiredCount - selectedCount),
     missing_required_recipe_day_count: missingDays.size,
   };
+}
+
+function plannerDayResultSkipsRouteRequiredSlots(result = {}) {
+  if ((result.options || []).length) return false;
+  return ["reserved_external", "no_recipe_slots", "frozen_past"].includes(String(result.status || ""));
 }
 
 function plannerRecipeCostForPeople(recipe, people = []) {
@@ -16466,12 +16503,45 @@ function normalizePlannerWeekScoreAlternatives(alternatives) {
     .slice(0, Math.max(1, Number(plannerWeekScorePolicy().max_alternatives || 5)));
 }
 
+function plannerNormalizeRouteSelection(selection = {}) {
+  return {
+    route_selection_mode: String(selection?.route_selection_mode || ""),
+    route_seed: String(selection?.route_seed || ""),
+    selected_route_key: String(selection?.selected_route_key || ""),
+    selected_meaningful_signature: String(selection?.selected_meaningful_signature || ""),
+    eligible_variant_count: Math.max(0, Number(selection?.eligible_variant_count || 0)),
+    selected_variant_rank: Math.max(0, Number(selection?.selected_variant_rank || 0)),
+    best_route_score: Math.round(Number(selection?.best_route_score || 0)),
+    selected_route_score: Math.round(Number(selection?.selected_route_score || 0)),
+    random_candidate_count: Math.max(0, Number(selection?.random_candidate_count || 0)),
+    meaningful_variant_count: Math.max(0, Number(selection?.meaningful_variant_count || 0)),
+    leaderboard_route_count: Math.max(0, Number(selection?.leaderboard_route_count || 0)),
+    ineligible_route_count: Math.max(0, Number(selection?.ineligible_route_count || 0)),
+    selected_route_selected_recipe_slot_count: Math.max(0, Number(selection?.selected_route_selected_recipe_slot_count || 0)),
+    selected_route_missing_required_recipe_slot_count: Math.max(0, Number(selection?.selected_route_missing_required_recipe_slot_count || 0)),
+    selected_route_gap_days: Math.max(0, Number(selection?.selected_route_gap_days || 0)),
+    selected_route_dinner_fatigue_hard_count: Math.max(0, Number(selection?.selected_route_dinner_fatigue_hard_count || 0)),
+    ineligible_reason_counts: selection?.ineligible_reason_counts && typeof selection.ineligible_reason_counts === "object"
+      ? Object.fromEntries(Object.entries(selection.ineligible_reason_counts).map(([key, value]) => [key, Math.max(0, Number(value || 0))]))
+      : {},
+  };
+}
+
 function normalizePlannerReviewDraft(draft) {
   if (!draft || typeof draft !== "object") {
     return {
       schema_version: "v4.planner_review_draft.1",
       draft_only: true,
       selected_option_by_day: {},
+      route_selection_mode: "",
+      route_seed: "",
+      selected_route_key: "",
+      selected_meaningful_signature: "",
+      route_generation_history: [],
+      eligible_variant_count: 0,
+      selected_variant_rank: 0,
+      best_route_score: 0,
+      selected_route_score: 0,
       locked_slots: {},
       blocked_recipes_by_slot: {},
       blocked_recipe_ids: [],
@@ -16482,11 +16552,34 @@ function normalizePlannerReviewDraft(draft) {
     schema_version: "v4.planner_review_draft.1",
     draft_only: true,
     selected_option_by_day: draft.selected_option_by_day && typeof draft.selected_option_by_day === "object" ? draft.selected_option_by_day : {},
+    route_selection_mode: String(draft.route_selection_mode || ""),
+    route_seed: String(draft.route_seed || ""),
+    selected_route_key: String(draft.selected_route_key || ""),
+    selected_meaningful_signature: String(draft.selected_meaningful_signature || ""),
+    route_generation_history: plannerNormalizeRouteGenerationHistory(draft.route_generation_history),
+    eligible_variant_count: Math.max(0, Number(draft.eligible_variant_count || 0)),
+    selected_variant_rank: Math.max(0, Number(draft.selected_variant_rank || 0)),
+    best_route_score: Math.round(Number(draft.best_route_score || 0)),
+    selected_route_score: Math.round(Number(draft.selected_route_score || 0)),
     locked_slots: draft.locked_slots && typeof draft.locked_slots === "object" ? draft.locked_slots : {},
     blocked_recipes_by_slot: draft.blocked_recipes_by_slot && typeof draft.blocked_recipes_by_slot === "object" ? draft.blocked_recipes_by_slot : {},
     blocked_recipe_ids: Array.isArray(draft.blocked_recipe_ids) ? draft.blocked_recipe_ids : [],
     updated_at: draft.updated_at || "",
   };
+}
+
+function plannerNormalizeRouteGenerationHistory(history = []) {
+  return (Array.isArray(history) ? history : [])
+    .map((item) => {
+      if (typeof item === "string") return { route_key: item, meaningful_signature: "", selected_at: "" };
+      return {
+        route_key: String(item?.route_key || item?.selected_route_key || item?.key || ""),
+        meaningful_signature: String(item?.meaningful_signature || item?.selected_meaningful_signature || item?.signature || ""),
+        selected_at: String(item?.selected_at || item?.created_at || ""),
+      };
+    })
+    .filter((item) => item.route_key || item.meaningful_signature)
+    .slice(-80);
 }
 
 function normalizePlannerRecipeUsageDraft(draft) {
@@ -16813,8 +16906,10 @@ function recordPlannerWeekHistory(status = "draft") {
   const cache = normalizePlannerOptionsCache(state.plannerOptionsCache);
   state.plannerWeekHistory = normalizePlannerWeekHistory(state.plannerWeekHistory);
   const existing = state.plannerWeekHistory.weeks[weekStart] || {};
+  const detailedRecord = plannerBuildLockedWeekRecord({ cache });
   state.plannerWeekHistory.weeks[weekStart] = {
     ...existing,
+    ...detailedRecord,
     week_start: weekStart,
     week_end: plannerDateKey(plannerAddDays(plannerDateFromKey(weekStart), 6)),
     status,
@@ -16822,9 +16917,8 @@ function recordPlannerWeekHistory(status = "draft") {
     fingerprint: cache.fingerprint || existing.fingerprint || "",
     updated_at: new Date().toISOString(),
     built_at: cache.built_at || "",
-    locked_at: ["reviewed", "partial", "gap"].includes(status) ? existing.locked_at || "" : "",
+    locked_at: existing.locked_at || "",
     total_stored_options: Number(cache.total_stored_options || 0),
-    selected_recipe_ids: selectedPlannerRecipeIdsForHistory(),
   };
   state.plannerWeekHistory.updated_at = new Date().toISOString();
   saveLocalJson(PLANNER_WEEK_HISTORY_KEY, state.plannerWeekHistory);
@@ -17027,6 +17121,7 @@ function invalidatePlannerOptionsCache() {
 
 function buildPlannerOptions() {
   if (!plannerCanEditActiveWeek()) return;
+  state.plannerRouteBuildSeed = plannerGenerateRouteSeed();
   state.plannerDraft = normalizePlannerDraft(state.plannerDraft, currentPlannerTemplate());
   state.plannerReviewDraft = normalizePlannerReviewDraft(state.plannerReviewDraft);
   state.plannerRecipeUsageDraft = normalizePlannerRecipeUsageDraft(state.plannerRecipeUsageDraft);
@@ -17041,6 +17136,7 @@ function plannerApplyBuiltOptionsCache(cache, historyStatus = "built", packFitRe
   for (const [dayName, dayResult] of Object.entries(state.plannerOptionsCache.day_options || {})) {
     if (dayResult.selected_option_id) state.plannerReviewDraft.selected_option_by_day[dayName] = dayResult.selected_option_id;
   }
+  plannerApplyRouteSelectionToReviewDraft(state.plannerOptionsCache.route_selection);
   state.plannerReviewDraft.updated_at = new Date().toISOString();
   savePlannerOptionsCacheStore();
   savePlannerReviewDraftStore();
@@ -17049,10 +17145,38 @@ function plannerApplyBuiltOptionsCache(cache, historyStatus = "built", packFitRe
   refreshPlannerWeekPackFitReceipt(plannerActiveWeekStartKey(), packFitReason);
 }
 
+function plannerApplyRouteSelectionToReviewDraft(selection = {}) {
+  state.plannerReviewDraft = normalizePlannerReviewDraft(state.plannerReviewDraft);
+  state.plannerReviewDraft.route_selection_mode = String(selection?.route_selection_mode || "");
+  state.plannerReviewDraft.route_seed = String(selection?.route_seed || "");
+  state.plannerReviewDraft.selected_route_key = String(selection?.selected_route_key || "");
+  state.plannerReviewDraft.selected_meaningful_signature = String(selection?.selected_meaningful_signature || "");
+  state.plannerReviewDraft.eligible_variant_count = Math.max(0, Number(selection?.eligible_variant_count || 0));
+  state.plannerReviewDraft.selected_variant_rank = Math.max(0, Number(selection?.selected_variant_rank || 0));
+  state.plannerReviewDraft.best_route_score = Math.round(Number(selection?.best_route_score || 0));
+  state.plannerReviewDraft.selected_route_score = Math.round(Number(selection?.selected_route_score || 0));
+  state.plannerReviewDraft.route_generation_history = plannerRouteGenerationHistoryWithSelection(state.plannerReviewDraft.route_generation_history, selection);
+}
+
+function plannerRouteGenerationHistoryWithSelection(history = [], selection = {}) {
+  const normalized = plannerNormalizeRouteGenerationHistory(history);
+  const routeKey = String(selection?.selected_route_key || "");
+  const signature = String(selection?.selected_meaningful_signature || "");
+  if (!routeKey && !signature) return normalized;
+  const next = normalized.filter((item) => item.route_key !== routeKey && item.meaningful_signature !== signature);
+  next.push({
+    route_key: routeKey,
+    meaningful_signature: signature,
+    selected_at: new Date().toISOString(),
+  });
+  return next.slice(-80);
+}
+
 async function buildPlannerLowWasteWeek() {
   if (!plannerCanEditActiveWeek()) return;
   if (plannerBuildInProgress()) return;
   const totalSteps = 23;
+  state.plannerRouteBuildSeed = plannerGenerateRouteSeed();
   plannerShowImmediateBuildProgress(totalSteps);
   await plannerWaitForPaint();
   try {
@@ -17324,6 +17448,7 @@ async function calculatePlannerWeekOptionsWithProgress({ phaseLabel = "Build", p
   const weekEfficiency = plannerWeekEfficiencySummary(dayOptions, template);
   const weekScore = plannerWeekScoreSummaryForSelectedOptions(plannerWeekSelectedOptions(dayOptions), { metrics: weekEfficiency });
   const weekScoreAlternatives = plannerWeekScoreAlternativesFromSequence(weeklySequenceResult.sequence_result, weekScore);
+  const routeSelection = plannerNormalizeRouteSelection(weeklySequenceResult.sequence_result?.route_selection);
   weekEfficiency.week_score_alternative_count = weekScoreAlternatives.length;
   const shoppingHorizon = plannerBuildFollowingSundayBreakfastHorizon(plannerActiveWeekStartKey(), template, usable, policy);
   const blockedByUsable = usable.length === 0;
@@ -17349,6 +17474,14 @@ async function calculatePlannerWeekOptionsWithProgress({ phaseLabel = "Build", p
       week_efficiency: weekEfficiency,
       week_score: weekScore,
       week_score_alternatives: weekScoreAlternatives,
+      route_selection: routeSelection,
+      route_selection_mode: routeSelection.route_selection_mode,
+      route_seed: routeSelection.route_seed,
+      selected_route_key: routeSelection.selected_route_key,
+      eligible_variant_count: routeSelection.eligible_variant_count,
+      selected_variant_rank: routeSelection.selected_variant_rank,
+      best_route_score: routeSelection.best_route_score,
+      selected_route_score: routeSelection.selected_route_score,
       day_options: dayOptions,
       shopping_horizon: shoppingHorizon,
       warnings: [...new Set(warnings)],
@@ -17391,6 +17524,7 @@ function calculatePlannerWeekOptions() {
   const weekEfficiency = plannerWeekEfficiencySummary(dayOptions, template);
   const weekScore = plannerWeekScoreSummaryForSelectedOptions(plannerWeekSelectedOptions(dayOptions), { metrics: weekEfficiency });
   const weekScoreAlternatives = plannerWeekScoreAlternativesFromSequence(weeklySequenceResult.sequence_result, weekScore);
+  const routeSelection = plannerNormalizeRouteSelection(weeklySequenceResult.sequence_result?.route_selection);
   weekEfficiency.week_score_alternative_count = weekScoreAlternatives.length;
   const shoppingHorizon = plannerBuildFollowingSundayBreakfastHorizon(plannerActiveWeekStartKey(), template, usable, policy);
   const blockedByUsable = usable.length === 0;
@@ -17415,6 +17549,14 @@ function calculatePlannerWeekOptions() {
     week_efficiency: weekEfficiency,
     week_score: weekScore,
     week_score_alternatives: weekScoreAlternatives,
+    route_selection: routeSelection,
+    route_selection_mode: routeSelection.route_selection_mode,
+    route_seed: routeSelection.route_seed,
+    selected_route_key: routeSelection.selected_route_key,
+    eligible_variant_count: routeSelection.eligible_variant_count,
+    selected_variant_rank: routeSelection.selected_variant_rank,
+    best_route_score: routeSelection.best_route_score,
+    selected_route_score: routeSelection.selected_route_score,
     day_options: dayOptions,
     shopping_horizon: shoppingHorizon,
     warnings: [...new Set(warnings)],
@@ -17490,6 +17632,7 @@ function plannerFindWeeklyOptionSequence(dayOptions, template) {
   const policy = plannerOptionsPolicy();
   const maxOptionsPerDay = Math.max(1, Number(policy.max_weekly_sequence_options_per_day || 120));
   const deadline = Date.now() + Math.max(3000, Number(policy.max_weekly_sequence_search_ms || 900));
+  const maxStateVariants = Math.max(1, Number(policy.max_weekly_state_variants || 1));
   const initialStockState = plannerInitialSequentialStockState(plannerActiveWeekStartKey());
   const sequenceContext = {
     recipeById: new Map(recipes().map((recipe) => [recipeKey(recipe), recipe])),
@@ -17553,8 +17696,12 @@ function plannerFindWeeklyOptionSequence(dayOptions, template) {
       return plannerActiveBatchesResolved(activeBatches);
     }
     const key = stateKey(dayIndex, activeBatches, weeklyUseCounts, sequentialStockState, previousDinnerProfiles);
-    if (memo.has(key) && memo.get(key) <= score) return false;
-    memo.set(key, score);
+    if (maxStateVariants <= 1) {
+      if (memo.has(key) && memo.get(key) <= score) return false;
+      memo.set(key, score);
+    } else if (!plannerRememberWeeklySearchStateVariant(memo, key, score, maxStateVariants)) {
+      return false;
+    }
 
     const day = days[dayIndex];
     const result = dayOptions[day.day];
@@ -17587,11 +17734,636 @@ function plannerFindWeeklyOptionSequence(dayOptions, template) {
   }
 
   walk(0, [], {}, {}, 0, initialStockState, []);
+  const routeSampleStats = plannerSampleWeeklyRouteVariants(best, dayOptions, days, sequenceContext, initialStockState);
+  best.route_sample_stats = routeSampleStats;
+  const routeVariant = plannerSelectWeeklyRouteVariant(best, state.plannerReviewDraft?.selected_option_by_day || {}, dayOptions, days);
   return {
-    selected_option_by_day: best.selected_option_by_day,
-    metrics: best.metrics,
+    selected_option_by_day: routeVariant.selected_option_by_day,
+    metrics: routeVariant.metrics,
     leaderboard: best.leaderboard,
+    route_sample_stats: routeSampleStats,
+    route_selection: routeVariant.selection,
   };
+}
+
+function plannerRememberWeeklySearchStateVariant(memo, key, score, maxVariants) {
+  if (!(memo instanceof Map) || !key) return true;
+  const limit = Math.max(1, Number(maxVariants || 1));
+  const value = Number(score || 0);
+  const scores = Array.isArray(memo.get(key)) ? memo.get(key) : [];
+  if (scores.length < limit) {
+    scores.push(value);
+    scores.sort((a, b) => a - b);
+    memo.set(key, scores);
+    return true;
+  }
+  const worst = Number(scores[scores.length - 1] || 0);
+  if (value >= worst) return false;
+  scores[scores.length - 1] = value;
+  scores.sort((a, b) => a - b);
+  memo.set(key, scores);
+  return true;
+}
+
+function plannerSampleWeeklyRouteVariants(best, dayOptions, days, context = {}, initialStockState = null) {
+  const scorePolicy = plannerWeekScorePolicy();
+  if (scorePolicy.selection_mode !== "high_quality_random") return { attempted: 0, added: 0 };
+  const sampleCount = Math.max(0, Number(scorePolicy.route_sample_count || 0));
+  if (!sampleCount || !Array.isArray(days) || !days.length) return { attempted: 0, added: 0 };
+  const deadline = Date.now() + Math.max(0, Number(scorePolicy.route_sample_max_ms || 0));
+  const optionTries = Math.max(1, Number(scorePolicy.route_sample_option_tries || 24));
+  const rng = plannerSeededRandom(`${plannerCurrentRouteSelectionSeed()}-weekly-route-sampler`);
+  const routeSampleIndex = plannerBuildWeeklyRouteSampleIndex(dayOptions, days, context);
+  const sampledByKey = new Map();
+  let attempted = 0;
+  let added = 0;
+  let rejected = 0;
+
+  for (let sampleNumber = 0; sampleNumber < sampleCount; sampleNumber += 1) {
+    if (deadline && Date.now() > deadline) break;
+    attempted += 1;
+    const result = plannerBuildFastSampledWeeklyRoute(routeSampleIndex, rng, optionTries);
+    if (!result) {
+      rejected += 1;
+      continue;
+    }
+    const record = plannerWeeklyScoreCandidateRecord(result.metrics, result.selectedByDay);
+    if (record) {
+      const existing = sampledByKey.get(record.key);
+      if (!existing || plannerWeeklySequenceBeats(record.metrics, existing.metrics)) sampledByKey.set(record.key, record);
+    }
+    if (plannerWeeklySequenceBeats(result.metrics, best.metrics)) {
+      best.metrics = result.metrics;
+      best.selected_option_by_day = { ...result.selectedByDay };
+    }
+    added += 1;
+  }
+  plannerMergeWeeklyScoreCandidates(best.leaderboard, [...sampledByKey.values()]);
+  return { attempted, added, rejected };
+}
+
+function plannerBuildWeeklyRouteSampleIndex(dayOptions, days, context = {}) {
+  const recipeById = context.recipeById instanceof Map
+    ? context.recipeById
+    : new Map(recipes().map((recipe) => [recipeKey(recipe), recipe]));
+  const dayEntries = (days || []).map((day, dayIndex) => {
+    const options = dayOptions?.[day.day]?.options || [];
+    return {
+      day,
+      dayName: day.day,
+      dayIndex,
+      features: options.map((option) => plannerWeeklyRouteOptionFeature(option, dayIndex, recipeById, context)),
+    };
+  });
+  return {
+    dayOptions,
+    days,
+    context: {
+      ...context,
+      recipeById,
+    },
+    dayEntries,
+    remainingRecipeCapacity: plannerBuildWeeklyRouteRemainingCapacity(dayEntries),
+  };
+}
+
+function plannerWeeklyRouteOptionFeature(option, dayIndex, recipeById = null, context = {}) {
+  const useCounts = plannerOptionRecipeUseCounts(option);
+  const recipeIds = Object.keys(useCounts);
+  const recipeMeta = {};
+  recipeIds.forEach((recipeId) => {
+    const recipe = plannerRecipeById(recipeId, recipeById);
+    const blockSize = plannerRecipeBlockSize(recipe);
+    recipeMeta[recipeId] = {
+      recipe,
+      block_size: blockSize,
+      weekly_cap: plannerRecipeWeeklyUseCap(recipe),
+      tracks_batch: plannerRecipeTracksBatchContinuity(recipe, blockSize),
+    };
+  });
+  return {
+    option,
+    option_id: option?.option_id || "",
+    day_index: dayIndex,
+    recipe_slot_count: Object.values(option?.recipe_ids_by_slot || {}).filter(Boolean).length,
+    use_counts: useCounts,
+    recipe_ids: recipeIds,
+    recipe_meta: recipeMeta,
+    option_score: Number(option?.score || 0),
+    beef_dinner_count: plannerOptionExpensiveBeefMinceDinnerCount(option, recipeById),
+    dinner_profiles: plannerOptionDinnerFatigueProfiles(option, recipeById, context),
+    dinner_protein_families: plannerOptionDinnerProteinFamilies(option, recipeById),
+  };
+}
+
+function plannerBuildWeeklyRouteRemainingCapacity(dayEntries = []) {
+  const maxUseByDay = (dayEntries || []).map((entry) => {
+    const byRecipe = {};
+    (entry.features || []).forEach((feature) => {
+      Object.entries(feature.use_counts || {}).forEach(([recipeId, useCount]) => {
+        byRecipe[recipeId] = Math.max(Number(byRecipe[recipeId] || 0), Number(useCount || 0));
+      });
+    });
+    return byRecipe;
+  });
+  const recipeIds = new Set(maxUseByDay.flatMap((byRecipe) => Object.keys(byRecipe)));
+  const capacity = {};
+  recipeIds.forEach((recipeId) => {
+    capacity[recipeId] = [];
+    for (let dayIndex = 0; dayIndex < maxUseByDay.length; dayIndex += 1) {
+      let count = 0;
+      for (let index = dayIndex; index < maxUseByDay.length; index += 1) {
+        const dayUseCount = Number(maxUseByDay[index]?.[recipeId] || 0);
+        if (dayUseCount <= 0) break;
+        count += dayUseCount;
+      }
+      capacity[recipeId][dayIndex] = count;
+    }
+  });
+  return capacity;
+}
+
+function plannerFastRemainingRecipeCapacity(sampleIndex, recipeId, dayIndex) {
+  return Number(sampleIndex?.remainingRecipeCapacity?.[recipeId]?.[dayIndex] || 0);
+}
+
+function plannerBuildFastSampledWeeklyRoute(sampleIndex, rng = Math.random, optionTries = 24) {
+  if (!sampleIndex?.dayEntries?.length) return null;
+  let activeBatches = [];
+  let weeklyUseCounts = {};
+  let selectedByDay = {};
+  const selectedFeatures = [];
+  let score = 0;
+
+  for (const entry of sampleIndex.dayEntries) {
+    if (!entry?.features?.length) {
+      if (!plannerActiveBatchesResolved(activeBatches)) return null;
+      activeBatches = [];
+      continue;
+    }
+    const activeRecipeIds = plannerBlockingActiveBatches(activeBatches).map((batch) => batch.recipe_id).filter(Boolean);
+    const candidates = activeRecipeIds.length
+      ? entry.features.filter((feature) => activeRecipeIds.every((recipeId) => Number(feature.use_counts?.[recipeId] || 0) > 0))
+      : entry.features;
+    if (!candidates.length) return null;
+    const chosen = plannerChooseFastSampledWeeklyOption(candidates, sampleIndex, entry.dayIndex, activeBatches, weeklyUseCounts, rng, optionTries);
+    if (!chosen) return null;
+    const nextState = plannerAdvanceFastWeeklyRouteState(chosen, activeBatches, weeklyUseCounts, sampleIndex, entry.dayIndex);
+    activeBatches = nextState.activeBatches;
+    weeklyUseCounts = nextState.weeklyUseCounts;
+    selectedFeatures.push({ ...chosen, day_name: entry.dayName });
+    selectedByDay = { ...selectedByDay, [entry.dayName]: chosen.option_id };
+    score += Number(chosen.option_score || 0);
+  }
+  if (!plannerActiveBatchesResolved(activeBatches)) return null;
+  const metrics = plannerFastSampledWeeklySequenceMetrics({
+    selectedByDay,
+    optionScore: score,
+    activeBatches,
+    weeklyUseCounts,
+    selectedFeatures,
+  });
+  if (Number(metrics.missing_required_recipe_slot_count || 0) > 0 || Number(metrics.gap_days || 0) > 0 || Number(metrics.unfinished_batch_count || 0) > 0) return null;
+  return { selectedByDay, metrics };
+}
+
+function plannerFastSampledWeeklySequenceMetrics({ selectedByDay, optionScore, activeBatches, weeklyUseCounts, selectedFeatures = [] }) {
+  const selectedRecipeSlotCount = (selectedFeatures || []).reduce((sum, feature) => sum + Number(feature.recipe_slot_count || 0), 0);
+  const dinnerFatigueSummary = plannerFastDinnerFatigueSummary(selectedFeatures);
+  const repeatFatigueScore = plannerWeeklyRepeatFatigueScore(weeklyUseCounts);
+  const adjacentDinnerProteinRepeatScore = plannerFastAdjacentDinnerProteinRepeatScore(selectedFeatures);
+  const hardDinnerCount = Number(dinnerFatigueSummary.hard_warning_count || 0);
+  const fatiguePenalty = Math.round(Number(dinnerFatigueSummary.penalty || 0) * 10) / 10;
+  const quickScore = Math.max(1, Math.min(100, Math.round(
+    82
+    - (hardDinnerCount * 35)
+    - (fatiguePenalty * 0.35)
+    - (repeatFatigueScore * 1.5)
+    - (Number(optionScore || 0) / 350)
+  )));
+  return {
+    week_score: quickScore,
+    selected_day_count: selectedFeatures.length,
+    selected_recipe_slot_count: selectedRecipeSlotCount,
+    missing_required_recipe_slot_count: 0,
+    full_ready_days: selectedFeatures.length,
+    gap_days: 0,
+    unfinished_batch_count: plannerBlockingActiveBatches(activeBatches).length,
+    completed_batch_blocks: plannerCompletedBatchBlockCount(weeklyUseCounts),
+    adjacent_dinner_protein_repeat_score: Math.round(adjacentDinnerProteinRepeatScore * 10) / 10,
+    dinner_fatigue_penalty: fatiguePenalty,
+    dinner_fatigue_hard_count: hardDinnerCount,
+    dinner_fatigue_warning_count: Number(dinnerFatigueSummary.warning_count || 0),
+    previous_week_dinner_exact_repeat_count: 0,
+    repeat_fatigue_score: Math.round(repeatFatigueScore * 10) / 10,
+    macro_score: Math.round(Number(optionScore || 0) * 10) / 10,
+    inventory_use_up_score: 0,
+    ingredient_target_score: 0,
+    carry_forward_waste_count: 0,
+    carry_forward_waste_gbp: 0,
+    carry_forward_waste_score: 0,
+    carry_forward_obligation_count: 0,
+    carry_forward_obligation_unmet_count: 0,
+    carry_forward_silent_ignore_count: 0,
+    carry_forward_obligation_blocked_count: 0,
+    carry_forward_obligation_score: 0,
+    carry_forward_obligation_labels: [],
+    carry_forward_obligation_outcomes: [],
+    expensive_beef_mince_waste_line_count: 99,
+    expensive_beef_mince_waste_amount_g: 99999,
+    expensive_beef_mince_waste_cost_gbp: 99999,
+    expensive_beef_mince_waste_score: 99999,
+    pack_clean_awkward_leftover_count: 99,
+    pack_clean_awkward_leftover_value_gbp: 99999,
+    pack_clean_waste_score: 99999,
+    shopping_efficiency_score: 99999,
+    workload_score: 99999,
+    cost_score: 99999,
+    sampled_route_metric: true,
+  };
+}
+
+function plannerFastDinnerFatigueSummary(selectedFeatures = []) {
+  const records = [];
+  (selectedFeatures || []).forEach((feature, featureIndex) => {
+    (feature.dinner_profiles || []).forEach((profile) => {
+      records.push({
+        day_name: feature.day_name || "",
+        day_index: featureIndex,
+        profile,
+      });
+    });
+  });
+  let penalty = 0;
+  const warnings = [];
+  const hardWarnings = [];
+  for (let index = 1; index < records.length; index += 1) {
+    const left = records[index - 1];
+    const right = records[index];
+    const pairPenalty = plannerFatiguePairPenalty(left.profile, right.profile);
+    penalty += pairPenalty;
+    if (left.profile.primary_protein && left.profile.primary_protein === right.profile.primary_protein) {
+      warnings.push(`Back-to-back ${plannerFatigueValueLabel(left.profile.primary_protein)} dinners reduce variety.`);
+    }
+    if (left.profile.main_starch && left.profile.main_starch === right.profile.main_starch) {
+      warnings.push(`${plannerFatigueValueLabel(left.profile.main_starch)} appears on nearby dinners.`);
+    }
+  }
+  for (let index = 2; index < records.length; index += 1) {
+    const window = records.slice(index - 2, index + 1);
+    const profiles = window.map((record) => record.profile);
+    const days = window.map((record) => record.day_name).filter(Boolean).join("-");
+    const protein = profiles[0].primary_protein;
+    const starch = profiles[0].main_starch;
+    if (protein && profiles.every((profile) => profile.primary_protein === protein)) {
+      hardWarnings.push({
+        type: "protein_streak",
+        key: protein,
+        message: `Too much ${plannerFatigueValueLabel(protein)} ${days}.`,
+      });
+      penalty += 90;
+    }
+    if (starch && profiles.every((profile) => profile.main_starch === starch)) {
+      hardWarnings.push({
+        type: "starch_streak",
+        key: starch,
+        message: `${plannerFatigueValueLabel(starch)} appears 3 dinners close together.`,
+      });
+      penalty += 70;
+    }
+    plannerFatigueCommonHero(profiles).forEach((hero) => {
+      if (hero === protein || hero === starch) return;
+      hardWarnings.push({
+        type: "hero_streak",
+        key: hero,
+        message: `${plannerFatigueValueLabel(hero)} appears too often this week.`,
+      });
+      penalty += 55;
+    });
+  }
+  const uniqueHardWarnings = plannerUniqueFatigueWarnings(hardWarnings);
+  return {
+    records,
+    penalty,
+    hard_warning_count: uniqueHardWarnings.length,
+    warning_count: [...new Set(warnings)].length + uniqueHardWarnings.length,
+    hard_warnings: uniqueHardWarnings,
+    warnings: [...new Set([...uniqueHardWarnings.map((item) => item.message), ...warnings])],
+  };
+}
+
+function plannerFastAdjacentDinnerProteinRepeatScore(selectedFeatures = []) {
+  let previousFamilies = [];
+  return (selectedFeatures || []).reduce((sum, feature) => {
+    const currentFamilies = Array.isArray(feature.dinner_protein_families) ? feature.dinner_protein_families : [];
+    const repeated = currentFamilies.filter((family) => previousFamilies.includes(family)).length;
+    previousFamilies = currentFamilies;
+    return sum + repeated;
+  }, 0);
+}
+
+function plannerChooseFastSampledWeeklyOption(candidates, sampleIndex, dayIndex, activeBatches, weeklyUseCounts, rng, optionTries) {
+  const maxTries = Math.min(
+    candidates.length,
+    Math.max(Number(optionTries || 24), plannerBlockingActiveBatches(activeBatches).length ? Math.min(candidates.length, 48) : 1)
+  );
+  const tried = new Set();
+  for (let attempt = 0; attempt < maxTries; attempt += 1) {
+    const index = plannerSeededRandomIndex(rng, candidates.length);
+    if (tried.has(index) && tried.size < candidates.length) {
+      attempt -= 1;
+      continue;
+    }
+    tried.add(index);
+    const feature = candidates[index];
+    if (!plannerFastWeeklyOptionIssues(feature, dayIndex, sampleIndex, activeBatches, weeklyUseCounts).length) return feature;
+  }
+  const fallbackScanCount = Math.min(candidates.length, Math.max(16, Number(optionTries || 24)));
+  for (let index = 0; index < fallbackScanCount; index += 1) {
+    const feature = candidates[index];
+    if (!plannerFastWeeklyOptionIssues(feature, dayIndex, sampleIndex, activeBatches, weeklyUseCounts).length) return feature;
+  }
+  return null;
+}
+
+function plannerFastWeeklyOptionIssues(feature, dayIndex, sampleIndex, activeBatches = [], weeklyUseCounts = {}) {
+  const issues = [];
+  const useCounts = feature?.use_counts || {};
+  plannerBlockingActiveBatches(activeBatches).forEach((batch) => {
+    if (Number(useCounts[batch.recipe_id] || 0) <= 0) issues.push("batch_continuity");
+  });
+  const nextBeefDinnerCount = plannerWeeklyExpensiveBeefMinceDinnerCountFromUseCounts(weeklyUseCounts, sampleIndex?.context?.recipeById)
+    + Number(feature?.beef_dinner_count || 0);
+  if (nextBeefDinnerCount > plannerExpensiveFreshWastePolicy().max_beef_mince_dinners_per_week) issues.push("expensive_beef_mince_dinner_fatigue");
+  Object.entries(useCounts).forEach(([recipeId, optionUseCount]) => {
+    const meta = feature?.recipe_meta?.[recipeId] || {};
+    const previousUseCount = Number(weeklyUseCounts?.[recipeId] || 0);
+    const nextUseCount = previousUseCount + Number(optionUseCount || 0);
+    if (nextUseCount > Number(meta.weekly_cap || 1)) issues.push("weekly_repeat_cap");
+    const alreadyActive = activeBatches.some((batch) => batch.recipe_id === recipeId);
+    if (!alreadyActive && previousUseCount === 0 && meta.tracks_batch) {
+      const remainingCapacity = plannerFastRemainingRecipeCapacity(sampleIndex, recipeId, dayIndex);
+      const carryoverPlan = plannerLateStartBatchCarryoverPlan(
+        feature.option,
+        recipeId,
+        dayIndex,
+        sampleIndex.days,
+        sampleIndex.dayOptions,
+        meta.block_size,
+        sampleIndex.context?.recipeById
+      );
+      if (remainingCapacity < Number(meta.block_size || 1) && !carryoverPlan.allowed) issues.push("incomplete_batch_start");
+    }
+  });
+  return [...new Set(issues)];
+}
+
+function plannerAdvanceFastWeeklyRouteState(feature, activeBatches = [], weeklyUseCounts = {}, sampleIndex = null, dayIndex = 0) {
+  const useCounts = feature?.use_counts || {};
+  const nextWeeklyUseCounts = { ...(weeklyUseCounts || {}) };
+  const nextActiveBatches = (activeBatches || []).map((batch) => ({ ...batch }));
+  nextActiveBatches.forEach((batch) => {
+    const optionUseCount = Number(useCounts[batch.recipe_id] || 0);
+    if (optionUseCount > 0) {
+      batch.remaining -= optionUseCount;
+      if (batch.carryover_allowed) {
+        batch.carryover_servings = Math.max(0, Math.min(Number(batch.carryover_servings || 0), Number(batch.remaining || 0)));
+      }
+      batch.missed = 0;
+    } else {
+      batch.missed = Number(batch.missed || 0) + 1;
+    }
+  });
+  for (let index = nextActiveBatches.length - 1; index >= 0; index -= 1) {
+    if (nextActiveBatches[index].remaining <= 0 || nextActiveBatches[index].missed > 0) nextActiveBatches.splice(index, 1);
+  }
+  Object.entries(useCounts).forEach(([recipeId, optionUseCount]) => {
+    const previousUseCount = Number(nextWeeklyUseCounts[recipeId] || 0);
+    nextWeeklyUseCounts[recipeId] = previousUseCount + Number(optionUseCount || 0);
+    if (previousUseCount !== 0) return;
+    if (nextActiveBatches.some((batch) => batch.recipe_id === recipeId)) return;
+    const meta = feature?.recipe_meta?.[recipeId] || {};
+    if (!meta.tracks_batch) return;
+    const carryoverPlan = plannerLateStartBatchCarryoverPlan(
+      feature.option,
+      recipeId,
+      dayIndex,
+      sampleIndex?.days,
+      sampleIndex?.dayOptions,
+      meta.block_size,
+      sampleIndex?.context?.recipeById
+    );
+    const remaining = Number(meta.block_size || 1) - Number(optionUseCount || 0);
+    if (remaining > 0) nextActiveBatches.push({
+      recipe_id: recipeId,
+      label: meta.recipe?.short_title || meta.recipe?.title || recipeId,
+      remaining,
+      missed: 0,
+      batch_size: Number(meta.block_size || 1),
+      carryover_allowed: carryoverPlan.allowed,
+      carryover_servings: carryoverPlan.carryover_servings,
+      carryover_reason: carryoverPlan.reason,
+    });
+  });
+  return {
+    activeBatches: nextActiveBatches,
+    weeklyUseCounts: nextWeeklyUseCounts,
+  };
+}
+
+function plannerBuildSampledWeeklyRoute(dayOptions, days, context = {}, initialStockState = null, rng = Math.random, optionTries = 24) {
+  let activeBatches = [];
+  let weeklyUseCounts = {};
+  let selectedByDay = {};
+  let score = 0;
+  let sequentialStockState = plannerCloneSequentialStockState(initialStockState || plannerInitialSequentialStockState(plannerActiveWeekStartKey()));
+  let previousDinnerProfiles = [];
+
+  for (let dayIndex = 0; dayIndex < days.length; dayIndex += 1) {
+    const day = days[dayIndex];
+    const result = dayOptions?.[day.day];
+    if (!result?.options?.length) {
+      if (activeBatches.length && !plannerActiveBatchesResolved(activeBatches)) return null;
+      activeBatches = [];
+      previousDinnerProfiles = [];
+      continue;
+    }
+    const options = plannerSampleWeeklySequenceOptions(
+      result.options,
+      activeBatches,
+      weeklyUseCounts,
+      sequentialStockState,
+      context,
+      previousDinnerProfiles,
+      rng,
+      optionTries
+    );
+    let chosen = null;
+    for (const option of options) {
+      const issues = plannerSampleWeeklyOptionIssues(option, dayIndex, days, dayOptions, activeBatches, weeklyUseCounts, context);
+      if (!issues.length) {
+        chosen = option;
+        break;
+      }
+    }
+    if (!chosen) return null;
+    const nextState = plannerAdvanceWeeklySequenceState(chosen, activeBatches, weeklyUseCounts, { dayIndex, days, dayOptions, recipeById: context.recipeById });
+    activeBatches = nextState.activeBatches;
+    weeklyUseCounts = nextState.weeklyUseCounts;
+    sequentialStockState = plannerAdvanceSequentialStockState(chosen, sequentialStockState);
+    previousDinnerProfiles = plannerNextDinnerFatigueWindow(previousDinnerProfiles, chosen, context.recipeById, context);
+    selectedByDay = { ...selectedByDay, [day.day]: chosen.option_id };
+    score += Number(chosen?.score || 0);
+  }
+  if (!plannerActiveBatchesResolved(activeBatches)) return null;
+  const metrics = plannerSampledWeeklySequenceMetrics({
+    selectedByDay,
+    optionScore: score,
+    activeBatches,
+    weeklyUseCounts,
+    dayOptions,
+    days,
+    context,
+  });
+  if (Number(metrics.missing_required_recipe_slot_count || 0) > 0 || Number(metrics.gap_days || 0) > 0 || Number(metrics.unfinished_batch_count || 0) > 0) return null;
+  return { selectedByDay, metrics };
+}
+
+function plannerSampledWeeklySequenceMetrics({ selectedByDay, optionScore, activeBatches, weeklyUseCounts, dayOptions, days, context = {} }) {
+  const selectedOptions = plannerWeekSelectedOptions(dayOptions, selectedByDay);
+  const selectedRecipeSlotCount = selectedOptions.reduce((sum, { option }) => (
+    sum + Object.values(option?.recipe_ids_by_slot || {}).filter(Boolean).length
+  ), 0);
+  const dinnerFatigueSummary = plannerDinnerFatigueSummaryForSelectedOptions(selectedOptions, context.recipeById);
+  const repeatFatigueScore = plannerWeeklyRepeatFatigueScore(weeklyUseCounts);
+  const adjacentDinnerProteinRepeatScore = plannerAdjacentDinnerProteinRepeatScore(selectedOptions, context.recipeById);
+  const hardDinnerCount = Number(dinnerFatigueSummary.hard_warning_count || 0);
+  const fatiguePenalty = Math.round(Number(dinnerFatigueSummary.penalty || 0) * 10) / 10;
+  const quickScore = Math.max(1, Math.min(100, Math.round(
+    82
+    - (hardDinnerCount * 35)
+    - (fatiguePenalty * 0.35)
+    - (repeatFatigueScore * 1.5)
+    - (Number(optionScore || 0) / 350)
+  )));
+  return {
+    week_score: quickScore,
+    selected_day_count: selectedOptions.length,
+    selected_recipe_slot_count: selectedRecipeSlotCount,
+    missing_required_recipe_slot_count: 0,
+    full_ready_days: selectedOptions.length,
+    gap_days: 0,
+    unfinished_batch_count: plannerBlockingActiveBatches(activeBatches).length,
+    completed_batch_blocks: plannerCompletedBatchBlockCount(weeklyUseCounts),
+    adjacent_dinner_protein_repeat_score: Math.round(adjacentDinnerProteinRepeatScore * 10) / 10,
+    dinner_fatigue_penalty: fatiguePenalty,
+    dinner_fatigue_hard_count: hardDinnerCount,
+    dinner_fatigue_warning_count: Number(dinnerFatigueSummary.warning_count || 0),
+    previous_week_dinner_exact_repeat_count: 0,
+    repeat_fatigue_score: Math.round(repeatFatigueScore * 10) / 10,
+    macro_score: Math.round(Number(optionScore || 0) * 10) / 10,
+    inventory_use_up_score: 0,
+    ingredient_target_score: 0,
+    carry_forward_waste_count: 0,
+    carry_forward_waste_gbp: 0,
+    carry_forward_waste_score: 0,
+    carry_forward_obligation_count: 0,
+    carry_forward_obligation_unmet_count: 0,
+    carry_forward_silent_ignore_count: 0,
+    carry_forward_obligation_blocked_count: 0,
+    carry_forward_obligation_score: 0,
+    carry_forward_obligation_labels: [],
+    carry_forward_obligation_outcomes: [],
+    expensive_beef_mince_waste_line_count: 99,
+    expensive_beef_mince_waste_amount_g: 99999,
+    expensive_beef_mince_waste_cost_gbp: 99999,
+    expensive_beef_mince_waste_score: 99999,
+    pack_clean_awkward_leftover_count: 99,
+    pack_clean_awkward_leftover_value_gbp: 99999,
+    pack_clean_waste_score: 99999,
+    shopping_efficiency_score: 99999,
+    workload_score: 99999,
+    cost_score: 99999,
+    sampled_route_metric: true,
+  };
+}
+
+function plannerSampleWeeklyOptionIssues(option, dayIndex, days, dayOptions, activeBatches, weeklyUseCounts, context = {}) {
+  const issues = [];
+  const optionUseCounts = plannerOptionRecipeUseCounts(option);
+  plannerBlockingActiveBatches(activeBatches).forEach((batch) => {
+    if (Number(optionUseCounts[batch.recipe_id] || 0) <= 0) issues.push("batch_continuity");
+  });
+  const nextBeefDinnerCount = plannerWeeklyExpensiveBeefMinceDinnerCountFromUseCounts(weeklyUseCounts, context.recipeById)
+    + plannerOptionExpensiveBeefMinceDinnerCount(option, context.recipeById);
+  if (nextBeefDinnerCount > plannerExpensiveFreshWastePolicy().max_beef_mince_dinners_per_week) issues.push("expensive_beef_mince_dinner_fatigue");
+  Object.entries(optionUseCounts).forEach(([recipeId, optionUseCount]) => {
+    const recipe = plannerRecipeById(recipeId, context.recipeById);
+    const previousUseCount = Number(weeklyUseCounts?.[recipeId] || 0);
+    const nextUseCount = previousUseCount + Number(optionUseCount || 0);
+    if (nextUseCount > plannerRecipeWeeklyUseCap(recipe)) issues.push("weekly_repeat_cap");
+    const batchUseCount = plannerRecipeBlockSize(recipe);
+    const alreadyActive = activeBatches.some((batch) => batch.recipe_id === recipeId);
+    if (!alreadyActive && previousUseCount === 0 && plannerRecipeTracksBatchContinuity(recipe, batchUseCount)) {
+      const remainingCapacity = plannerRemainingRecipeCapacity(recipeId, dayIndex, days, dayOptions, context);
+      const carryoverPlan = plannerLateStartBatchCarryoverPlan(option, recipeId, dayIndex, days, dayOptions, batchUseCount, context.recipeById);
+      if (remainingCapacity < batchUseCount && !carryoverPlan.allowed) issues.push("incomplete_batch_start");
+    }
+  });
+  return [...new Set(issues)];
+}
+
+function plannerSampleWeeklySequenceOptions(options, activeBatches, weeklyUseCounts, sequentialStockState, context, previousDinnerProfiles, rng, limit) {
+  const activeRecipeIds = (activeBatches || []).map((batch) => batch.recipe_id).filter(Boolean);
+  const continuityOptions = activeRecipeIds.length
+    ? (options || []).filter((option) => activeRecipeIds.every((recipeId) => plannerOptionRecipeUseCount(option, recipeId) > 0))
+    : [];
+  const ranked = continuityOptions.length ? continuityOptions : [...(options || [])];
+  const max = Math.min(ranked.length, Math.max(1, Number(limit || 24)));
+  const selected = [];
+  const selectedIds = new Set();
+
+  function add(option) {
+    const key = option?.option_id || plannerDayOptionStorageKey(option);
+    if (!key || selectedIds.has(key)) return false;
+    selectedIds.add(key);
+    selected.push(option);
+    return true;
+  }
+
+  const upper = Math.max(max, Math.min(ranked.length, Math.ceil(ranked.length * 0.45)));
+  while (selected.length < max && selected.length < ranked.length) {
+    const pick = ranked[plannerWeightedSeededRandomIndex(rng, upper)];
+    if (!add(pick) && selectedIds.size >= upper) break;
+  }
+  if (ranked[0]) add(ranked[0]);
+  let index = 1;
+  while (selected.length < max && index < ranked.length) {
+    add(ranked[index]);
+    index += 1;
+  }
+  return selected;
+}
+
+function plannerSeededRandom(seed = "planner-seed") {
+  let stateValue = parseInt(String(hashString(String(seed))).replace(/^h/, "").slice(0, 8), 16);
+  if (!Number.isFinite(stateValue) || stateValue <= 0) stateValue = 123456789;
+  return function nextRandom() {
+    stateValue = (1664525 * stateValue + 1013904223) >>> 0;
+    return stateValue / 4294967296;
+  };
+}
+
+function plannerSeededRandomIndex(rng, length) {
+  const count = Math.max(1, Number(length || 1));
+  const value = typeof rng === "function" ? rng() : Math.random();
+  return Math.max(0, Math.min(count - 1, Math.floor(value * count)));
+}
+
+function plannerWeightedSeededRandomIndex(rng, length) {
+  const count = Math.max(1, Number(length || 1));
+  const value = typeof rng === "function" ? rng() : Math.random();
+  return Math.max(0, Math.min(count - 1, Math.floor(Math.pow(value, 1.7) * count)));
 }
 
 function plannerCarryoverActiveBatches(activeBatches = []) {
@@ -17672,7 +18444,7 @@ function plannerWeeklySequenceMetrics({ dayIndex, selectedByDay, optionScore, ac
   const slotMetrics = plannerRequiredRecipeSlotMetricsFromDayOptions(dayOptions, { days }, selectedByDay);
   const budgetBounds = plannerWeekBudgetBounds(dayOptions);
   const workloadBounds = plannerWeekWorkloadBounds(dayOptions);
-  const gapDays = Math.max(0, (days || []).length - selectedDayCount, Number(slotMetrics.missing_required_recipe_day_count || 0));
+  const gapDays = Math.max(0, Number(slotMetrics.missing_required_recipe_day_count || 0));
   const recipeUseCounts = weeklyUseCounts || {};
   const repeatFatigueScore = plannerWeeklyRepeatFatigueScore(recipeUseCounts);
   const completedBatchBlocks = plannerCompletedBatchBlockCount(recipeUseCounts);
@@ -17826,6 +18598,17 @@ function plannerWeekScorePolicy() {
   return {
     history_window_weeks: Math.max(1, Number(policy.history_window_weeks || 4)),
     max_alternatives: Math.max(1, Number(policy.max_alternatives || 5)),
+    route_leaderboard_max_routes: Math.max(0, Number(policy.route_leaderboard_max_routes || 0)),
+    route_sample_count: Math.max(0, Number(policy.route_sample_count || 0)),
+    route_sample_max_ms: Math.max(0, Number(policy.route_sample_max_ms || 0)),
+    route_sample_option_tries: Math.max(1, Number(policy.route_sample_option_tries || 24)),
+    random_max_current_similarity: Math.max(0, Math.min(1, Number(policy.random_max_current_similarity || 0.8))),
+    selection_mode: String(policy.selection_mode || "high_quality_random"),
+    random_top_percent: Math.max(1, Math.min(100, Number(policy.random_top_percent || 10))),
+    random_min_candidates: Math.max(1, Number(policy.random_min_candidates || 1)),
+    random_max_candidates: Math.max(1, Number(policy.random_max_candidates || 25)),
+    avoid_current_route_on_regenerate: policy.avoid_current_route_on_regenerate !== false,
+    seed_override: String(policy.seed_override || ""),
     meal_fatigue_weights: {
       dinner: 1,
       lunch: 0.35,
@@ -18275,37 +19058,53 @@ function plannerRecipeDinnerVarietyFamilyKey(recipe) {
 
 function plannerAddWeeklyScoreCandidate(leaderboard, metrics, selectedByDay) {
   if (!Array.isArray(leaderboard) || !metrics) return;
+  const record = plannerWeeklyScoreCandidateRecord(metrics, selectedByDay);
+  if (!record) return;
+  plannerMergeWeeklyScoreCandidates(leaderboard, [record]);
+}
+
+function plannerWeeklyScoreCandidateRecord(metrics, selectedByDay) {
+  if (!metrics) return null;
   const selected = selectedByDay && typeof selectedByDay === "object" ? { ...selectedByDay } : {};
   const key = plannerWeekScoreSelectedByDayKey(selected);
-  if (!key) return;
-  const existingIndex = leaderboard.findIndex((item) => item.key === key);
-  const record = {
+  if (!key) return null;
+  return {
     key,
     selected_option_by_day: selected,
     score: Number(metrics.week_score || 0),
     reasons: metrics.week_score_summary?.reasons || [],
     metrics: plannerWeekScorePublicMetrics(metrics),
   };
-  if (existingIndex >= 0) {
-    if (plannerWeeklySequenceBeats(metrics, leaderboard[existingIndex].metrics)) leaderboard[existingIndex] = record;
-  } else {
-    leaderboard.push(record);
-  }
-  const limit = Math.max(8, Number(plannerWeekScorePolicy().max_alternatives || 5) * 4);
-  leaderboard.sort((a, b) => (
+}
+
+function plannerMergeWeeklyScoreCandidates(leaderboard, candidateRecords = []) {
+  if (!Array.isArray(leaderboard) || !Array.isArray(candidateRecords) || !candidateRecords.length) return;
+  const byKey = new Map((leaderboard || []).filter((item) => item?.key).map((item) => [item.key, item]));
+  candidateRecords.forEach((record) => {
+    if (!record?.key || !record?.metrics) return;
+    const existing = byKey.get(record.key);
+    if (!existing || plannerWeeklySequenceBeats(record.metrics, existing.metrics)) byKey.set(record.key, record);
+  });
+  const scorePolicy = plannerWeekScorePolicy();
+  const configuredLimit = Number(scorePolicy.route_leaderboard_max_routes || 0);
+  const limit = Math.max(8, configuredLimit > 0 ? configuredLimit : Number(scorePolicy.max_alternatives || 5) * 4);
+  const sorted = [...byKey.values()].sort((a, b) => (
     plannerWeeklySequenceBeats(a.metrics, b.metrics) ? -1
       : plannerWeeklySequenceBeats(b.metrics, a.metrics) ? 1
         : a.key.localeCompare(b.key)
   ));
-  if (leaderboard.length > limit) leaderboard.splice(limit);
+  leaderboard.splice(0, leaderboard.length, ...sorted.slice(0, limit));
 }
 
 function plannerWeekScorePublicMetrics(metrics = {}) {
   return {
     week_score: Number(metrics.week_score || 0),
     selected_day_count: Number(metrics.selected_day_count || 0),
+    selected_recipe_slot_count: Number(metrics.selected_recipe_slot_count || 0),
+    missing_required_recipe_slot_count: Number(metrics.missing_required_recipe_slot_count || 0),
     full_ready_days: Number(metrics.full_ready_days || 0),
     gap_days: Number(metrics.gap_days || 0),
+    unfinished_batch_count: Number(metrics.unfinished_batch_count || 0),
     completed_batch_blocks: Number(metrics.completed_batch_blocks || 0),
     adjacent_dinner_protein_repeat_score: Number(metrics.adjacent_dinner_protein_repeat_score || 0),
     dinner_fatigue_penalty: Number(metrics.dinner_fatigue_penalty || 0),
@@ -18367,6 +19166,294 @@ function plannerWeekScoreAlternativeLabel(alternative, winningScore = null) {
   if (Number(metrics.adjacent_dinner_protein_repeat_score || 0) < Number(winnerMetrics.adjacent_dinner_protein_repeat_score || 0)) return "More varied dinners";
   if (Number(metrics.inventory_use_up_score || 0) + Number(metrics.ingredient_target_score || 0) > Number(winnerMetrics.inventory_use_up_score || 0) + Number(winnerMetrics.ingredient_target_score || 0)) return "More use-up";
   return "Alternative route";
+}
+
+function plannerSelectWeeklyRouteVariant(sequenceResult, currentSelectedByDay = null, dayOptions = null, days = null) {
+  const policy = plannerWeekScorePolicy();
+  const sortedLeaderboard = plannerSortedWeeklyLeaderboard(sequenceResult?.leaderboard || []);
+  const best = sortedLeaderboard[0] || null;
+  const ineligibleReasonCounts = plannerWeeklyRouteIneligibleReasonCounts(sortedLeaderboard);
+  const fallbackSelected = sequenceResult?.selected_option_by_day || best?.selected_option_by_day || {};
+  const fallbackKey = plannerWeekScoreSelectedByDayKey(fallbackSelected);
+  const fallbackMeaningfulSignature = plannerWeeklyRouteMeaningfulSignature({ selected_option_by_day: fallbackSelected }, dayOptions, days);
+  const fallbackSeed = policy.selection_mode === "high_quality_random" ? plannerCurrentRouteSelectionSeed() : "";
+  const fallbackMeta = {
+    route_selection_mode: policy.selection_mode,
+    route_seed: fallbackSeed,
+    selected_route_key: fallbackKey,
+    selected_meaningful_signature: fallbackMeaningfulSignature,
+    eligible_variant_count: best ? 1 : 0,
+    selected_variant_rank: best ? 1 : 0,
+    best_route_score: Math.round(Number(best?.score || best?.metrics?.week_score || 0)),
+    selected_route_score: Math.round(Number(best?.score || best?.metrics?.week_score || 0)),
+    random_candidate_count: best ? 1 : 0,
+    meaningful_variant_count: best ? 1 : 0,
+    leaderboard_route_count: sortedLeaderboard.length,
+    ineligible_route_count: Math.max(0, sortedLeaderboard.length - (best ? 1 : 0)),
+    ...plannerRouteSelectionMetricSnapshot(best?.metrics || sequenceResult?.metrics || {}),
+    ineligible_reason_counts: ineligibleReasonCounts,
+  };
+  if (!best || policy.selection_mode !== "high_quality_random") {
+    return {
+      selected_option_by_day: fallbackSelected,
+      metrics: sequenceResult?.metrics || best?.metrics || null,
+      selection: fallbackMeta,
+    };
+  }
+  const completeRoutes = sortedLeaderboard.filter((item) => plannerWeeklyRouteVariantEligible(item));
+  const meaningfulVariantCount = plannerWeeklyRouteMeaningfulVariantCount(completeRoutes, dayOptions, days);
+  const ineligibleRouteCount = Math.max(0, sortedLeaderboard.length - completeRoutes.length);
+  if (!completeRoutes.length) {
+    return {
+      selected_option_by_day: fallbackSelected,
+      metrics: sequenceResult?.metrics || best.metrics,
+      selection: {
+        ...fallbackMeta,
+        eligible_variant_count: 0,
+        meaningful_variant_count: 0,
+        ineligible_route_count: ineligibleRouteCount,
+        ineligible_reason_counts: ineligibleReasonCounts,
+      },
+    };
+  }
+  const requestedTopCount = Math.ceil(completeRoutes.length * (Number(policy.random_top_percent || 10) / 100));
+  const requestedMinimumCount = Number(policy.random_min_candidates || 1);
+  const poolSize = Math.max(1, Math.min(
+    completeRoutes.length,
+    Math.max(requestedTopCount, requestedMinimumCount),
+    Number(policy.random_max_candidates || 25)
+  ));
+  let pool = plannerDiverseWeeklyRoutePool(completeRoutes.slice(0, poolSize), dayOptions, days);
+  if (!pool.length) pool = completeRoutes.slice(0, poolSize);
+  const currentKey = plannerWeekScoreSelectedByDayKey(currentSelectedByDay || state.plannerReviewDraft?.selected_option_by_day || {});
+  const currentMeaningfulSignature = plannerWeeklyRouteMeaningfulSignature(
+    { selected_option_by_day: currentSelectedByDay || state.plannerReviewDraft?.selected_option_by_day || {} },
+    dayOptions,
+    days
+  );
+  if (policy.avoid_current_route_on_regenerate && currentMeaningfulSignature && pool.length > 1) {
+    const withoutCurrentFamily = pool.filter((item) => plannerWeeklyRouteMeaningfulSignature(item, dayOptions, days) !== currentMeaningfulSignature);
+    if (withoutCurrentFamily.length) pool = withoutCurrentFamily;
+  }
+  if (policy.avoid_current_route_on_regenerate && currentKey && pool.length > 1) {
+    const maxSimilarity = Number(policy.random_max_current_similarity || 0.8);
+    const differentEnough = pool.filter((item) => plannerWeeklyRouteSlotSimilarity(item, currentSelectedByDay, dayOptions, days) <= maxSimilarity);
+    if (differentEnough.length) pool = differentEnough;
+  }
+  if (pool.length > 1) {
+    const withoutRecent = plannerFilterRecentRouteSelections(pool, dayOptions, days);
+    if (withoutRecent.length) pool = withoutRecent;
+  }
+  if (policy.avoid_current_route_on_regenerate && currentKey && pool.length > 1) {
+    const withoutCurrent = pool.filter((item) => item.key !== currentKey);
+    if (withoutCurrent.length) pool = withoutCurrent;
+  }
+  const seed = plannerCurrentRouteSelectionSeed();
+  const index = plannerSeededIndex(seed, pool.length);
+  const selected = pool[index] || pool[0];
+  const selectedRank = completeRoutes.findIndex((item) => item.key === selected.key) + 1;
+  const selectedMeaningfulSignature = plannerWeeklyRouteMeaningfulSignature(selected, dayOptions, days);
+  return {
+    selected_option_by_day: selected.selected_option_by_day || fallbackSelected,
+    metrics: selected.metrics || sequenceResult?.metrics || best.metrics,
+    selection: {
+      route_selection_mode: policy.selection_mode,
+      route_seed: seed,
+      selected_route_key: selected.key || plannerWeekScoreSelectedByDayKey(selected.selected_option_by_day || {}),
+      selected_meaningful_signature: selectedMeaningfulSignature,
+      eligible_variant_count: completeRoutes.length,
+      selected_variant_rank: Math.max(1, selectedRank),
+      best_route_score: Math.round(Number(completeRoutes[0]?.score || completeRoutes[0]?.metrics?.week_score || 0)),
+      selected_route_score: Math.round(Number(selected.score || selected.metrics?.week_score || 0)),
+      random_candidate_count: pool.length,
+      meaningful_variant_count: meaningfulVariantCount,
+      leaderboard_route_count: sortedLeaderboard.length,
+      ineligible_route_count: ineligibleRouteCount,
+      ...plannerRouteSelectionMetricSnapshot(selected.metrics || {}),
+      ineligible_reason_counts: ineligibleReasonCounts,
+    },
+  };
+}
+
+function plannerDiverseWeeklyRoutePool(routes = [], dayOptions = null, days = null) {
+  const selected = [];
+  const seen = new Set();
+  (routes || []).forEach((route) => {
+    const signature = plannerWeeklyRouteMeaningfulSignature(route, dayOptions, days) || route?.key || "";
+    if (!signature || seen.has(signature)) return;
+    seen.add(signature);
+    selected.push(route);
+  });
+  return selected.length > 1 ? selected : [...(routes || [])];
+}
+
+function plannerFilterRecentRouteSelections(routes = [], dayOptions = null, days = null) {
+  const history = plannerNormalizeRouteGenerationHistory(state.plannerReviewDraft?.route_generation_history);
+  if (!history.length) return [...(routes || [])];
+  const recentKeys = new Set(history.map((item) => item.route_key).filter(Boolean));
+  const recentSignatures = new Set(history.map((item) => item.meaningful_signature).filter(Boolean));
+  return (routes || []).filter((route) => {
+    const key = route?.key || plannerWeekScoreSelectedByDayKey(route?.selected_option_by_day || {});
+    if (key && recentKeys.has(key)) return false;
+    const signature = plannerWeeklyRouteMeaningfulSignature(route, dayOptions, days);
+    if (signature && recentSignatures.has(signature)) return false;
+    return true;
+  });
+}
+
+function plannerWeeklyRouteMeaningfulVariantCount(routes = [], dayOptions = null, days = null) {
+  const seen = new Set();
+  (routes || []).forEach((route) => {
+    const signature = plannerWeeklyRouteMeaningfulSignature(route, dayOptions, days) || route?.key || "";
+    if (signature) seen.add(signature);
+  });
+  return seen.size;
+}
+
+function plannerWeeklyRouteSlotSimilarity(route = {}, selectedByDay = {}, dayOptions = null, days = null) {
+  const left = plannerWeeklyRouteSlotVector(route?.selected_option_by_day || {}, dayOptions, days);
+  const right = plannerWeeklyRouteSlotVector(selectedByDay || {}, dayOptions, days);
+  const count = Math.max(left.length, right.length, 1);
+  if (!left.length || !right.length) return 0;
+  const rightSet = new Set(right);
+  return left.filter((item) => rightSet.has(item)).length / count;
+}
+
+function plannerWeeklyRouteSlotVector(selectedByDay = {}, dayOptions = null, days = null) {
+  const orderedDays = Array.isArray(days) && days.length
+    ? days.map((day) => day.day).filter(Boolean)
+    : Object.keys(selectedByDay).sort();
+  const vector = [];
+  orderedDays.forEach((dayName) => {
+    const option = plannerWeeklyRouteOptionForDay(dayName, selectedByDay[dayName], dayOptions);
+    Object.entries(option?.recipe_ids_by_slot || {})
+      .filter(([, recipeId]) => recipeId)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([slotId, recipeId]) => {
+        vector.push(`${dayName}:${slotId}:${recipeId}`);
+      });
+  });
+  return vector;
+}
+
+function plannerWeeklyRouteMeaningfulSignature(route = {}, dayOptions = null, days = null) {
+  const selectedByDay = route?.selected_option_by_day || {};
+  const orderedDays = Array.isArray(days) && days.length
+    ? days.map((day) => day.day).filter(Boolean)
+    : Object.keys(selectedByDay).sort();
+  const recipeById = new Map(recipes().map((recipe) => [recipeKey(recipe), recipe]));
+  const dinnerRecipes = [];
+  const repeatedLunchRecipes = {};
+  const batchRecipes = {};
+  const fallbackRecipes = [];
+
+  orderedDays.forEach((dayName) => {
+    const option = plannerWeeklyRouteOptionForDay(dayName, selectedByDay[dayName], dayOptions);
+    const recipeIds = Object.values(option?.recipe_ids_by_slot || {}).filter(Boolean);
+    recipeIds.forEach((recipeId) => {
+      const recipe = recipeById.get(recipeId);
+      if (!recipe) return;
+      const category = plannerValidMealCategory(recipeMealCategory(recipe));
+      const blockSize = plannerRecipeBlockSize(recipe);
+      if (category === "dinner") dinnerRecipes.push(recipeId);
+      if (category === "lunch") repeatedLunchRecipes[recipeId] = Number(repeatedLunchRecipes[recipeId] || 0) + 1;
+      if (plannerRecipeTracksBatchContinuity(recipe, blockSize)) batchRecipes[recipeId] = Number(batchRecipes[recipeId] || 0) + 1;
+      fallbackRecipes.push(recipeId);
+    });
+  });
+
+  const majorParts = [
+    ...dinnerRecipes.map((recipeId, index) => `d${index + 1}:${recipeId}`),
+    ...Object.entries(batchRecipes)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([recipeId, count]) => `batch:${recipeId}:${count}`),
+    ...Object.entries(repeatedLunchRecipes)
+      .filter(([, count]) => Number(count || 0) > 1)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([recipeId, count]) => `lunch-repeat:${recipeId}:${count}`),
+  ];
+  if (majorParts.length) return majorParts.join("|");
+  return fallbackRecipes.sort().join("|") || plannerWeekScoreSelectedByDayKey(selectedByDay);
+}
+
+function plannerWeeklyRouteOptionForDay(dayName, optionId, dayOptions = null) {
+  const result = dayOptions?.[dayName];
+  if (!result?.options?.length || !optionId) return null;
+  return result.options.find((option) => option.option_id === optionId) || null;
+}
+
+function plannerRouteSelectionMetricSnapshot(metrics = {}) {
+  return {
+    selected_route_selected_recipe_slot_count: Math.max(0, Number(metrics.selected_recipe_slot_count || 0)),
+    selected_route_missing_required_recipe_slot_count: Math.max(0, Number(metrics.missing_required_recipe_slot_count || 0)),
+    selected_route_gap_days: Math.max(0, Number(metrics.gap_days || 0)),
+    selected_route_dinner_fatigue_hard_count: Math.max(0, Number(metrics.dinner_fatigue_hard_count || 0)),
+  };
+}
+
+function plannerWeeklyRouteIneligibleReasonCounts(leaderboard = []) {
+  const counts = {};
+  (leaderboard || []).forEach((item) => {
+    const reasons = plannerWeeklyRouteVariantIneligibleReasons(item);
+    reasons.forEach((reason) => {
+      counts[reason] = Number(counts[reason] || 0) + 1;
+    });
+  });
+  return counts;
+}
+
+function plannerWeeklyRouteVariantIneligibleReasons(item) {
+  const metrics = item?.metrics || {};
+  const reasons = [];
+  if (!item?.key || !item?.selected_option_by_day) reasons.push("missing_route_key");
+  if (Number(metrics.unfinished_batch_count || 0) > 0) reasons.push("unfinished_batch");
+  if (Number(metrics.missing_required_recipe_slot_count || 0) > 0) reasons.push("missing_required_slot");
+  if (Number(metrics.gap_days || 0) > 0) reasons.push("gap_day");
+  if (Number(metrics.dinner_fatigue_hard_count || 0) > 0) reasons.push("hard_dinner_fatigue");
+  if (
+    Number(metrics.selected_recipe_slot_count || 0) <= 0
+    && Number(metrics.selected_day_count || 0) <= 0
+    && Object.keys(item?.selected_option_by_day || {}).length <= 0
+  ) reasons.push("empty_route");
+  return reasons;
+}
+
+function plannerSortedWeeklyLeaderboard(leaderboard = []) {
+  return [...(Array.isArray(leaderboard) ? leaderboard : [])]
+    .filter((item) => item?.key && item?.selected_option_by_day && item?.metrics)
+    .sort((a, b) => (
+      plannerWeeklySequenceBeats(a.metrics, b.metrics) ? -1
+        : plannerWeeklySequenceBeats(b.metrics, a.metrics) ? 1
+          : String(a.key || "").localeCompare(String(b.key || ""))
+    ));
+}
+
+function plannerWeeklyRouteVariantEligible(item) {
+  return plannerWeeklyRouteVariantIneligibleReasons(item).length === 0;
+}
+
+function plannerCurrentRouteSelectionSeed() {
+  const policySeed = plannerWeekScorePolicy().seed_override;
+  if (policySeed) return policySeed;
+  if (state.plannerRouteSeedOverride) return String(state.plannerRouteSeedOverride);
+  if (!state.plannerRouteBuildSeed) state.plannerRouteBuildSeed = plannerGenerateRouteSeed();
+  return state.plannerRouteBuildSeed;
+}
+
+function plannerGenerateRouteSeed() {
+  return `route-${plannerActiveWeekStartKey()}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+}
+
+function plannerSeededIndex(seed, length) {
+  const count = Math.max(1, Number(length || 1));
+  const ordinalMatch = String(seed || "").match(/(?:^|[-_])(\d+)$/);
+  if (ordinalMatch) {
+    const ordinal = Number(ordinalMatch[1]);
+    if (Number.isFinite(ordinal) && ordinal > 0) return (Math.round(ordinal) - 1) % count;
+  }
+  const hash = String(hashString(String(seed || "route-seed"))).replace(/^h/, "");
+  const value = parseInt(hash.slice(0, 8), 16);
+  return Math.abs(Number.isFinite(value) ? value : 0) % count;
 }
 
 function plannerCompletedBatchBlockCount(recipeUseCounts) {
@@ -19412,11 +20499,18 @@ function plannerOptionRepeatPressure(option, weeklyUseCounts, recipeById = null)
 function plannerAdvanceWeeklySequenceState(option, activeBatches, weeklyUseCounts, context = {}) {
   const optionUseCounts = plannerOptionRecipeUseCounts(option);
   const nextActiveBatches = (activeBatches || [])
-    .map((batch) => ({
-      ...batch,
-      remaining: Number(batch.remaining || 0) - Number(optionUseCounts[batch.recipe_id] || 0),
-      missed: Number(optionUseCounts[batch.recipe_id] || 0) > 0 ? 0 : Number(batch.missed || 0) + 1,
-    }))
+    .map((batch) => {
+      const remaining = Number(batch.remaining || 0) - Number(optionUseCounts[batch.recipe_id] || 0);
+      const nextBatch = {
+        ...batch,
+        remaining,
+        missed: Number(optionUseCounts[batch.recipe_id] || 0) > 0 ? 0 : Number(batch.missed || 0) + 1,
+      };
+      if (nextBatch.carryover_allowed) {
+        nextBatch.carryover_servings = Math.max(0, Math.min(Number(nextBatch.carryover_servings || 0), remaining));
+      }
+      return nextBatch;
+    })
     .filter((batch) => batch.remaining > 0 && batch.missed <= 0);
   const nextWeeklyUseCounts = { ...(weeklyUseCounts || {}) };
   Object.entries(optionUseCounts).forEach(([recipeId, optionUseCount]) => {
@@ -19454,17 +20548,17 @@ function plannerLateStartBatchCarryoverPlan(option, recipeId, dayIndex, days, da
   if (!plannerIsLateStartActiveWeek()) return empty;
   const recipe = plannerRecipeById(recipeId, recipeById);
   if (recipeMealCategory(recipe) !== "lunch") return empty;
-  if (!plannerOptionRecipeUsesLukeLunchTrack(option, recipeId)) return empty;
+  if (!plannerOptionRecipeUsesLateStartLunchTrack(option, recipeId)) return empty;
   const optionUseCount = plannerOptionRecipeUseCount(option, recipeId);
   if (optionUseCount <= 0) return empty;
   const remainingCapacity = plannerRemainingRecipeCapacity(recipeId, dayIndex, days, dayOptions);
-  const carryoverServings = size - remainingCapacity;
   if (remainingCapacity < optionUseCount) return empty;
+  const carryoverServings = size - optionUseCount;
   if (carryoverServings <= 0 || carryoverServings >= size) return empty;
   return {
     allowed: true,
     carryover_servings: carryoverServings,
-    reason: "late_start_current_week_luke_lunch_batch_carryover",
+    reason: "late_start_current_week_lunch_batch_carryover",
   };
 }
 
@@ -19482,6 +20576,17 @@ function plannerOptionRecipeUsesLukeLunchTrack(option, recipeId) {
     if (!slot) return false;
     const track = plannerSlotMealTrack(slot, plannerSlotState(slot));
     return track === "luke_lunch_1" || track === "luke_lunch_2";
+  });
+}
+
+function plannerOptionRecipeUsesLateStartLunchTrack(option, recipeId) {
+  return Object.entries(option?.recipe_ids_by_slot || {}).some(([slotId, optionRecipeId]) => {
+    if (optionRecipeId !== recipeId) return false;
+    const slot = findPlannerSlot(slotId);
+    if (!slot) return false;
+    const slotState = plannerSlotState(slot);
+    const category = plannerValidMealCategory(slotState.meal_category || plannerMealCategoryForSlot(slot));
+    return category === "lunch";
   });
 }
 
@@ -19569,6 +20674,9 @@ function plannerApplyBatchContinuityToWeekOptions(dayOptions, template) {
       const optionUseCount = Number(selectedRecipeUseCounts[batch.recipe_id] || 0);
       if (optionUseCount > 0) {
         batch.remaining -= optionUseCount;
+        if (batch.carryover_allowed) {
+          batch.carryover_servings = Math.max(0, Math.min(Number(batch.carryover_servings || 0), Number(batch.remaining || 0)));
+        }
         batch.missed = 0;
       } else {
         batch.missed += 1;
@@ -19635,7 +20743,7 @@ function plannerWeeklyOptionIssues(option, dayIndex, days, dayOptions, activeBat
     + plannerOptionExpensiveBeefMinceDinnerCount(option, context.recipeById);
   if (nextBeefDinnerCount > plannerExpensiveFreshWastePolicy().max_beef_mince_dinners_per_week) issues.push("expensive_beef_mince_dinner_fatigue");
   if (blockedBatchRecipeIds?.size && recipeIds.some((recipeId) => blockedBatchRecipeIds.has(recipeId))) issues.push("blocked_batch");
-  activeBatches.forEach((batch) => {
+  plannerBlockingActiveBatches(activeBatches).forEach((batch) => {
     if (Number(optionUseCounts[batch.recipe_id] || 0) <= 0) issues.push("batch_continuity");
   });
   Object.entries(optionUseCounts).forEach(([recipeId, optionUseCount]) => {
@@ -19995,9 +21103,10 @@ function plannerAddDayBatchWarning(result, warning, batch) {
 }
 
 function plannerBestOptionForActiveBatches(options, activeBatches) {
-  if (!activeBatches.length) return options?.[0] || null;
+  const blockingBatches = plannerBlockingActiveBatches(activeBatches);
+  if (!blockingBatches.length) return options?.[0] || null;
   return [...(options || [])]
-    .sort((a, b) => plannerOptionBatchContinuityScore(b, activeBatches) - plannerOptionBatchContinuityScore(a, activeBatches))
+    .sort((a, b) => plannerOptionBatchContinuityScore(b, blockingBatches) - plannerOptionBatchContinuityScore(a, blockingBatches))
     [0] || null;
 }
 
@@ -20039,6 +21148,7 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
   const partialMacroDay = plannerDayIsPartialMacroDay(recipeSlotRecords, externalSlotRecords, [...skippedSlotRecords, ...frozenSlotRecords]);
   const inventoryContextForDay = plannerInventoryContextForDay(day);
   const ingredientTargetMapForDay = plannerIngredientTargetsForWeek(plannerActiveWeekStartKey()).by_inventory_id || {};
+  const draftFatiguePenaltyByRecipe = plannerDraftFatiguePenaltyMapForActiveWeek();
   const slotCandidates = recipeSlotRecords.map(({ slot, state: slotState }) => {
     const lockedRecipeId = plannerLockedRecipeForSlot(slot.slot_id);
     const candidates = usableRecipes
@@ -20054,6 +21164,8 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
       .sort((a, b) => (
         Number(b.use_up_scores?.ingredient_target_score || 0) - Number(a.use_up_scores?.ingredient_target_score || 0)
         || Number(b.use_up_scores?.inventory_use_up_score || 0) - Number(a.use_up_scores?.inventory_use_up_score || 0)
+        || plannerRecipeDraftFatiguePenaltyForSlot(recipeKey(a.recipe), slot, slotState, a.recipe, draftFatiguePenaltyByRecipe)
+          - plannerRecipeDraftFatiguePenaltyForSlot(recipeKey(b.recipe), slot, slotState, b.recipe, draftFatiguePenaltyByRecipe)
         || plannerRecipeCandidateSortScore(a.recipe) - plannerRecipeCandidateSortScore(b.recipe)
         || a.index - b.index
       ))
@@ -20123,7 +21235,8 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
   const scoringContext = {
     inventoryContext: inventoryContextForDay,
     ingredientTargetMap: ingredientTargetMapForDay,
-    draftFatiguePenaltyByRecipe: plannerDraftFatiguePenaltyMapForActiveWeek(),
+    draftFatiguePenaltyByRecipe,
+    slotRecordById: new Map(slotRecords.map(({ slot, state: slotState }) => [slot.slot_id, { slot, state: slotState }])),
     profileByPerson: new Map((state.profileIndex?.people || []).map((profile) => [profile.person, profile])),
     recipePersonTotalsCache: new Map(),
     recipeActiveMinutesCache: new Map(),
@@ -20143,6 +21256,15 @@ function calculatePlannerDayOptions(day, usableRecipes, policy) {
   }
 
   plannerCandidateCoverageSelections(plannerEnumerationSlotCandidates(slotCandidates)).forEach((selection) => {
+    if (validOptions.length >= cap) return;
+    const option = buildPlannerDayOption(day, selection, externalSlotRecords, [...skippedSlotRecords, ...frozenSlotRecords], finisherSlotRecords, partialMacroDay, finisherReserveActive, scoringContext);
+    if (option.valid) addValidOption(option);
+  });
+
+  plannerSpreadSampleDayCombinations(
+    plannerEnumerationSlotCandidates(slotCandidates),
+    Number(policy.day_option_spread_sample_count || 0)
+  ).forEach((selection) => {
     if (validOptions.length >= cap) return;
     const option = buildPlannerDayOption(day, selection, externalSlotRecords, [...skippedSlotRecords, ...frozenSlotRecords], finisherSlotRecords, partialMacroDay, finisherReserveActive, scoringContext);
     if (option.valid) addValidOption(option);
@@ -20671,6 +21793,44 @@ function enumeratePlannerDayCombinations(slotCandidates, visit) {
   walk(0);
 }
 
+function plannerSpreadSampleDayCombinations(slotCandidates, sampleCount = 0) {
+  const slots = (slotCandidates || []).filter((slotCandidate) => slotCandidate?.candidates?.length);
+  const maxSamples = Math.max(0, Math.round(Number(sampleCount || 0)));
+  if (!slots.length || maxSamples <= 0) return [];
+  const counts = slots.map((slotCandidate) => Math.max(1, Number(slotCandidate.candidates.length || 1)));
+  const total = counts.reduce((product, count) => Math.min(Number.MAX_SAFE_INTEGER, product * count), 1);
+  if (!Number.isFinite(total) || total <= 1) return [];
+  const target = Math.min(maxSamples, total);
+  const indexSet = new Set([0, total - 1]);
+  for (let sampleIndex = 0; sampleIndex < target; sampleIndex += 1) {
+    indexSet.add(Math.min(total - 1, Math.floor((sampleIndex * total) / Math.max(1, target))));
+  }
+  const selections = [];
+  const seenSelections = new Set();
+  [...indexSet].sort((a, b) => a - b).forEach((combinationIndex) => {
+    const selection = plannerSelectionFromCombinationIndex(slots, counts, combinationIndex);
+    const key = selection.map((item) => `${item.slot_id}:${recipeKey(item.recipe)}`).sort().join("|");
+    if (seenSelections.has(key)) return;
+    seenSelections.add(key);
+    selections.push(selection);
+  });
+  return selections;
+}
+
+function plannerSelectionFromCombinationIndex(slots, counts, combinationIndex) {
+  let remaining = Math.max(0, Math.floor(Number(combinationIndex || 0)));
+  return (slots || []).map((slotCandidate, index) => {
+    const count = Math.max(1, Number(counts?.[index] || slotCandidate?.candidates?.length || 1));
+    const candidateIndex = remaining % count;
+    remaining = Math.floor(remaining / count);
+    return {
+      slot_id: slotCandidate.slot_id,
+      people: slotCandidate.people,
+      recipe: slotCandidate.candidates[candidateIndex] || slotCandidate.candidates[0],
+    };
+  });
+}
+
 function plannerEnumerationSlotCandidates(slotCandidates) {
   return [...(slotCandidates || [])].sort((a, b) => {
     const priorityDiff = plannerSlotCandidateEnumerationPriority(a) - plannerSlotCandidateEnumerationPriority(b);
@@ -20899,12 +22059,12 @@ function plannerDayOptionScore(totals, selection, validity, inventoryUseUpScore 
     score += total.cost_gbp * 2;
   });
   score += plannerSelectionWorkloadScore(selection, scoringContext) * 0.4;
-  selection.forEach(({ recipe }) => {
+  selection.forEach((item) => {
+    const recipe = item?.recipe;
     const key = recipeKey(recipe);
     if (plannerOptionRecipeOnCooldown(recipe, scoringContext)) score += 1000;
-    score += draftFatiguePenaltyByRecipe && Object.prototype.hasOwnProperty.call(draftFatiguePenaltyByRecipe, key)
-      ? Number(draftFatiguePenaltyByRecipe[key] || 0)
-      : plannerRecipeDraftFatiguePenalty(key);
+    const slotRecord = scoringContext.slotRecordById instanceof Map ? scoringContext.slotRecordById.get(item?.slot_id) : null;
+    score += plannerRecipeDraftFatiguePenaltyForSlot(key, slotRecord?.slot, slotRecord?.state, recipe, draftFatiguePenaltyByRecipe);
   });
   score -= Math.min(650, Number(inventoryUseUpScore || 0));
   score -= Math.min(1800, Number(ingredientTargetScore || 0));
@@ -20981,6 +22141,24 @@ function plannerDraftFatiguePenaltyMapForActiveWeek() {
     recipeId,
     plannerDraftFatiguePenaltyForEntry(entry),
   ]));
+}
+
+function plannerRecipeDraftFatiguePenaltyForSlot(recipeId, slot = null, slotState = null, recipe = null, draftFatiguePenaltyByRecipe = null) {
+  const key = String(recipeId || "");
+  if (!key) return 0;
+  const base = draftFatiguePenaltyByRecipe && Object.prototype.hasOwnProperty.call(draftFatiguePenaltyByRecipe, key)
+    ? Number(draftFatiguePenaltyByRecipe[key] || 0)
+    : plannerRecipeDraftFatiguePenalty(key);
+  if (!base) return 0;
+  const category = plannerValidMealCategory(slotState?.meal_category || slot?.meal_category || recipeMealCategory(recipe)) || recipeMealCategory(recipe);
+  const weights = {
+    dinner: 1.65,
+    lunch: 0.55,
+    breakfast: 0.35,
+    finisher: 0,
+  };
+  const weight = Number(weights[category] ?? 0.45);
+  return Math.round(base * weight * 10) / 10;
 }
 
 function plannerDraftHistoryRecipeUseMapForActiveWeek() {

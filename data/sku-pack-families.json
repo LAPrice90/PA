@@ -3204,6 +3204,63 @@
       "optimizer_policy": "fresh_low_waste_then_cost",
       "options": [
         {
+          "sku_code": "aldi-ashfields-beef-mince-5-fat-500g",
+          "pack_quantity": 500,
+          "pack_unit": "g",
+          "pack_label": "500g",
+          "shop": "Aldi",
+          "pack_cost_gbp": 5.19,
+          "price_gbp": 5.19,
+          "source_url": "https://www.aldi.co.uk/product/ashfields-british-lean-beef-steak-mince-5-fat-000000000000575278",
+          "checked_at": "2026-07-09",
+          "research_status": "confirmed_current_product",
+          "source_type": "official_retailer_product_page",
+          "source_title": "British Lean Beef Steak Mince 5% Fat",
+          "search_query": "site:aldi.co.uk/product Ashfields British Lean Beef Steak Mince 5% Fat 500g Aldi",
+          "searched_at_uk": "2026-07-09T15:17:42+01:00",
+          "source_opened_at_uk": "2026-07-09T15:17:42+01:00",
+          "checked_at_uk": "2026-07-09T15:17:42+01:00",
+          "price_checked_at_uk": "2026-07-09T15:17:42+01:00",
+          "pack_size_checked_at_uk": "2026-07-09T15:17:42+01:00",
+          "signed_off_at_uk": "2026-07-09T15:17:42+01:00",
+          "evidence_cache_path": "V4/app/data/sku-research-evidence/aldi-ashfields-beef-mince-5-fat-500g.md",
+          "data_status": "confirmed_current_product",
+          "active": true,
+          "signed_off_by": "codex-v4-beef-mince-500g-sku-repair",
+          "v4_signoff_blocker": "",
+          "product_name": "British Lean Beef Steak Mince 5% Fat",
+          "brand": "Ashfields",
+          "price_status": "current_retailer_price",
+          "unit_price": "GBP 10.38/1 KG",
+          "image_url": "https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/3b346ca5-f008-4bf5-b0eb-04775236f01b/British%20Lean%20Beef%20Steak%20Mince%205%25%20Fat",
+          "image_source_url": "https://www.aldi.co.uk/product/ashfields-british-lean-beef-steak-mince-5-fat-000000000000575278",
+          "image_checked_at_uk": "2026-07-09T15:17:42+01:00",
+          "nutrition_per_100g": {
+            "energy_kcal": 129,
+            "protein_g": 20.3,
+            "fat_g": 4.5,
+            "saturates_g": 1.9,
+            "carbs_g": 1.8,
+            "sugars_g": 0,
+            "fibre_g": 0,
+            "salt_g": 0.26
+          },
+          "nutrition_checked_at_uk": "2026-07-09T15:17:42+01:00",
+          "nutrition_missing_fields": [],
+          "nutrition_source_type": "exact_name_third_party_product_database_current_product_no_label",
+          "nutrition_label_verified": false,
+          "nutrition_source_name": "5% Fat Lean Beef Steak Mince by Aldi",
+          "nutrition_basis": "per_100g_as_sold",
+          "nutrition_source_url": "./data/sku-nutrition-evidence/aldi-ashfields-beef-mince-5-fat-500g.md",
+          "nutrition_binding_status": "source_verified",
+          "nutrition_confidence_status": "source_verified",
+          "nutrition_notes": "2026-07-09 beef-mince-500g repair: official Aldi product page confirms the 500g Ashfields British Lean Beef Steak Mince 5% Fat pack at GBP 5.19. Nutrition uses the same signed exact-name third-party beef mince basis as the active 750g option because the official Aldi page proves product and pack but does not publish a packet nutrition table.",
+          "source_notes": "2026-07-09 beef-mince-500g repair: official Aldi product page confirms the 500g Ashfields British Lean Beef Steak Mince 5% Fat pack at GBP 5.19. Nutrition uses the same signed exact-name third-party beef mince basis as the active 750g option because the official Aldi page proves product and pack but does not publish a packet nutrition table.",
+          "notes": "2026-07-09 beef-mince-500g repair: official Aldi product page confirms the 500g Ashfields British Lean Beef Steak Mince 5% Fat pack at GBP 5.19. Nutrition uses the same signed exact-name third-party beef mince basis as the active 750g option because the official Aldi page proves product and pack but does not publish a packet nutrition table.",
+          "last_data_cleanup_batch": "20260709-beef-mince-500g-sku-repair",
+          "last_data_cleanup_at_uk": "2026-07-09T15:17:42+01:00"
+        },
+        {
           "sku_code": "aldi-ashfields-beef-mince-5-fat-750g",
           "pack_quantity": 750,
           "pack_unit": "g",
@@ -3263,12 +3320,33 @@
       "after_open_days": "",
       "allow_half_pack_use": true,
       "portion_interval": {
-        "amount": 750,
+        "amount": 125,
         "unit": "g"
       },
       "pack_fit_policy": "protein_small_flex",
       "flex_policy": "small_protein_flex",
-      "risk_priority": "high"
+      "risk_priority": "high",
+      "pack_clean_policy": {
+        "mode": "protein_mince_jigsaw",
+        "reason_label": "Use the 500g or 750g mince pack that closes the beef plan with least waste.",
+        "preferred_consumption_targets": [
+          375,
+          500,
+          750,
+          1000,
+          1125,
+          1500,
+          2000,
+          2250
+        ],
+        "clean_leftover_amounts": [
+          0
+        ],
+        "awkward_remainder_min_amount": 125,
+        "minimum_use_if_purchased": 375,
+        "score_weight": 3
+      },
+      "stock_rule_note": "Aldi sells 500g and 750g lean beef mince. Use the pack-size jigsaw before creating expensive beef leftovers."
     },
     {
       "family_id": "ING-V1-BRITISH-LEAN-TURKEY-MINCE-7-PERCENT-FAT",
@@ -15528,7 +15606,7 @@
   "last_current_web_source_batch_at_uk": "2026-07-04T04:55:00+01:00",
   "last_pack_option_image_sync_at_uk": "2026-07-04T05:05:00+01:00",
   "latest_batch": "V4-RECIPE-SKU-FAMILY-REPAIR-20260706",
-  "last_updated_at_uk": "2026-07-06T16:35:00+01:00",
+  "last_updated_at_uk": "2026-07-09T15:17:42+01:00",
   "last_exact_external_packet_label_signoff_batch_at_uk": "2026-07-04T03:40:39+01:00",
   "last_exact_external_packet_label_signoff_batch_count": 1,
   "last_source_verified_governed_equivalent_signoff_batch_at_uk": "2026-07-04T05:44:00+01:00",
@@ -15558,5 +15636,6 @@
     "sku_recipe_pack_shape_repair_at_uk": "2026-07-08T21:04:12+01:00",
     "sku_recipe_pack_shape_repair_change_count": 17,
     "shopping_sarah_sku_repair_at_uk": "2026-07-08T23:06:05+01:00"
-  }
+  },
+  "last_beef_mince_500g_option_at_uk": "2026-07-09T15:17:42+01:00"
 }
