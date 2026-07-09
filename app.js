@@ -149,6 +149,8 @@ const state = {
   plannerGapPacketIndex: 0,
   plannerGapPacketNotice: "",
   plannerGapPacketFallbackOpen: false,
+  plannerDiagnosisCopyNotice: "",
+  plannerDiagnosisCopyFallbackOpen: false,
   plannerLowWasteNotice: "",
   plannerBuildProgress: null,
   plannerRouteBuildSeed: "",
@@ -182,6 +184,7 @@ const state = {
   weekInventoryDraft: loadLocalJson(WEEK_INVENTORY_DRAFT_KEY, null),
   plannerInventoryDrawerOpen: false,
   shoppingTripView: "",
+  shoppingCopyNotice: "",
   selectedProfile: "Luke",
   selectedMealType: "all",
   profileSearch: "",
@@ -3971,6 +3974,169 @@ function shoppingWeekSupportPacket(model) {
       : "- No pack-fit receipt for this week.",
   ];
   return lines.join("\n");
+}
+
+function plannerDiagnosisPacketText(weekStartValue = plannerActiveWeekStartKey()) {
+  const weekStart = plannerNormalizeWeekStartKey(weekStartValue || plannerActiveWeekStartKey());
+  const model = buildShoppingWeekModel(weekStart);
+  const basePacket = shoppingWeekSupportPacket(model)
+    .replace(/^# V4 week support packet\s*/, "")
+    .trim();
+  return [
+    `# V4 planner diagnosis packet`,
+    ``,
+    `Generated: ${new Date().toISOString()}`,
+    `Week: ${model.week_range} (${weekStart})`,
+    `Planner source: ${model.source_label} / ${model.status_label}`,
+    `Readiness: ${model.plan_readiness?.is_complete ? "complete" : plannerWeekReadinessDetail(model.plan_readiness)}`,
+    ``,
+    `## Overview`,
+    ...plannerDiagnosisOverviewLines(model),
+    ``,
+    `## Schedule Diagnosis`,
+    ...plannerDiagnosisScheduleLines(model.week_start),
+    ``,
+    `## Route And Variant`,
+    ...plannerDiagnosisRouteLines(model.week_start),
+    ``,
+    basePacket,
+    ``,
+    `## Adjustment Audit Details`,
+    ...plannerDiagnosisAdjustmentAuditLines(model.week_start),
+  ].filter((line) => line !== null && line !== undefined).join("\n");
+}
+
+function plannerDiagnosisOverviewLines(model) {
+  const summary = shoppingWeekSavingsWasteSummary(model.week_start, model);
+  const carryForwardWaste = plannerCarryForwardWasteSummary(model.week_start);
+  const receipt = weekPackFitReceiptForWeek(model.week_start) || state.weekPackFitReceipt || null;
+  const receiptAdjustments = Array.isArray(receipt?.adjustments) ? receipt.adjustments.length : 0;
+  const rejectedAdjustments = Array.isArray(receipt?.rejected_adjustments) ? receipt.rejected_adjustments.length : 0;
+  return [
+    `- Shop spend: ${money(summary.shop_spend_gbp || 0)}`,
+    `- Food used value: ${money(summary.food_used_gbp || 0)}`,
+    `- Known stock saving: ${money(summary.known_stock_saving_gbp || 0)}`,
+    `- Awkward pack rows: ${number(summary.awkward_pack_count || 0)} (${money(summary.awkward_pack_risk_gbp || 0)} estimated pack value at risk)`,
+    `- Carry-forward expected waste: ${number(carryForwardWaste.row_count || 0)} row${Number(carryForwardWaste.row_count || 0) === 1 ? "" : "s"} (${money(carryForwardWaste.total_gbp || 0)})`,
+    `- Recipe quantity adjustments: ${number(receiptAdjustments)} accepted, ${number(rejectedAdjustments)} rejected`,
+    `- Shopping windows: ${shoppingWindowPlanActiveWindows(model.shopping_window_plan).length} active`,
+  ];
+}
+
+function plannerDiagnosisScheduleLines(weekStartValue = plannerActiveWeekStartKey()) {
+  const source = shoppingPlannerSourceForWeek(weekStartValue);
+  const slots = (source.slot_records || [])
+    .filter((slot) => slot.slot_status !== "not_required" || slot.recipe_id || slot.required)
+    .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.slot_id || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.slot_id || ""}`));
+  if (!slots.length) return ["- No planner slot records found."];
+  return slots.map((slot) => plannerDiagnosisScheduleLine(slot));
+}
+
+function plannerDiagnosisScheduleLine(slot) {
+  const recipe = slot.recipe_id ? shoppingRecipeById(slot.recipe_id) : null;
+  const recipeLabel = recipe?.short_title || recipe?.title || slot.recipe_id || "";
+  const status = recipeLabel
+    ? recipeLabel
+    : slot.slot_status === "planner_recipe" && slot.required
+      ? "MISSING REQUIRED"
+      : plannerSlotModeNote(slot.slot_status);
+  const people = Array.isArray(slot.people) && slot.people.length ? ` for ${slot.people.join(", ")}` : "";
+  const hidden = slot.hidden_shopping_slot ? " (following Sunday shopping horizon)" : "";
+  const required = slot.required ? "required" : "optional";
+  return `- ${slot.date || ""} ${slot.time || ""} ${slot.title || slot.slot_id || "Meal"}${people}: ${status} [${required}; ${slot.slot_status || "planner_recipe"}]${hidden}`;
+}
+
+function plannerDiagnosisRouteLines(weekStartValue = plannerActiveWeekStartKey()) {
+  const weekStart = plannerNormalizeWeekStartKey(weekStartValue || plannerActiveWeekStartKey());
+  const activeWeek = plannerActiveWeekStartKey();
+  const cache = normalizePlannerOptionsCache(
+    state.plannerOptionsCacheStore?.weeks?.[weekStart]
+      || (weekStart === activeWeek ? state.plannerOptionsCache : null)
+  );
+  const review = normalizePlannerReviewDraft(
+    state.plannerReviewDraftStore?.weeks?.[weekStart]
+      || (weekStart === activeWeek ? state.plannerReviewDraft : null)
+  );
+  const reviewSelection = {
+    route_selection_mode: review.route_selection_mode,
+    route_seed: review.route_seed,
+    selected_route_key: review.selected_route_key,
+    selected_meaningful_signature: review.selected_meaningful_signature,
+    eligible_variant_count: review.eligible_variant_count,
+    selected_variant_rank: review.selected_variant_rank,
+    best_route_score: review.best_route_score,
+    selected_route_score: review.selected_route_score,
+  };
+  const selection = plannerNormalizeRouteSelection({
+    ...reviewSelection,
+    ...(cache.route_selection || {}),
+  });
+  const score = normalizePlannerWeekScore(cache.week_score);
+  const metrics = score.metrics || cache.week_efficiency || {};
+  const lines = [
+    `- Mode: ${selection.route_selection_mode || "not saved"}`,
+    `- Seed: ${selection.route_seed || "not saved"}`,
+    `- Selected variant: ${selection.selected_variant_rank || 0} of ${selection.eligible_variant_count || 0} eligible routes`,
+    `- Meaningful route families: ${selection.meaningful_variant_count || review.route_generation_history?.length || 0}`,
+    `- Random candidate pool: ${selection.random_candidate_count || 0}`,
+    `- Leaderboard routes: ${selection.leaderboard_route_count || 0}; ineligible routes: ${selection.ineligible_route_count || 0}`,
+    `- Selected score: ${selection.selected_route_score || score.score || 0}/100; best score: ${selection.best_route_score || 0}/100`,
+    `- Selected route key: ${selection.selected_route_key || "not saved"}`,
+    `- Selected meaningful signature: ${selection.selected_meaningful_signature || "not saved"}`,
+    `- Selected route gaps: ${number(selection.selected_route_gap_days || metrics.gap_days || 0)} gap day${Number(selection.selected_route_gap_days || metrics.gap_days || 0) === 1 ? "" : "s"}, ${number(selection.selected_route_missing_required_recipe_slot_count || metrics.missing_required_recipe_slot_count || 0)} missing required slot${Number(selection.selected_route_missing_required_recipe_slot_count || metrics.missing_required_recipe_slot_count || 0) === 1 ? "" : "s"}`,
+    `- Dinner hard warnings: ${number(selection.selected_route_dinner_fatigue_hard_count || metrics.dinner_fatigue_hard_count || 0)}`,
+  ];
+  const reasonCounts = Object.entries(selection.ineligible_reason_counts || {})
+    .filter(([, value]) => Number(value || 0) > 0)
+    .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0))
+    .slice(0, 8);
+  if (reasonCounts.length) {
+    lines.push(`- Ineligible route reasons: ${reasonCounts.map(([key, value]) => `${key} ${number(value)}`).join(", ")}`);
+  }
+  if (score.reasons?.length) {
+    lines.push(`- Score reasons: ${score.reasons.join("; ")}`);
+  }
+  return lines;
+}
+
+function plannerDiagnosisAdjustmentAuditLines(weekStartValue = plannerActiveWeekStartKey()) {
+  const receipt = weekPackFitReceiptForWeek(weekStartValue) || state.weekPackFitReceipt || null;
+  if (!receipt?.week_id) return ["- No pack-fit receipt for this week."];
+  const audit = shoppingPackFitAuditModel(receipt);
+  const rows = Array.isArray(audit.rows) ? audit.rows : [];
+  const rejected = Array.isArray(audit.rejected) ? audit.rejected : [];
+  const leftovers = Array.isArray(audit.leftovers) ? audit.leftovers : [];
+  const lines = [
+    `- Receipt: ${receipt.week_id} (${receipt.status || "draft"})`,
+    `- Accepted adjustments: ${number(rows.length)}`,
+    `- Rejected adjustments: ${number(rejected.length)}`,
+    `- Leftover rows: ${number(leftovers.length)}`,
+  ];
+  if (rows.length) {
+    lines.push(``, `### Accepted Adjustments`);
+    rows.slice(0, 20).forEach((row) => {
+      lines.push(`- ${row.ingredient || row.family_id || "Ingredient"} in ${row.recipe_id || "recipe"}: ${formatPackFitChange(row)}; ${row.why}; ${row.pack_result}`);
+    });
+    if (rows.length > 20) lines.push(`- ${number(rows.length - 20)} more accepted adjustment${rows.length - 20 === 1 ? "" : "s"} not shown.`);
+  }
+  if (rejected.length) {
+    lines.push(``, `### Rejected Adjustments`);
+    rejected.slice(0, 20).forEach((item) => {
+      lines.push(`- ${item.ingredient || item.family_id || "Ingredient"} in ${item.recipe_id || "recipe"}: ${item.reason || "No reason saved"}`);
+    });
+    if (rejected.length > 20) lines.push(`- ${number(rejected.length - 20)} more rejected adjustment${rejected.length - 20 === 1 ? "" : "s"} not shown.`);
+  }
+  if (leftovers.length) {
+    lines.push(``, `### Leftovers Created`);
+    leftovers.slice(0, 30).forEach((item) => {
+      const amount = shoppingAmountLabel(item.leftover_amount, item.unit || "");
+      const useBy = item.use_by_date ? `, use by ${item.use_by_date}` : "";
+      const purchase = item.purchased_at || item.purchase_at ? `, bought ${item.purchased_at || item.purchase_at}` : "";
+      lines.push(`- ${item.item_name || item.family_id || item.sku_code || "Leftover"}: ${amount}${useBy}${purchase}`);
+    });
+    if (leftovers.length > 30) lines.push(`- ${number(leftovers.length - 30)} more leftover row${leftovers.length - 30 === 1 ? "" : "s"} not shown.`);
+  }
+  return lines;
 }
 
 function shoppingIncompletePlanWarning(model) {
@@ -10310,7 +10476,9 @@ function renderPlanner() {
         <p>Choose a week, then plan the visible days. Past meal times stay frozen.</p>
       </div>
       <div class="topbar-actions">
+        <button class="outline-action" type="button" data-planner-copy-diagnosis>Copy diagnosis</button>
         <button class="outline-action" type="button" data-planner-open-shopping>Open shopping</button>
+        ${plannerDiagnosisCopyStatus()}
       </div>
     </section>
 
@@ -10332,6 +10500,7 @@ function renderPlanner() {
         <button class="planner-command-button" type="button" data-reset-planner ${plannerCanEditActiveWeek() ? "" : "disabled"}>Reset week</button>
       </div>
     </section>
+    ${plannerDiagnosisCopyFallback()}
     ${plannerWeekSignalBar(optionsState)}
     <section class="planner-clean-layout" aria-label="Planner board">
       ${plannerSelectedEventPanel(selectedSlot)}
@@ -10359,6 +10528,27 @@ function renderPlanner() {
   `;
   bindRouteLinks();
   bindPlannerEvents();
+}
+
+function plannerDiagnosisCopyStatus() {
+  if (!state.plannerDiagnosisCopyNotice) return "";
+  return `<span class="planner-diagnosis-copy-status">${escapeHtml(state.plannerDiagnosisCopyNotice)}</span>`;
+}
+
+function plannerDiagnosisCopyFallback() {
+  if (!state.plannerDiagnosisCopyFallbackOpen) return "";
+  return `
+    <details class="planner-diagnosis-fallback" open>
+      <summary>
+        <span>Diagnosis copy fallback</span>
+        <strong>Press Ctrl+C if the browser blocked copying</strong>
+      </summary>
+      <label class="shopping-copy-fallback">
+        <span>Diagnosis packet</span>
+        <textarea readonly data-planner-diagnosis-textarea>${escapeHtml(plannerDiagnosisPacketText(plannerActiveWeekStartKey()))}</textarea>
+      </label>
+    </details>
+  `;
 }
 
 function plannerWeekSignalBar(optionsState = plannerOptionsState()) {
@@ -15395,6 +15585,24 @@ function bindPlannerEvents() {
     state.shoppingWeekStart = plannerActiveWeekStartKey();
     saveLocalJson(SHOPPING_ACTIVE_WEEK_KEY, state.shoppingWeekStart);
     setHash("#/shopping");
+  });
+
+  app.querySelector("[data-planner-copy-diagnosis]")?.addEventListener("click", () => {
+    const packet = plannerDiagnosisPacketText(plannerActiveWeekStartKey());
+    copyText(packet)
+      .then(() => {
+        state.plannerDiagnosisCopyNotice = "Diagnosis copied.";
+        state.plannerDiagnosisCopyFallbackOpen = false;
+        renderPlanner();
+      })
+      .catch(() => {
+        state.plannerDiagnosisCopyNotice = "Copy blocked.";
+        state.plannerDiagnosisCopyFallbackOpen = true;
+        renderPlanner();
+        const textarea = app.querySelector("[data-planner-diagnosis-textarea]");
+        textarea?.focus();
+        textarea?.select();
+      });
   });
 
   app.querySelectorAll("[data-planner-open-inventory]").forEach((button) => {

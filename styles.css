@@ -3762,6 +3762,42 @@ button.shopping-product-thumb:hover {
   font: 850 0.82rem/1.35 var(--font);
 }
 
+.planner-diagnosis-copy-status {
+  color: var(--green-deep);
+  font-size: 0.8rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.planner-diagnosis-fallback {
+  border: 2px solid #ffd39a;
+  border-radius: 14px;
+  background: #fff8e8;
+  box-shadow: 0 3px 0 #ead7b5;
+  padding: 0;
+}
+
+.planner-diagnosis-fallback summary {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.planner-diagnosis-fallback summary span,
+.planner-diagnosis-fallback summary strong {
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.planner-diagnosis-fallback .shopping-copy-fallback {
+  border-top: 2px solid #f1d7aa;
+  padding: 12px;
+}
+
 .profile-layout {
   display: grid;
   grid-template-columns: 1fr;
